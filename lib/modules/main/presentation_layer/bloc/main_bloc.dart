@@ -98,6 +98,9 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   /// JOB CARD VARIABLES
   List<JobCard> jobCards = [];
 
+  /// bool is fetching
+  bool isFetching = false;
+
   static MainBloc get(BuildContext context) =>
       BlocProvider.of<MainBloc>(context);
 
@@ -110,8 +113,9 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           sparesC.add(event.spareCModel!);
         }
         event.amcFormModel.sparesC = sparesC;
-        event.amcFormModel.signature =
-            await encodePhoto(photo: signaturePhoto!);
+        event.amcFormModel.signature = await encodePhoto(
+          photo: signaturePhoto!,
+        );
         String download = await AmcPdf.createPdf(
           amcFormModel: event.amcFormModel,
           flatNumber: event.jobCard.flatNumber,
@@ -119,17 +123,16 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         final bytes = File(download).readAsBytesSync();
         String encodedFile = base64Encode(bytes);
         event.amcFormModel.download = encodedFile;
-        var result = await AmcFormReportUseCase(sl())
-            .post(amcFormModel: event.amcFormModel, id: event.id);
+        var result = await AmcFormReportUseCase(
+          sl(),
+        ).post(amcFormModel: event.amcFormModel, id: event.id);
         result.fold((l) {}, (r) async {
           if (r) {
             signaturePhoto = null;
             tenantSignature = null;
             sparesC.clear();
             emit(const SubmitAmcReportSuccessfullyState());
-            add(GetJobCardEvent(
-              context: event.context,
-            ));
+            add(GetJobCardEvent(context: event.context));
           }
         });
       } else if (event is SelectAcTypeEvent) {
@@ -162,55 +165,64 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
         emit(const AddSparesBuilderToListState());
       } else if (event is RemoveFromSpareListEvent) {
-        SpareCModel spareCModel =
-            SpareCModel(quantity: event.quantity, spareName: event.spareName);
+        SpareCModel spareCModel = SpareCModel(
+          quantity: event.quantity,
+          spareName: event.spareName,
+        );
         sparesC.remove(spareCModel);
         emit(const AddSparesBuilderToListState());
       }
-
       /// FAULT EVENTS
       else if (event is SelectSubEvent) {
         emit(SelectSubState(sub: event.sub));
       } else if (event is GetFaultEvent) {
         emit(const GetFaultLoadingState());
-        var result = await GetFaultUseCase(sl())
-            .get(isComplaint: event.isComplaint, jobCardId: event.jobCard.id);
-        result.fold((l) {
-          emit(const GetFaultErrorState());
-        }, (r) {
-          getFaultModels = r;
-          add(const CheckIsAcBeforeEvent(
-            isAcBefore: true,
-          ));
-          add(NavComplaintDetailsScreenEvent(
-              context: event.context, jobCard: event.jobCard));
-          emit(GetFaultSuccessfullyState(getFaultModels));
-        });
+        var result = await GetFaultUseCase(
+          sl(),
+        ).get(isComplaint: event.isComplaint, jobCardId: event.jobCard.id);
+        result.fold(
+          (l) {
+            emit(const GetFaultErrorState());
+          },
+          (r) {
+            getFaultModels = r;
+            add(const CheckIsAcBeforeEvent(isAcBefore: true));
+            add(
+              NavComplaintDetailsScreenEvent(
+                context: event.context,
+                jobCard: event.jobCard,
+              ),
+            );
+            emit(GetFaultSuccessfullyState(getFaultModels));
+          },
+        );
       } else if (event is CheckIsAcBeforeEvent) {
         emit(CheckIsAcBeforeState(event.isAcBefore));
       } else if (event is NavComplaintDetailsScreenEvent) {
-        event.context.push(ComplaintDetailsScreen(
-          jobCard: event.jobCard,
-        ));
+        event.context.push(ComplaintDetailsScreen(jobCard: event.jobCard));
       } else if (event is GetProductsEvent) {
         var result = await GetProductsUseCase(sl()).get();
-        result.fold((l) {
-          emit(const GetProductsErrorState());
-        }, (r) {
-          products = r;
-          emit(const GetProductsState());
-        });
+        result.fold(
+          (l) {
+            emit(const GetProductsErrorState());
+          },
+          (r) {
+            products = r;
+            emit(const GetProductsState());
+          },
+        );
       } else if (event is AddServiceTypeBuilderToListEvent) {
         emit(AddServiceTypeToListState(event.serviceTypeModel));
       } else if (event is SelectServiceTypeEvent) {
         event.serviceTypeId = products
-            .firstWhere(
-              (product) => product.serviceName == event.serviceType,
-            )
+            .firstWhere((product) => product.serviceName == event.serviceType)
             .id;
-        emit(SelectServiceTypeState(
+        emit(
+          SelectServiceTypeState(
             serviceType: event.serviceType,
-            serviceTypeId: event.serviceTypeId!));
+            serviceTypeId: event.serviceTypeId!,
+          ),
+        );
       } else if (event is RemoveFromServiceTypeListEvent) {
         emit(RemoveFromServiceTypeListState(event.serviceType));
         // emit(RemoveFromServiceTypeListState2(event.serviceType));
@@ -219,39 +231,49 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       } else if (event is SaveFaultDataEvent) {
         emit(SaveFaultDataLoadingState());
         await _addFaultForm(event.faultFormModel);
-        var result = await SaveFaultDataUseCase(sl())
-            .save(formModel: event.faultFormModel, id: event.jobCard.id);
-        result.fold((l) {
-          emit(SaveFaultDataErrorState(l.toString()));
-        }, (r) {
-          event.faultFormModel.faultId = r;
-          _clearDataAfterAddFaultForm();
-          _updateImages(event.faultFormModel);
-          emit(SaveFaultDataSuccessfullyState(event.faultFormModel));
-        });
+        var result = await SaveFaultDataUseCase(
+          sl(),
+        ).save(formModel: event.faultFormModel, id: event.jobCard.id);
+        result.fold(
+          (l) {
+            emit(SaveFaultDataErrorState(l.toString()));
+          },
+          (r) {
+            event.faultFormModel.faultId = r;
+            _clearDataAfterAddFaultForm();
+            _updateImages(event.faultFormModel);
+            emit(SaveFaultDataSuccessfullyState(event.faultFormModel));
+          },
+        );
       } else if (event is UpdateFaultDataEvent) {
         emit(UpdateFaultDataLoadingState());
         await _addFaultForm(event.faultFormModel);
-        var result = await UpdateFaultDataUseCase(sl())
-            .update(formModel: event.faultFormModel, id: event.id);
-        result.fold((l) {
-          emit(UpdateFaultDataErrorState(l.toString()));
-        }, (r) {
-          _clearDataAfterAddFaultForm();
-          _updateImages(event.faultFormModel);
-          emit(UpdateFaultDataSuccessfullyState(event.faultFormModel));
-        });
+        var result = await UpdateFaultDataUseCase(
+          sl(),
+        ).update(formModel: event.faultFormModel, id: event.id);
+        result.fold(
+          (l) {
+            emit(UpdateFaultDataErrorState(l.toString()));
+          },
+          (r) {
+            _clearDataAfterAddFaultForm();
+            _updateImages(event.faultFormModel);
+            emit(UpdateFaultDataSuccessfullyState(event.faultFormModel));
+          },
+        );
       } else if (event is DeleteFaultDataEvent) {
         emit(DeleteFaultDataLoadingState());
-        var result = await DeleteFaultDataUseCase(sl()).delete(
-          formModel: event.faultFormModel,
-          id: event.id,
+        var result = await DeleteFaultDataUseCase(
+          sl(),
+        ).delete(formModel: event.faultFormModel, id: event.id);
+        result.fold(
+          (l) {
+            emit(DeleteFaultDataErrorState(l.toString()));
+          },
+          (r) {
+            emit(DeleteFaultDataSuccessfullyState(event.faultFormModel));
+          },
         );
-        result.fold((l) {
-          emit(DeleteFaultDataErrorState(l.toString()));
-        }, (r) {
-          emit(DeleteFaultDataSuccessfullyState(event.faultFormModel));
-        });
       } else if (event is RemoveMemoryImageEvent) {
         int id = int.parse(getLastSegment(event.image));
         await http.delete(
@@ -261,16 +283,14 @@ class MainBloc extends Bloc<MainEvent, MainState> {
             'Connection': 'keep-alive',
             'Cookie': ConstanceManager.sessionId.toString(),
           },
-          body: jsonEncode(
-            {
-              "params": {
-                "model": ApiModels.attachment,
-                "method": ApiMethods.unlink,
-                "kwargs": {},
-                "args": [id],
-              }
+          body: jsonEncode({
+            "params": {
+              "model": ApiModels.attachment,
+              "method": ApiMethods.unlink,
+              "kwargs": {},
+              "args": [id],
             },
-          ),
+          }),
         );
         if (event.faultFormModel.beforePhotosIds!.contains(id)) {
           event.faultFormModel.beforePhotos!.remove(event.image);
@@ -286,23 +306,27 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       } else if (event is SubmitFaultReportEvent) {
         emit(const SubmitFaultReportLoadingState());
         await _submitFaultForm(getFaultModels.last);
-        String encodedFile =
-            await _downloadFaultPdf(getFaultModels, event.jobCard);
+        String encodedFile = await _downloadFaultPdf(
+          getFaultModels,
+          event.jobCard,
+        );
         getFaultModels.last.faultFile = encodedFile;
-        var result = await FaultReportUseCase(sl())
-            .post(formModel: getFaultModels.last, id: event.jobCard.id);
-        result.fold((l) {
-          emit(const SubmitFaultReportErrorState());
-          errorToast(msg: l.toString());
-        }, (r) {
-          _clearDataAfterAddFaultForm();
-          emit(const SubmitFaultReportSuccessfullyState());
-        });
+        var result = await FaultReportUseCase(
+          sl(),
+        ).post(formModel: getFaultModels.last, id: event.jobCard.id);
+        result.fold(
+          (l) {
+            emit(const SubmitFaultReportErrorState());
+            errorToast(msg: l.toString());
+          },
+          (r) {
+            _clearDataAfterAddFaultForm();
+            emit(const SubmitFaultReportSuccessfullyState());
+          },
+        );
       } else if (event is NavigationToFaultScreenEvent) {
         getFaultModels = [];
-        event.context.push(FaultScreen1(
-          jobCard: event.jobCard,
-        ));
+        event.context.push(FaultScreen1(jobCard: event.jobCard));
         emit(NavigationToFaultScreenState(context: event.context));
       } else if (event is SelectPhotoEvent) {
         ImagePicker picker = ImagePicker();
@@ -328,23 +352,23 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           await picker
               .pickImage(source: ImageSource.gallery, imageQuality: 50)
               .then((value) async {
-            if (value == null) {
-              errorToast(msg: 'please add your signature');
-            } else {
-              signaturePhoto = File(value.path);
-            }
-          });
+                if (value == null) {
+                  errorToast(msg: 'please add your signature');
+                } else {
+                  signaturePhoto = File(value.path);
+                }
+              });
           emit(SelectSignaturePhotoState(signaturePhoto: signaturePhoto!));
         } else if (event.type == "bill") {
           emit(RemoveBillPhotoState(billPhotos: billPhotosFile));
           await picker
               .pickImage(source: ImageSource.camera, imageQuality: 50)
               .then((value) {
-            if (value != null) {
-              billPhotosFile.add(File(value.path));
-              emit(SelectBillPhotoState(billPhotos: billPhotosFile));
-            }
-          });
+                if (value != null) {
+                  billPhotosFile.add(File(value.path));
+                  emit(SelectBillPhotoState(billPhotos: billPhotosFile));
+                }
+              });
         }
       } else if (event is SelectReportTypeEvent) {
         if (event.index == 0) {
@@ -366,10 +390,11 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           emit(SelectSignaturePhotoState(signaturePhoto: tenantSignature!));
         }
       }
-
       /// JOB CARD EVENTS
-
       else if (event is GetJobCardEvent) {
+        print("isFetching: $isFetching");
+        if (isFetching) return; // Prevent concurrent fetches
+        isFetching = true;
         emit(const GetJobCardLoadingState());
 
         jobCards.clear();
@@ -377,8 +402,9 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         const int batchSize = 100;
 
         while (true) {
-          final result = await GetJobCardsUseCase(sl())
-              .call(offset: offset, limit: batchSize);
+          final result = await GetJobCardsUseCase(
+            sl(),
+          ).call(offset: offset, limit: batchSize);
 
           if (result.isLeft()) {
             emit(const GetJobCardErrorState());
@@ -394,8 +420,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
             offset += batchSize;
           }
         }
+        isFetching = false;
       }
-
       // else if (event is GetJobCardEvent) {
       //   emit(const GetJobCardLoadingState());
       //   var result = await GetJobCardsUseCase(sl()).call();
@@ -407,13 +433,17 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       //   });
       // }
       else if (event is GetPDFEvent) {
-        var result = await GetPDFUseCase(sl())
-            .get(jobCardId: event.jobCardId, pdfType: event.pdfType);
-        result.fold((l) {
-          emit(const GetPDFErrorState());
-        }, (r) {
-          emit(GetPDFSuccessfullyState(r));
-        });
+        var result = await GetPDFUseCase(
+          sl(),
+        ).get(jobCardId: event.jobCardId, pdfType: event.pdfType);
+        result.fold(
+          (l) {
+            emit(const GetPDFErrorState());
+          },
+          (r) {
+            emit(GetPDFSuccessfullyState(r));
+          },
+        );
       } else if (event is ClosePDFEvent) {
         emit(const ClosePDFState());
       } else if (event is AcceptJobCardEvent) {
@@ -429,48 +459,58 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       } else if (event is ReviewReportEvent) {
         emit(const ReviewReportLoadingState());
         await _submitFaultForm(getFaultModels.last);
-        await _downloadFaultPdf(getFaultModels, event.jobCard)
-            .then((encodedFile) async {
+        await _downloadFaultPdf(getFaultModels, event.jobCard).then((
+          encodedFile,
+        ) async {
           List<int> pdfBytes = base64Decode(encodedFile);
           String filePath = await savePdfToFile(pdfBytes);
           OpenFile.open(filePath);
         });
         emit(const ReviewReportState());
       }
-
       /// AMC CARD EVENTS
       else if (event is SubmitAmcCardReportEvent) {
         emit(SubmitAmcCardReportLoadingState());
         GetAmcBuildingsDataEvent(id: event.amcCardId);
-        String encodedFile =
-            await _downloadAmcCardPdf(event.amcAcCheckListModels);
+        String encodedFile = await _downloadAmcCardPdf(
+          event.amcAcCheckListModels,
+        );
         for (var element in event.amcAcCheckListModels) {
           element.amcFile = encodedFile;
         }
         var result = await SubmitAmcCardReportUseCase(sl()).call(
-            amcAcCheckListModels: event.amcAcCheckListModels,
-            acTypesValues: acTypesValues[propertyIndex - 1],
-            acTypesIndex: acTypesIndex[propertyIndex - 1],
-            numWetServices: numWetServices[propertyIndex - 1],
-            numDryServices: numDryServices[propertyIndex - 1],
-            flatsNumbers: flatNumbers[propertyIndex - 1],
-            buildingId: buildingId[propertyIndex - 1],
-            amcCardId: event.amcCardId);
-        result.fold((l) {
-          errorToast(msg: l.toString());
-        }, (r) {
-          _clearDataAfterSubmitAmcCard();
-          emit(SubmitAmcCardReportSuccessfullyState());
-        });
+          amcAcCheckListModels: event.amcAcCheckListModels,
+          acTypesValues: acTypesValues[propertyIndex - 1],
+          acTypesIndex: acTypesIndex[propertyIndex - 1],
+          numWetServices: numWetServices[propertyIndex - 1],
+          numDryServices: numDryServices[propertyIndex - 1],
+          flatsNumbers: flatNumbers[propertyIndex - 1],
+          buildingId: buildingId[propertyIndex - 1],
+          amcCardId: event.amcCardId,
+        );
+        result.fold(
+          (l) {
+            errorToast(msg: l.toString());
+          },
+          (r) {
+            _clearDataAfterSubmitAmcCard();
+            emit(SubmitAmcCardReportSuccessfullyState());
+          },
+        );
       } else if (event is SelectAmcPropertyEvent) {
         selectedAmcCardProperty = event.property;
         selectedAmcCardAcType = null;
         propertyIndex = event.propertyIndex;
-        emit(SelectAmcCardPropertyState(
-            property: event.property, propertyIndex: event.propertyIndex));
+        emit(
+          SelectAmcCardPropertyState(
+            property: event.property,
+            propertyIndex: event.propertyIndex,
+          ),
+        );
       } else if (event is SelectTypeOfServiceEvent) {
-        emit(SelectTypeOfServiceState(
-            selectedTypeOfService: event.typeOfService));
+        emit(
+          SelectTypeOfServiceState(selectedTypeOfService: event.typeOfService),
+        );
       } else if (event is GetAmcBuildingsDataEvent) {
         emit(const GetAmcBuildingsDataLoadingState());
         amcCardAcTypes = [[]];
@@ -512,37 +552,40 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         });
       } else if (event is GetAmcBuildingsEvent) {
         allBuildings = [];
-        var result =
-            await GetAmcBuildingsUseCase(sl()).call(amcCardId: event.amcCardId);
-        result.fold((l) {
-          errorToast(msg: 'an error occurred');
-        }, (r) {
-          allBuildings = r;
-          emit(const GetAmcBuildingState());
-        });
+        var result = await GetAmcBuildingsUseCase(
+          sl(),
+        ).call(amcCardId: event.amcCardId);
+        result.fold(
+          (l) {
+            errorToast(msg: 'an error occurred');
+          },
+          (r) {
+            allBuildings = r;
+            emit(const GetAmcBuildingState());
+          },
+        );
         add(GetAmcBuildingsDataEvent(id: event.amcCardId));
       } else if (event is AddSignatureEvent) {
         showDialog(
-            context: event.context,
-            builder: (context) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25.sp),
+          context: event.context,
+          builder: (context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25.sp),
+              ),
+              actionsAlignment: MainAxisAlignment.spaceEvenly,
+              actions: [
+                ListTile(
+                  leading: const Icon(Icons.edit),
+                  onTap: () {
+                    event.context.push(SignatureScreen(type: event.type));
+                  },
+                  title: const Text("Add Signature"),
                 ),
-                actionsAlignment: MainAxisAlignment.spaceEvenly,
-                actions: [
-                  ListTile(
-                    leading: const Icon(Icons.edit),
-                    onTap: () {
-                      event.context.push(SignatureScreen(
-                        type: event.type,
-                      ));
-                    },
-                    title: const Text("Add Signature"),
-                  ),
-                ],
-              );
-            });
+              ],
+            );
+          },
+        );
       } else if (event is SearchJobCardEvent) {
         List<JobCard> jobCardsFiltered = event.jobCards.where((jobCard) {
           return jobCard.id.toString() == event.char ||
@@ -554,9 +597,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     });
   }
 
-  Future<void> _addFaultForm(
-    FaultFormModel faultFormModel,
-  ) async {
+  Future<void> _addFaultForm(FaultFormModel faultFormModel) async {
     List<File> beforePhotos1 = beforePhotosFile;
     List<File> afterPhotos1 = afterPhotosFile;
     List<File> billPhotos1 = billPhotosFile;
@@ -604,7 +645,9 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   }
 
   Future<String> _downloadFaultPdf(
-      List<FaultFormModel> faultFormModels, JobCard jobCard) async {
+    List<FaultFormModel> faultFormModels,
+    JobCard jobCard,
+  ) async {
     List<String> beforePhotosMemory = [];
     List<String> afterPhotosMemory = [];
     for (var faultFormModel in faultFormModels) {
@@ -624,13 +667,16 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       }
     }
     String download = await FaultPdf.pdf(
-        faultFormModels: faultFormModels, jobCardModel: jobCard);
+      faultFormModels: faultFormModels,
+      jobCardModel: jobCard,
+    );
     final bytes = File(download).readAsBytesSync();
     return base64Encode(bytes);
   }
 
   Future<String> _downloadAmcCardPdf(
-      List<AmcAcCheckListModel> amcAcCheckListModels) async {
+    List<AmcAcCheckListModel> amcAcCheckListModels,
+  ) async {
     String download = await AmcCardPdf.createPdf(
       amcAcCheckList: amcAcCheckListModels,
       propertySite: selectedAmcCardProperty!,
@@ -663,20 +709,18 @@ class MainBloc extends Bloc<MainEvent, MainState> {
                 'Connection': 'keep-alive',
                 'Cookie': ConstanceManager.sessionId.toString(),
               },
-              body: jsonEncode(
-                {
-                  "params": {
-                    "model": ApiModels.attachment,
-                    "method": ApiMethods.searchRead,
-                    "kwargs": {},
-                    "args": [
-                      [
-                        ["id", "=", id]
-                      ]
+              body: jsonEncode({
+                "params": {
+                  "model": ApiModels.attachment,
+                  "method": ApiMethods.searchRead,
+                  "kwargs": {},
+                  "args": [
+                    [
+                      ["id", "=", id],
                     ],
-                  }
+                  ],
                 },
-              ),
+              }),
             )
             .timeout(const Duration(minutes: 1));
 
@@ -690,7 +734,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     }
 
     throw Exception(
-        "Failed to convert image to memory after $maxRetries attempts");
+      "Failed to convert image to memory after $maxRetries attempts",
+    );
   }
 
   _clearDataAfterSubmitAmcCard() {
@@ -740,8 +785,9 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     if (faultFormModel.purchaseBillPhotoIds != null) {
       faultFormModel.purchaseBillPhoto = [];
       for (int id in faultFormModel.purchaseBillPhotoIds ?? []) {
-        faultFormModel.purchaseBillPhoto!
-            .add(ApiConsts.imageUrl + id.toString());
+        faultFormModel.purchaseBillPhoto!.add(
+          ApiConsts.imageUrl + id.toString(),
+        );
       }
     }
     if (faultFormModel.afterPhotosIds != null) {

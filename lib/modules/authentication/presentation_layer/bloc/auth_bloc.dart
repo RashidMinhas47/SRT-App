@@ -54,7 +54,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
             event.context.pushAndRemove(const JobCardScreen());
 
-            // 🔁 Fetch profile in background
+            // Fetch profile in background
             unawaited(sl<BaseAuthRemoteDataSource>()
                 .fetchUserProfile(cookie!, userId!));
           } else {

@@ -19,7 +19,7 @@ class ServiceLocator {
     /// auth
     BaseAuthRemoteDataSource baseAuthRemoteDataSource = AuthRemoteDataSource();
     sl.registerLazySingleton<BaseAuthRemoteDataSource>(
-        () => baseAuthRemoteDataSource); // added line
+        () => baseAuthRemoteDataSource); // added line to register the interface
     //sl.registerLazySingleton(() => baseAuthRemoteDataSource);
 
     BaseAuthRepository baseAuthRepository = AuthRepository(sl());
