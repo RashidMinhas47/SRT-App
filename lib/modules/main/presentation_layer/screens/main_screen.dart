@@ -18,6 +18,8 @@ import '../../../../core/utils/color_manager.dart';
 import '../bloc/main_bloc.dart';
 import 'all_amc_card_screen.dart';
 import 'all_job_card_screen.dart';
+import '../../../../features/petty_cash/presentation/pages/petty_cash_form_page.dart';
+import '../../../petty_cash/presentation_layer/screens/petty_cash_form_screen.dart';
 
 class JobCardScreen extends StatelessWidget {
   const JobCardScreen({super.key});
@@ -90,6 +92,46 @@ class JobCardScreen extends StatelessWidget {
                             ),
                             Text(
                               'History',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      InkWell(
+                        onTap: () {
+                          context.push(const PettyCashFormPage());
+                        },
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.receipt_long,
+                              size: 30.sp,
+                            ),
+                            Text(
+                              'Petty Cash',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      InkWell(
+                        onTap: () {
+                          context.push(const PettyCashFormScreen());
+                        },
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.receipt_long,
+                              size: 30.sp,
+                            ),
+                            Text(
+                              'Petty Cash',
                               style: TextStyle(
                                 fontSize: 14.sp,
                               ),
