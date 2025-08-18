@@ -42,26 +42,91 @@ class AuthRemoteDataSource extends BaseAuthRemoteDataSource {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        // Invalid credentials or access denied
+        if (decoded.containsKey('error')) {
+          print("Login failed: ${decoded['error']}");
+          return const Right(false);
+        }
+
+        //  Valid login
         String? rawCookie = response.headers['set-cookie'];
-        int index = rawCookie!.indexOf(';');
+        if (rawCookie == null) {
+          print("No cookie set in headers");
+          return const Right(false);
+        }
+
+        int index = rawCookie.indexOf(';');
         String cookie =
             (index == -1) ? rawCookie : rawCookie.substring(0, index);
 
-        ConstanceManager.sessionId = cookie;
-        ConstanceManager.userId = jsonDecode(response.body)["result"]["uid"];
+        final uid = decoded['result']?['uid'];
+        if (uid == null) {
+          print("UID missing from result");
+          return const Right(false);
+        }
 
-        await CacheHelper.saveData(
-            key: "userId", value: ConstanceManager.userId);
+        ConstanceManager.sessionId = cookie;
+        ConstanceManager.userId = uid;
+
+        await CacheHelper.saveData(key: "userId", value: uid);
         await CacheHelper.saveData(key: "sessionId", value: cookie);
+
+        print("Login success: UID = $uid");
+        return const Right(true);
       } else {
+        print("Non-200 response: ${response.statusCode}");
         return const Right(false);
       }
-
-      return const Right(true);
     } on Exception catch (error) {
+      print("Login exception: $error");
       return Left(error);
     }
   }
+
+// class AuthRemoteDataSource extends BaseAuthRemoteDataSource {
+//   @override
+//   Future<Either<Exception, bool>> loginWithEmailAndPass({
+//     required String email,
+//     required String password,
+//   }) async {
+//     try {
+//       final response = await http
+//           .post(
+//             Uri.parse(ApiConsts.baseUrl + ApiEndPoints.authenticate),
+//             headers: {'Content-Type': 'application/json'},
+//             body: jsonEncode({
+//               "params": {
+//                 "db": ApiConsts.db,
+//                 "login": email,
+//                 "password": password,
+//               }
+//             }),
+//           )
+//           .timeout(const Duration(seconds: 10));
+
+//       if (response.statusCode == 200) {
+//         String? rawCookie = response.headers['set-cookie'];
+//         int index = rawCookie!.indexOf(';');
+//         String cookie =
+//             (index == -1) ? rawCookie : rawCookie.substring(0, index);
+
+//         ConstanceManager.sessionId = cookie;
+//         ConstanceManager.userId = jsonDecode(response.body)["result"]["uid"];
+
+//         await CacheHelper.saveData(
+//             key: "userId", value: ConstanceManager.userId);
+//         await CacheHelper.saveData(key: "sessionId", value: cookie);
+//       } else {
+//         return const Right(false);
+//       }
+
+//       return const Right(true);
+//     } on Exception catch (error) {
+//       return Left(error);
+//     }
+//   }
 
   @override
   Future<void> fetchUserProfile(String cookie, int userId) async {

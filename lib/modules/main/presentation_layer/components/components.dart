@@ -8,7 +8,9 @@ import 'package:bayanat/core/utils/navigation_manager.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/amc_card/amc_card_1.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_file_plus/open_file_plus.dart';
+import 'package:open_file_safe_plus/open_file_safe_plus.dart';
+// import 'package:open_file_plus/open_file_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../../../core/services/dep_injection.dart';
 import '../../../../core/utils/color_manager.dart';
@@ -18,19 +20,20 @@ import '../../domain_layer/entities/job_card.dart';
 import '../bloc/main_bloc.dart';
 import '../screens/amc/amc_1.dart';
 
-defaultFormField(
-        {String? label,
-        IconData? prefix,
-        String? hint,
-        IconButton? suffix,
-        bool? enabled = true,
-        int? maxLength,
-        String? validatorText,
-        TextInputType? type,
-        void Function()? suffixFunction,
-        FormFieldValidator? validator,
-        bool obscureText = false,
-        required TextEditingController controller}) =>
+defaultFormField({
+  String? label,
+  IconData? prefix,
+  String? hint,
+  IconButton? suffix,
+  bool? enabled = true,
+  int? maxLength,
+  String? validatorText,
+  TextInputType? type,
+  void Function()? suffixFunction,
+  FormFieldValidator? validator,
+  bool obscureText = false,
+  required TextEditingController controller,
+}) =>
     TextFormField(
       onTapOutside: (event) {
         FocusManager.instance.primaryFocus?.unfocus();
@@ -43,42 +46,37 @@ defaultFormField(
       maxLines: maxLength,
       style: TextStyle(color: ColorManager.black),
       decoration: InputDecoration(
-          disabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: ColorManager.secondary),
-            borderRadius: BorderRadius.circular(10.sp),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: ColorManager.secondary),
-            borderRadius: BorderRadius.circular(10.sp),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.sp),
-          ),
-          errorStyle: const TextStyle(fontSize: 0.01),
-          fillColor: ColorManager.white,
-          suffixIcon: suffix,
-          labelText: label,
-          helperText: hint,
-          labelStyle: TextStyle(
-            color: ColorManager.secondary,
-          )),
+        disabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: ColorManager.secondary),
+          borderRadius: BorderRadius.circular(10.sp),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: ColorManager.secondary),
+          borderRadius: BorderRadius.circular(10.sp),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.sp),
+        ),
+        errorStyle: const TextStyle(fontSize: 0.01),
+        fillColor: ColorManager.white,
+        suffixIcon: suffix,
+        labelText: label,
+        helperText: hint,
+        labelStyle: TextStyle(color: ColorManager.secondary),
+      ),
       validator: validator,
     );
 
-defaultToast({
-  required String msg,
-}) {
+defaultToast({required String msg}) {
   Fluttertoast.showToast(
     msg: msg,
     backgroundColor: ColorManager.primary,
     textColor: ColorManager.white,
-    toastLength: Toast.LENGTH_SHORT,
+    toastLength: Toast.LENGTH_LONG,
   );
 }
 
-warnToast({
-  required String msg,
-}) {
+warnToast({required String msg}) {
   Fluttertoast.showToast(
     msg: msg,
     backgroundColor: ColorManager.secondary,
@@ -87,9 +85,7 @@ warnToast({
   );
 }
 
-errorToast({
-  required String msg,
-}) {
+errorToast({required String msg}) {
   Fluttertoast.showToast(
     msg: msg,
     backgroundColor: ColorManager.error,
@@ -133,8 +129,11 @@ Widget defaultButton({
       ),
     );
 
-Widget listAmc(
-    {required String text, required MainBloc bloc, required int index}) {
+Widget listAmc({
+  required String text,
+  required MainBloc bloc,
+  required int index,
+}) {
   List<int> list = [];
   return BlocBuilder<MainBloc, MainState>(
     builder: (context, state) {
@@ -150,21 +149,22 @@ Widget listAmc(
           Text(
             "$index)",
             style: TextStyle(
-                color: ColorManager.secondary,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w800),
+              color: ColorManager.secondary,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          SizedBox(
-            width: 3.w,
-          ),
+          SizedBox(width: 3.w),
           Expanded(
-              child: Text(
-            text,
-            style: TextStyle(
+            child: Text(
+              text,
+              style: TextStyle(
                 color: ColorManager.secondary,
                 fontSize: 14.sp,
-                fontWeight: FontWeight.w800),
-          )),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
           InkWell(
             onTap: () {
               bloc.add(AddToListAmcReport(index: index, list: list));
@@ -183,8 +183,11 @@ Widget listAmc(
   );
 }
 
-Widget listAmcCard(
-    {required String text, required MainBloc bloc, required int index}) {
+Widget listAmcCard({
+  required String text,
+  required MainBloc bloc,
+  required int index,
+}) {
   return BlocBuilder<MainBloc, MainState>(
     builder: (context, state) {
       return Padding(
@@ -195,21 +198,22 @@ Widget listAmcCard(
             Text(
               "$index)",
               style: TextStyle(
-                  color: ColorManager.secondary,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w800),
+                color: ColorManager.secondary,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-            SizedBox(
-              width: 3.w,
-            ),
+            SizedBox(width: 3.w),
             Expanded(
-                child: Text(
-              text,
-              style: TextStyle(
+              child: Text(
+                text,
+                style: TextStyle(
                   color: ColorManager.secondary,
                   fontSize: 14.sp,
-                  fontWeight: FontWeight.w800),
-            )),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
             InkWell(
               onTap: () {
                 bloc.add(AddToAmcCardQuestionsListEvent(index: index));
@@ -229,11 +233,14 @@ Widget listAmcCard(
   );
 }
 
-List<TableRow> getHistoryRows(
-    {required List<JobCard> history, required BuildContext context}) {
+//Updated getHistoryRows
+
+List<TableRow> getHistoryRows({
+  required List<JobCard> history,
+  required BuildContext context,
+}) {
   List<TableRow> rows = [];
   MainBloc bloc = sl();
-  String? pdf;
   for (var element in history) {
     if ((element.assignedUserId != -1 &&
             element.assignedUserId == ConstanceManager.userId) ||
@@ -242,172 +249,418 @@ List<TableRow> getHistoryRows(
               element.reportType == "COMPLETION REPORT" &&
               !element.revisit) ||
           element.action == "amc_service" && element.brand != "") {
-        rows.add(TableRow(children: [
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: Text(element.jobCardNumber,
-                textAlign: TextAlign.center,
-                style: TextStyle(
+        rows.add(
+          TableRow(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(5.sp),
+                child: Text(
+                  element.jobCardNumber,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     color: ColorManager.secondary,
                     fontSize: 11.sp,
                     decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500)),
-          ),
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: Text(element.userName,
-                textAlign: TextAlign.center,
-                style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(5.sp),
+                child: Text(
+                  element.userName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     color: ColorManager.secondary,
                     fontSize: 11.sp,
                     decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500)),
-          ),
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: Text(element.customerName[1],
-                textAlign: TextAlign.center,
-                style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(5.sp),
+                child: Text(
+                  element.customerName[1],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     color: ColorManager.secondary,
                     fontSize: 11.sp,
                     decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500)),
-          ),
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: Text(element.description,
-                textAlign: TextAlign.center,
-                style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(5.sp),
+                child: Text(
+                  element.description,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     color: ColorManager.secondary,
                     fontSize: 11.sp,
                     decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500)),
-          ),
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: Text(element.location,
-                textAlign: TextAlign.center,
-                style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(5.sp),
+                child: Text(
+                  element.location,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     color: ColorManager.secondary,
                     fontSize: 11.sp,
                     decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500)),
-          ),
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: InkWell(
-              onTap: () async {
-                bloc.add(const ClosePDFEvent());
-                if ((element.action == "broadcast" &&
-                    element.reportType == "COMPLETION REPORT")) {
-                  bloc.add(
-                      GetPDFEvent(jobCardId: element.id, pdfType: "fault"));
-                }
-                if (element.action == "amc_service") {
-                  bloc.add(GetPDFEvent(jobCardId: element.id, pdfType: "amc"));
-                }
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(5.sp),
+                child: InkWell(
+                  onTap: () async {
+                    bloc.add(const ClosePDFEvent());
 
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return BlocConsumer<MainBloc, MainState>(
-                      listener: (context, state) {
-                        if (state is GetPDFSuccessfullyState) {
-                          pdf = state.pdf; // now pdf is the file path
-                        } else if (state is GetPDFErrorState) {
-                          context.pop();
-                        }
-                        if (state is ClosePDFState) {
-                          pdf = null;
-                        }
-                      },
-                      builder: (context, state) {
-                        return AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25.sp),
-                          ),
-                          title: pdf != null
-                              ? TextButton(
-                                  onPressed: () async {
-                                    context.pop();
-                                    // pdf is already a file path, so open it directly
-                                    OpenFile.open(pdf!);
-                                  },
-                                  child: const Text("Open"),
-                                )
-                              : const Center(
-                                  child: CircularProgressIndicator()),
+                    bool requested = false; // Move this OUTSIDE
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        String? dialogPdf;
+
+                        return StatefulBuilder(
+                          builder: (context, setState) {
+                            if (!requested) {
+                              requested = true;
+                              // Trigger the event only once
+                              if ((element.action == "broadcast" &&
+                                  element.reportType == "COMPLETION REPORT")) {
+                                bloc.add(GetPDFEvent(
+                                  jobCardId: element.id,
+                                  pdfType: "fault",
+                                ));
+                              } else if (element.action == "amc_service") {
+                                bloc.add(GetPDFEvent(
+                                  jobCardId: element.id,
+                                  pdfType: "amc",
+                                ));
+                              }
+                            }
+
+                            return BlocListener<MainBloc, MainState>(
+                              listener: (context, state) {
+                                if (state is GetPDFSuccessfullyState) {
+                                  final path = state.pdf.split('=').first;
+                                  setState(() {
+                                    dialogPdf = path;
+                                  });
+                                } else if (state is GetPDFErrorState) {
+                                  Navigator.pop(context);
+                                  errorToast(msg: "Failed to load PDF.");
+                                } else if (state is ClosePDFState) {
+                                  setState(() {
+                                    dialogPdf = null;
+                                  });
+                                }
+                              },
+                              child: AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.sp),
+                                ),
+                                title: dialogPdf != null
+                                    ? TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          //TODO Defined OpenFilePlus
+                                          OpenFileSafePlus.open(dialogPdf!);
+                                        },
+                                        child: const Text("Open"),
+                                      )
+                                    : const Center(
+                                        child: CircularProgressIndicator()),
+                              ),
+                            );
+                          },
                         );
                       },
                     );
                   },
-                );
-              },
-              // onTap: () async {
-              //   bloc.add(const ClosePDFEvent());
-              //   if ((element.action == "broadcast" &&
-              //       element.reportType == "COMPLETION REPORT")) {
-              //     bloc.add(
-              //         GetPDFEvent(jobCardId: element.id, pdfType: "fault"));
-              //   }
-              //   if (element.action == "amc_service") {
-              //     bloc.add(GetPDFEvent(jobCardId: element.id, pdfType: "amc"));
-              //   }
-              //   showDialog(
-              //     context: context,
-              //     builder: (BuildContext context) {
-              //       return BlocConsumer<MainBloc, MainState>(
-              //         listener: (context, state) {
-              //           if (state is GetPDFSuccessfullyState) {
-              //             pdf = state.pdf;
-              //           } else if (state is GetPDFErrorState) {
-              //             context.pop();
-              //           }
-              //           if (state is ClosePDFState) {
-              //             pdf = null;
-              //           }
-              //         },
-              //         builder: (context, state) {
-              //           return AlertDialog(
-              //             shape: RoundedRectangleBorder(
-              //               borderRadius: BorderRadius.circular(25.sp),
-              //             ),
-              //             title: pdf != null
-              //                 ? TextButton(
-              //                     onPressed: () async {
-              //                       context.pop();
-              //                       List<int> pdfBytes = base64Decode(pdf!);
-              //                       String filePath =
-              //                           await savePdfToFile(pdfBytes);
-              //                       OpenFile.open(filePath);
-              //                     },
-              //                     child: const Text("Open"))
-              //                 : const Center(
-              //                     child: CircularProgressIndicator()),
-              //           );
-              //         },
-              //       );
-              //     },
-              //   );
-              // },
-              child: element.faultFile == "" && element.amcFile == ""
-                  ? Text(
-                      "-",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        color: ColorManager.primary,
-                      ),
-                    )
-                  : const Icon(Icons.picture_as_pdf),
-            ),
+                  // onTap: () async {
+                  //   bloc.add(const ClosePDFEvent());
+                  //   if ((element.action == "broadcast" &&
+                  //       element.reportType == "COMPLETION REPORT")) {
+                  //     bloc.add(
+                  //         GetPDFEvent(jobCardId: element.id, pdfType: "fault"));
+                  //   }
+                  //   if (element.action == "amc_service") {
+                  //     bloc.add(GetPDFEvent(jobCardId: element.id, pdfType: "amc"));
+                  //   }
+                  //   showDialog(
+                  //     context: context,
+                  //     builder: (BuildContext context) {
+                  //       return BlocConsumer<MainBloc, MainState>(
+                  //         listener: (context, state) {
+                  //           if (state is GetPDFSuccessfullyState) {
+                  //             pdf = state.pdf;
+                  //           } else if (state is GetPDFErrorState) {
+                  //             context.pop();
+                  //           }
+                  //           if (state is ClosePDFState) {
+                  //             pdf = null;
+                  //           }
+                  //         },
+                  //         builder: (context, state) {
+                  //           return AlertDialog(
+                  //             shape: RoundedRectangleBorder(
+                  //               borderRadius: BorderRadius.circular(25.sp),
+                  //             ),
+                  //             title: pdf != null
+                  //                 ? TextButton(
+                  //                     onPressed: () async {
+                  //                       context.pop();
+                  //                       List<int> pdfBytes = base64Decode(pdf!);
+                  //                       String filePath =
+                  //                           await savePdfToFile(pdfBytes);
+                  //                       OpenFile.open(filePath);
+                  //                     },
+                  //                     child: const Text("Open"))
+                  //                 : const Center(
+                  //                     child: CircularProgressIndicator()),
+                  //           );
+                  //         },
+                  //       );
+                  //     },
+                  //   );
+                  // },
+                  child: element.faultFile == "" && element.amcFile == ""
+                      ? Text(
+                          "-",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            color: ColorManager.primary,
+                          ),
+                        )
+                      : const Icon(Icons.picture_as_pdf),
+                ),
+              ),
+            ],
           ),
-        ]));
+        );
       }
     }
   }
   return rows;
 }
+
+// List<TableRow> getHistoryRows({
+//   required List<JobCard> history,
+//   required BuildContext context,
+// }) {
+//   List<TableRow> rows = [];
+//   MainBloc bloc = sl();
+//   String? pdf;
+//   for (var element in history) {
+//     if ((element.assignedUserId != -1 &&
+//             element.assignedUserId == ConstanceManager.userId) ||
+//         element.assignedUserId == -1) {
+//       if ((element.action == "broadcast" &&
+//               element.reportType == "COMPLETION REPORT" &&
+//               !element.revisit) ||
+//           element.action == "amc_service" && element.brand != "") {
+//         rows.add(
+//           TableRow(
+//             children: [
+//               Padding(
+//                 padding: EdgeInsets.all(5.sp),
+//                 child: Text(
+//                   element.jobCardNumber,
+//                   textAlign: TextAlign.center,
+//                   style: TextStyle(
+//                     color: ColorManager.secondary,
+//                     fontSize: 11.sp,
+//                     decoration: TextDecoration.underline,
+//                     fontWeight: FontWeight.w500,
+//                   ),
+//                 ),
+//               ),
+//               Padding(
+//                 padding: EdgeInsets.all(5.sp),
+//                 child: Text(
+//                   element.userName,
+//                   textAlign: TextAlign.center,
+//                   style: TextStyle(
+//                     color: ColorManager.secondary,
+//                     fontSize: 11.sp,
+//                     decoration: TextDecoration.underline,
+//                     fontWeight: FontWeight.w500,
+//                   ),
+//                 ),
+//               ),
+//               Padding(
+//                 padding: EdgeInsets.all(5.sp),
+//                 child: Text(
+//                   element.customerName[1],
+//                   textAlign: TextAlign.center,
+//                   style: TextStyle(
+//                     color: ColorManager.secondary,
+//                     fontSize: 11.sp,
+//                     decoration: TextDecoration.underline,
+//                     fontWeight: FontWeight.w500,
+//                   ),
+//                 ),
+//               ),
+//               Padding(
+//                 padding: EdgeInsets.all(5.sp),
+//                 child: Text(
+//                   element.description,
+//                   textAlign: TextAlign.center,
+//                   style: TextStyle(
+//                     color: ColorManager.secondary,
+//                     fontSize: 11.sp,
+//                     decoration: TextDecoration.underline,
+//                     fontWeight: FontWeight.w500,
+//                   ),
+//                 ),
+//               ),
+//               Padding(
+//                 padding: EdgeInsets.all(5.sp),
+//                 child: Text(
+//                   element.location,
+//                   textAlign: TextAlign.center,
+//                   style: TextStyle(
+//                     color: ColorManager.secondary,
+//                     fontSize: 11.sp,
+//                     decoration: TextDecoration.underline,
+//                     fontWeight: FontWeight.w500,
+//                   ),
+//                 ),
+//               ),
+//               Padding(
+//                 padding: EdgeInsets.all(5.sp),
+//                 child: InkWell(
+//                   onTap: () async {
+//                     bloc.add(const ClosePDFEvent());
+//                     if ((element.action == "broadcast" &&
+//                         element.reportType == "COMPLETION REPORT")) {
+//                       bloc.add(
+//                         GetPDFEvent(jobCardId: element.id, pdfType: "fault"),
+//                       );
+//                     }
+//                     if (element.action == "amc_service") {
+//                       bloc.add(
+//                         GetPDFEvent(jobCardId: element.id, pdfType: "amc"),
+//                       );
+//                     }
+
+//                     showDialog(
+//                       context: context,
+//                       builder: (BuildContext context) {
+//                         return BlocConsumer<MainBloc, MainState>(
+//                           listener: (context, state) {
+//                             if (state is GetPDFSuccessfullyState) {
+//                               pdf = state.pdf; // now pdf is the file path
+//                             } else if (state is GetPDFErrorState) {
+//                               context.pop();
+//                             }
+//                             if (state is ClosePDFState) {
+//                               pdf = null;
+//                             }
+//                           },
+//                           builder: (context, state) {
+//                             return AlertDialog(
+//                               shape: RoundedRectangleBorder(
+//                                 borderRadius: BorderRadius.circular(25.sp),
+//                               ),
+//                               title: pdf != null
+//                                   ? TextButton(
+//                                       onPressed: () async {
+//                                         context.pop();
+//                                         // pdf is already a file path, so open it directly
+//                                         await Future.delayed(
+//                                           const Duration(milliseconds: 100),
+//                                         ); // small delay
+//                                         OpenFile.open(pdf!);
+//                                       },
+//                                       child: const Text("Open"),
+//                                     )
+//                                   : const Center(
+//                                       child: CircularProgressIndicator(),
+//                                     ),
+//                             );
+//                           },
+//                         );
+//                       },
+//                     );
+//                   },
+//                   // onTap: () async {
+//                   //   bloc.add(const ClosePDFEvent());
+//                   //   if ((element.action == "broadcast" &&
+//                   //       element.reportType == "COMPLETION REPORT")) {
+//                   //     bloc.add(
+//                   //         GetPDFEvent(jobCardId: element.id, pdfType: "fault"));
+//                   //   }
+//                   //   if (element.action == "amc_service") {
+//                   //     bloc.add(GetPDFEvent(jobCardId: element.id, pdfType: "amc"));
+//                   //   }
+//                   //   showDialog(
+//                   //     context: context,
+//                   //     builder: (BuildContext context) {
+//                   //       return BlocConsumer<MainBloc, MainState>(
+//                   //         listener: (context, state) {
+//                   //           if (state is GetPDFSuccessfullyState) {
+//                   //             pdf = state.pdf;
+//                   //           } else if (state is GetPDFErrorState) {
+//                   //             context.pop();
+//                   //           }
+//                   //           if (state is ClosePDFState) {
+//                   //             pdf = null;
+//                   //           }
+//                   //         },
+//                   //         builder: (context, state) {
+//                   //           return AlertDialog(
+//                   //             shape: RoundedRectangleBorder(
+//                   //               borderRadius: BorderRadius.circular(25.sp),
+//                   //             ),
+//                   //             title: pdf != null
+//                   //                 ? TextButton(
+//                   //                     onPressed: () async {
+//                   //                       context.pop();
+//                   //                       List<int> pdfBytes = base64Decode(pdf!);
+//                   //                       String filePath =
+//                   //                           await savePdfToFile(pdfBytes);
+//                   //                       OpenFile.open(filePath);
+//                   //                     },
+//                   //                     child: const Text("Open"))
+//                   //                 : const Center(
+//                   //                     child: CircularProgressIndicator()),
+//                   //           );
+//                   //         },
+//                   //       );
+//                   //     },
+//                   //   );
+//                   // },
+//                   child: element.faultFile == "" && element.amcFile == ""
+//                       ? Text(
+//                           "-",
+//                           textAlign: TextAlign.center,
+//                           style: TextStyle(
+//                             fontSize: 20.sp,
+//                             color: ColorManager.primary,
+//                           ),
+//                         )
+//                       : const Icon(Icons.picture_as_pdf),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         );
+//       }
+//     }
+//   }
+//   return rows;
+// }
 
 List<TableRow> getSavedFaultRows({
   required List<FaultFormModel> faultForms,
@@ -416,98 +669,109 @@ List<TableRow> getSavedFaultRows({
 }) {
   List<TableRow> rows = [];
   for (var element in faultForms) {
-    rows.add(TableRow(children: [
-      InkWell(
-        onTap: () {
-          print(
-              "faultForms.indexOf(element),   ${faultForms.indexOf(element)}");
-          context.push(FaultAc(
-            // id: id,
-            jobCard: jobCard,
-            faultFormModel: element,
-          ));
-        },
-        child: Padding(
-          padding: EdgeInsets.all(5.sp),
-          child: Text(element.subCategory,
-              textAlign: TextAlign.center,
-              style: TextStyle(
+    rows.add(
+      TableRow(
+        children: [
+          InkWell(
+            onTap: () {
+              print(
+                "faultForms.indexOf(element),   ${faultForms.indexOf(element)}",
+              );
+              context.push(
+                FaultAc(
+                  // id: id,
+                  jobCard: jobCard,
+                  faultFormModel: element,
+                ),
+              );
+            },
+            child: Padding(
+              padding: EdgeInsets.all(5.sp),
+              child: Text(
+                element.subCategory,
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   color: ColorManager.secondary,
                   fontSize: 11.sp,
                   decoration: TextDecoration.underline,
-                  fontWeight: FontWeight.w500)),
-        ),
-      ),
-      InkWell(
-        onTap: () {
-          context.push(FaultAc(
-            jobCard: jobCard,
-            faultFormModel: element,
-          ));
-        },
-        child: Padding(
-          padding: EdgeInsets.all(5.sp),
-          child: Text(element.location,
-              textAlign: TextAlign.center,
-              style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              context.push(FaultAc(jobCard: jobCard, faultFormModel: element));
+            },
+            child: Padding(
+              padding: EdgeInsets.all(5.sp),
+              child: Text(
+                element.location,
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   color: ColorManager.secondary,
                   fontSize: 11.sp,
                   decoration: TextDecoration.underline,
-                  fontWeight: FontWeight.w500)),
-        ),
-      ),
-      InkWell(
-        onTap: () {
-          context.push(FaultAc(
-            jobCard: jobCard,
-            faultFormModel: element,
-          ));
-        },
-        child: Padding(
-          padding: EdgeInsets.all(5.sp),
-          child: Text(element.description,
-              textAlign: TextAlign.center,
-              style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              context.push(FaultAc(jobCard: jobCard, faultFormModel: element));
+            },
+            child: Padding(
+              padding: EdgeInsets.all(5.sp),
+              child: Text(
+                element.description,
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   color: ColorManager.secondary,
                   fontSize: 11.sp,
                   decoration: TextDecoration.underline,
-                  fontWeight: FontWeight.w500)),
-        ),
-      ),
-      InkWell(
-        onTap: () {
-          context.push(FaultAc(
-            jobCard: jobCard,
-            faultFormModel: element,
-          ));
-        },
-        child: Padding(
-          padding: EdgeInsets.all(5.sp),
-          child: Text(
-              element.serviceTypes!
-                  .map(
-                    (e) {
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              context.push(FaultAc(jobCard: jobCard, faultFormModel: element));
+            },
+            child: Padding(
+              padding: EdgeInsets.all(5.sp),
+              child: Text(
+                element.serviceTypes!
+                    .map((e) {
                       return e.serviceTypeName;
-                    },
-                  )
-                  .toList()
-                  .toString(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
+                    })
+                    .toList()
+                    .toString(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   color: ColorManager.secondary,
                   fontSize: 9.sp,
                   decoration: TextDecoration.underline,
-                  fontWeight: FontWeight.w500)),
-        ),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-    ]));
+    );
   }
 
   return rows;
 }
 
-Widget screenCoverBuilder(double height,
-    {String? title, double? width, double? fontSize}) {
+Widget screenCoverBuilder(
+  double height, {
+  String? title,
+  double? width,
+  double? fontSize,
+}) {
   if (title != null && width != null) {
     return ClipPath(
       clipper: CurveClipper(width: width),
@@ -534,9 +798,10 @@ Widget screenCoverBuilder(double height,
             child: Text(
               title,
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: fontSize ?? 25.sp,
-                  color: ColorManager.white),
+                fontWeight: FontWeight.bold,
+                fontSize: fontSize ?? 25.sp,
+                color: ColorManager.white,
+              ),
             ),
           ),
         ],
@@ -565,13 +830,15 @@ Widget jobCardDataItemBuilder({required String title, required String value}) {
   return Stack(
     children: [
       Container(
-        decoration: BoxDecoration(
-          color: ColorManager.secondary,
-        ),
+        decoration: BoxDecoration(color: ColorManager.secondary),
         child: Center(
           child: Padding(
             padding: EdgeInsetsDirectional.only(
-                top: 20.sp, start: 8.sp, end: 8.sp, bottom: 15.sp),
+              top: 20.sp,
+              start: 8.sp,
+              end: 8.sp,
+              bottom: 15.sp,
+            ),
             child: Text(
               value,
               style: TextStyle(fontSize: 13.sp, color: ColorManager.white),
@@ -584,30 +851,25 @@ Widget jobCardDataItemBuilder({required String title, required String value}) {
         child: Container(
           color: ColorManager.white,
           padding: EdgeInsets.all(2.sp),
-          child: Text(
-            title,
-            style: TextStyle(fontSize: 9.sp),
-          ),
+          child: Text(title, style: TextStyle(fontSize: 9.sp)),
         ),
       ),
     ],
   );
 }
 
-Widget dropdownBuilder(
-    {required String? value,
-    required Function(String? value) onChanged,
-    required List<String> items}) {
+Widget dropdownBuilder({
+  required String? value,
+  required Function(String? value) onChanged,
+  required List<String> items,
+}) {
   return DropdownButton<String>(
     isExpanded: true,
     value: value,
     icon: const Icon(Icons.arrow_downward),
     elevation: 16,
     style: TextStyle(color: ColorManager.black),
-    underline: Container(
-      height: 2,
-      color: ColorManager.card,
-    ),
+    underline: Container(height: 2, color: ColorManager.card),
     onChanged: onChanged,
     items: items.map<DropdownMenuItem<String>>((String value) {
       return DropdownMenuItem<String>(
@@ -621,9 +883,11 @@ Widget dropdownBuilder(
               overflow: TextOverflow.ellipsis,
               value.toString(),
               style: TextStyle(
-                  color: ColorManager.black,
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.w600),
+                color: ColorManager.black,
+                fontSize: 15.sp,
+                // fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
         ),
@@ -632,23 +896,31 @@ Widget dropdownBuilder(
   );
 }
 
-Widget searchDropdownBuilder(
-    {required String? value,
-    required String text,
-    required Function(String? value) onChanged,
-    required List<String> items}) {
+Widget searchDropdownBuilder({
+  required String? value,
+  required String text,
+  required Function(String? value) onChanged,
+  required List<String> items,
+}) {
   return DropdownSearch<String>(
-      // items: items,
-      popupProps: PopupProps.menu(showSelectedItems: true, showSearchBox: true),
-      decoratorProps: DropDownDecoratorProps(
-        decoration: InputDecoration(
-            labelText: text,
-            labelStyle: TextStyle(
-              fontSize: 15.sp,
-            )),
+    items: (String filter, LoadProps? _) {
+      if (filter.isEmpty) return items;
+      return items
+          .where((item) => item.toLowerCase().contains(filter.toLowerCase()))
+          .toList();
+    },
+    popupProps:
+        const PopupProps.menu(showSelectedItems: true, showSearchBox: true),
+    decoratorProps: DropDownDecoratorProps(
+      decoration: InputDecoration(
+        labelText: text,
+        labelStyle: TextStyle(fontSize: 15.sp),
       ),
-      onChanged: onChanged,
-      selectedItem: value);
+    ),
+    onChanged: onChanged,
+    selectedItem: value,
+  );
+
   //  DropdownSearch<String>(
   //     popupProps:
   //         const PopupProps.menu(showSelectedItems: true, showSearchBox: true),
@@ -664,8 +936,11 @@ Widget searchDropdownBuilder(
   //     selectedItem: value);
 }
 
-Widget columnText(
-        {required String text, Color? textColor, Color? containerColor}) =>
+Widget columnText({
+  required String text,
+  Color? textColor,
+  Color? containerColor,
+}) =>
     Container(
       padding: EdgeInsets.symmetric(horizontal: 2.sp, vertical: 8.sp),
       color: containerColor ?? ColorManager.secondary,
@@ -677,40 +952,40 @@ Widget columnText(
       ),
     );
 
-Widget backIcon({
-  required BuildContext context,
-  VoidCallback? onPressed,
-}) =>
+Widget backIcon({required BuildContext context, VoidCallback? onPressed}) =>
     Padding(
       padding: EdgeInsetsDirectional.only(top: 10.h, start: 4.w),
       child: Align(
         alignment: Alignment.topLeft,
         child: IconButton(
-            onPressed: onPressed ??
-                () {
-                  context.pop();
-                },
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              size: 25.sp,
-              color: ColorManager.white,
-            )),
+          onPressed: onPressed ??
+              () {
+                context.pop();
+              },
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            size: 25.sp,
+            color: ColorManager.white,
+          ),
+        ),
       ),
     );
 
-Widget signatureButtonBuilder(
-    {required MainBloc bloc,
-    String? text,
-    required String type,
-    required BuildContext context}) {
+Widget signatureButtonBuilder({
+  required MainBloc bloc,
+  String? text,
+  required String type,
+  required BuildContext context,
+}) {
   return defaultButton(
-      borderColor: ColorManager.secondary,
-      textColor: ColorManager.secondary,
-      buttonColor: ColorManager.white,
-      onPressed: () {
-        bloc.add(AddSignatureEvent(context: context, type: type));
-      },
-      text: text ?? "User Signture");
+    borderColor: ColorManager.secondary,
+    textColor: ColorManager.secondary,
+    buttonColor: ColorManager.white,
+    onPressed: () {
+      bloc.add(AddSignatureEvent(context: context, type: type));
+    },
+    text: text ?? "User Signture",
+  );
 }
 
 class CurveClipper extends CustomClipper<Path> {
@@ -724,16 +999,26 @@ class CurveClipper extends CustomClipper<Path> {
     Offset firstStart = Offset(size.width * (width), size.height);
     Offset firstEnd = Offset(size.width * 0.5, size.height);
     Offset secondStart = Offset(size.width * (1 - width), size.height);
-    Offset secondEnd =
-        Offset(size.width * (1 - width), size.height - curveHeight);
+    Offset secondEnd = Offset(
+      size.width * (1 - width),
+      size.height - curveHeight,
+    );
     Path path = Path()
       ..lineTo(0, size.height - curveHeight)
       ..lineTo(size.width * (width), size.height - curveHeight)
       ..quadraticBezierTo(
-          firstStart.dx, firstStart.dy, firstEnd.dx, firstEnd.dy)
+        firstStart.dx,
+        firstStart.dy,
+        firstEnd.dx,
+        firstEnd.dy,
+      )
       ..lineTo(size.width / 2, size.height)
       ..quadraticBezierTo(
-          secondStart.dx, secondStart.dy, secondEnd.dx, secondEnd.dy)
+        secondStart.dx,
+        secondStart.dy,
+        secondEnd.dx,
+        secondEnd.dy,
+      )
       ..lineTo(size.width * (1 - width), size.height - curveHeight)
       ..lineTo(size.width, size.height - curveHeight)
       ..lineTo(size.width, 0);
@@ -744,11 +1029,17 @@ class CurveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-List<JobCard> jobCards({
-  required List<JobCard> jobCards,
-}) {
+List<JobCard> jobCards({required List<JobCard> jobCards}) {
   List<JobCard> list = [];
 
+  // for (JobCard jobCard in jobCards) {
+  //   if (isUserAssigned(jobCard) &&
+  //       (isAmcService(jobCard) ||
+  //           isUserAndBrandMatch(jobCard) ||
+  //           isBroadcastAction(jobCard))) {
+  //     list.add(jobCard);
+  //   }
+  // }
   for (JobCard jobCard in jobCards) {
     if (isUserAssigned(jobCard) &&
         (isAmcService(jobCard) ||
@@ -772,23 +1063,32 @@ bool isAmcService(JobCard jobCard) {
 }
 
 bool isUserAndBrandMatch(JobCard jobCard) {
-  return jobCard.userName == ConstanceManager.name &&
-      jobCard.brand.isEmpty &&
-      (isCompletionOrRevisit(jobCard));
+  return jobCard.userName == ConstanceManager.name && jobCard.brand.isEmpty;
 }
 
-bool isCompletionOrRevisit(JobCard jobCard) {
-  return (jobCard.reportType != "COMPLETION REPORT") ||
-      (jobCard.reportType == "COMPLETION REPORT" && jobCard.revisit);
-}
+// bool isUserAndBrandMatch(JobCard jobCard) {
+//   return jobCard.userName == ConstanceManager.name &&
+//       jobCard.brand.isEmpty &&
+//       (isCompletionOrRevisit(jobCard));
+// }
+
+// bool isCompletionOrRevisit(JobCard jobCard) {
+//   return (jobCard.reportType != "COMPLETION REPORT") ||
+//       (jobCard.reportType == "COMPLETION REPORT" && jobCard.revisit);
+// }
 
 bool isBroadcastAction(JobCard jobCard) {
   return jobCard.action == "broadcast" &&
-      isCompletionOrRevisit(jobCard) &&
-      ((jobCard.userName != ConstanceManager.name &&
-              jobCard.reportType == "FAULT REPORT") ||
-          jobCard.userName.isEmpty);
+      ((jobCard.userName != ConstanceManager.name) || jobCard.userName.isEmpty);
 }
+
+// bool isBroadcastAction(JobCard jobCard) {
+//   return jobCard.action == "broadcast" &&
+//       isCompletionOrRevisit(jobCard) &&
+//       ((jobCard.userName != ConstanceManager.name &&
+//               jobCard.reportType == "FAULT REPORT") ||
+//           jobCard.userName.isEmpty);
+// }
 
 Widget jobCardWidget({
   required JobCard jobCard,
@@ -797,74 +1097,95 @@ Widget jobCardWidget({
 }) {
   return InkWell(
     onTap: () async {
-      String? pdf;
       bloc.add(const ClosePDFEvent());
+
       if (jobCard.action == "amc_service" && jobCard.brand == "") {
         bloc.signaturePhoto = null;
         bloc.tenantSignature = null;
         bloc.sparesC.clear();
-        context.push(AmcScreen1(
-          jobCard: jobCard,
-        ));
-        print("1");
+        context.push(AmcScreen1(jobCard: jobCard));
       } else if ((jobCard.action == "broadcast" &&
               jobCard.startWork &&
               !jobCard.revisit) ||
           (jobCard.action == "broadcast" &&
-              jobCard.reportType == "FAULT REPORT")) {
-        bloc.add(GetPDFEvent(jobCardId: jobCard.id, pdfType: "fault"));
+              jobCard.reportType == "FAULT REPORT") ||
+          (jobCard.action == "broadcast" &&
+              jobCard.reportType == "COMPLETION REPORT")) {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return BlocConsumer<MainBloc, MainState>(
-              listener: (context, state) {
-                if (state is GetPDFSuccessfullyState) {
-                  pdf = state.pdf;
-                } else if (state is GetPDFErrorState) {
-                  errorToast(msg: "Connection closed while receiving data");
-                  context.pop();
-                }
-                if (state is ClosePDFState) {
-                  pdf = null;
-                }
-              },
-              builder: (context, state) {
-                return AlertDialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.sp),
-                  ),
-                  title: pdf != null
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextButton(
-                                onPressed: () async {
-                                  context.pop();
-                                  List<int> pdfBytes = base64Decode(pdf!);
-                                  String filePath =
-                                      await savePdfToFile(pdfBytes);
-                                  OpenFile.open(filePath);
+            String? dialogPdf;
+            bool pdfReady = false;
+
+            return StatefulBuilder(
+              builder: (context, setState) {
+                // Dispatch PDF request AFTER dialog is built
+                Future.delayed(Duration.zero, () {
+                  bloc.add(GetPDFEvent(
+                    jobCardId: jobCard.id,
+                    pdfType: "fault",
+                  ));
+                });
+
+                return BlocListener<MainBloc, MainState>(
+                  listener: (context, state) {
+                    if (state is GetPDFSuccessfullyState) {
+                      final path = state.pdf.split('=').first;
+                      setState(() {
+                        dialogPdf = path;
+                        pdfReady = true;
+                      });
+                    } else if (state is GetPDFErrorState) {
+                      errorToast(msg: "Connection closed while receiving data");
+                      Navigator.pop(context);
+                    } else if (state is ClosePDFState) {
+                      setState(() {
+                        dialogPdf = null;
+                        pdfReady = false;
+                      });
+                    }
+                  },
+                  child: AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25.sp),
+                    ),
+                    title: pdfReady
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  //TODO Defined OpenFilePlus
+
+                                  OpenFileSafePlus.open(dialogPdf!);
                                 },
                                 child: Text(
                                   "Open PDF",
                                   style:
                                       TextStyle(color: ColorManager.secondary),
-                                )),
-                            TextButton(
+                                ),
+                              ),
+                              TextButton(
                                 onPressed: () {
-                                  bloc.add(NavigationToFaultScreenEvent(
-                                    jobCard: jobCard,
-                                    context: context,
-                                  ));
+                                  Navigator.pop(context);
+                                  bloc.add(
+                                    NavigationToFaultScreenEvent(
+                                      jobCard: jobCard,
+                                      context: context,
+                                    ),
+                                  );
                                 },
                                 child: Text(
                                   "Report",
                                   style:
                                       TextStyle(color: ColorManager.secondary),
-                                )),
-                          ],
-                        )
-                      : const Center(child: CircularProgressIndicator()),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Center(child: CircularProgressIndicator()),
+                  ),
                 );
               },
             );
@@ -881,15 +1202,12 @@ Widget jobCardWidget({
         bloc.getFaultModels.clear();
         bloc.signaturePhoto = null;
         bloc.tenantSignature = null;
-        bloc.add(NavigationToFaultScreenEvent(
-          jobCard: jobCard,
-          context: context,
-        ));
-        print("3");
+        bloc.add(
+          NavigationToFaultScreenEvent(jobCard: jobCard, context: context),
+        );
       }
     },
     child: SizedBox(
-      // height: 15.h,
       width: 40.w,
       child: Stack(
         alignment: Alignment.topRight,
@@ -897,42 +1215,42 @@ Widget jobCardWidget({
           Card(
             elevation: 8.sp,
             shape: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.sp),
-                borderSide: BorderSide.none),
+              borderRadius: BorderRadius.circular(10.sp),
+              borderSide: BorderSide.none,
+            ),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.sp),
-                  color: ColorManager.primary),
+                borderRadius: BorderRadius.circular(10.sp),
+                color: ColorManager.primary,
+              ),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    SizedBox(
-                      height: 1.h,
-                    ),
+                    SizedBox(height: 1.h),
                     Container(
                       padding: EdgeInsetsDirectional.symmetric(
-                          horizontal: 5.w, vertical: 2.h),
+                        horizontal: 5.w,
+                        vertical: 2.h,
+                      ),
                       decoration: BoxDecoration(
-                          border: Border.all(),
-                          borderRadius: BorderRadius.circular(10.sp),
-                          color: ColorManager.white),
+                        border: Border.all(),
+                        borderRadius: BorderRadius.circular(10.sp),
+                        color: ColorManager.white,
+                      ),
                       child: Text(
                         jobCard.jobCardNumber,
                         style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                            color: ColorManager.black),
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                          color: ColorManager.black,
+                        ),
                       ),
                     ),
-                    SizedBox(
-                      height: 1.h,
-                    ),
+                    SizedBox(height: 1.h),
                     Padding(
-                      padding: EdgeInsetsDirectional.symmetric(
-                        horizontal: 8.w,
-                      ),
+                      padding: EdgeInsetsDirectional.symmetric(horizontal: 8.w),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -941,42 +1259,37 @@ Widget jobCardWidget({
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w600,
-                                color: ColorManager.white),
-                          ),
-                          if (jobCard.flatNumber != "")
-                            SizedBox(
-                              height: 1.h,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: ColorManager.white,
                             ),
+                          ),
+                          if (jobCard.flatNumber != "") SizedBox(height: 1.h),
                           Text(
                             jobCard.flatNumber,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                fontSize: 9.sp,
-                                fontWeight: FontWeight.w600,
-                                color: ColorManager.white),
-                          ),
-                          if (jobCard.flatNumber != "")
-                            SizedBox(
-                              height: 1.h,
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w600,
+                              color: ColorManager.white,
                             ),
+                          ),
+                          if (jobCard.flatNumber != "") SizedBox(height: 1.h),
                           Text(
                             jobCard.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                fontSize: 9.sp,
-                                fontWeight: FontWeight.w600,
-                                color: ColorManager.white),
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w600,
+                              color: ColorManager.white,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 1.h,
-                    ),
+                    SizedBox(height: 1.h),
                   ],
                 ),
               ),
@@ -987,8 +1300,9 @@ Widget jobCardWidget({
             child: Card(
               elevation: 8.sp,
               shape: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.sp),
-                  borderSide: BorderSide.none),
+                borderRadius: BorderRadius.circular(10.sp),
+                borderSide: BorderSide.none,
+              ),
               child: CircleAvatar(
                 radius: 8.sp,
                 backgroundColor: jobCard.startWork && !jobCard.revisit
@@ -998,17 +1312,248 @@ Widget jobCardWidget({
                         : jobCard.action == "broadcast" &&
                                 jobCard.reportType == "FAULT REPORT"
                             ? Colors.red
-                            : jobCard.userName == ConstanceManager.name
-                                ? Colors.yellow
-                                : ColorManager.white,
+                            : jobCard.action == "broadcast" &&
+                                    jobCard.reportType == "COMPLETION REPORT"
+                                ? Colors.tealAccent
+                                : jobCard.userName == ConstanceManager.name
+                                    ? Colors.yellow
+                                    : ColorManager.white,
               ),
             ),
-          )
+          ),
         ],
       ),
     ),
   );
 }
+// Widget jobCardWidget({
+//   required JobCard jobCard,
+//   required MainBloc bloc,
+//   required BuildContext context,
+// }) {
+//   return InkWell(
+//     onTap: () async {
+//       String? pdf;
+//       print("jobCardWidget Print 1: $pdf");
+//       bloc.add(const ClosePDFEvent());
+//       if (jobCard.action == "amc_service" && jobCard.brand == "") {
+//         print("jobCardWidget Print 2: $pdf");
+//         print("jobCardWidget Print 3: ${jobCard.id}");
+//         bloc.signaturePhoto = null;
+//         bloc.tenantSignature = null;
+//         bloc.sparesC.clear();
+//         context.push(AmcScreen1(jobCard: jobCard));
+//         print("1");
+//       } else if ((jobCard.action == "broadcast" &&
+//               jobCard.startWork &&
+//               !jobCard.revisit) ||
+//           (jobCard.action == "broadcast" &&
+//               jobCard.reportType == "FAULT REPORT")) {
+//         print("jobCardWidget Print 4: $pdf");
+//         print("jobCardWidget Print 5: ${jobCard.id}");
+
+//         bloc.add(GetPDFEvent(jobCardId: jobCard.id, pdfType: "fault"));
+//         showDialog(
+//           context: context,
+//           builder: (BuildContext context) {
+//             return BlocConsumer<MainBloc, MainState>(
+//               listener: (context, state) {
+//                 if (state is GetPDFSuccessfullyState) {
+//                   // pdf = state.pdf;
+//                   pdf = state.pdf.split('=').first;
+//                   print("jobCardWidget Print 6: $pdf");
+//                 } else if (state is GetPDFErrorState) {
+//                   print("jobCardWidget Print 7: $pdf");
+
+//                   errorToast(msg: "Connection closed while receiving data");
+//                   context.pop();
+//                 }
+//                 if (state is ClosePDFState) {
+//                   print("jobCardWidget Print 8: $pdf");
+//                   pdf = null;
+//                 }
+//                 print("jobCardWidget Print 9: $pdf");
+//               },
+//               builder: (context, state) {
+//                 return AlertDialog(
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(25.sp),
+//                   ),
+//                   title: pdf != null
+//                       ? Column(
+//                           mainAxisSize: MainAxisSize.min,
+//                           children: [
+//                             TextButton(
+//                               onPressed: () async {
+//                                 context.pop();
+//                                 // List<int> pdfBytes = base64Decode(pdf!);
+//                                 // String filePath =
+//                                 //     await savePdfToFile(pdfBytes);
+//                                 // OpenFile.open(filePath);
+
+//                                 OpenFile.open(pdf!);
+//                               },
+//                               child: Text(
+//                                 "Open PDF",
+//                                 style: TextStyle(color: ColorManager.secondary),
+//                               ),
+//                             ),
+//                             TextButton(
+//                               onPressed: () {
+//                                 bloc.add(
+//                                   NavigationToFaultScreenEvent(
+//                                     jobCard: jobCard,
+//                                     context: context,
+//                                   ),
+//                                 );
+//                               },
+//                               child: Text(
+//                                 "Report",
+//                                 style: TextStyle(color: ColorManager.secondary),
+//                               ),
+//                             ),
+//                           ],
+//                         )
+//                       : const Center(child: CircularProgressIndicator()),
+//                 );
+//               },
+//             );
+//           },
+//         );
+//       } else if (jobCard.revisit ||
+//           (jobCard.action == "broadcast" &&
+//               jobCard.quotationStatus == "draft") ||
+//           (jobCard.userName == ConstanceManager.name &&
+//               jobCard.reportType == "")) {
+//         bloc.beforePhotosFile.clear();
+//         bloc.afterPhotosFile.clear();
+//         bloc.billPhotosFile.clear();
+//         bloc.getFaultModels.clear();
+//         bloc.signaturePhoto = null;
+//         bloc.tenantSignature = null;
+//         bloc.add(
+//           NavigationToFaultScreenEvent(jobCard: jobCard, context: context),
+//         );
+//         print("3");
+//       }
+//     },
+//     child: SizedBox(
+//       // height: 15.h,
+//       width: 40.w,
+//       child: Stack(
+//         alignment: Alignment.topRight,
+//         children: [
+//           Card(
+//             elevation: 8.sp,
+//             shape: OutlineInputBorder(
+//               borderRadius: BorderRadius.circular(10.sp),
+//               borderSide: BorderSide.none,
+//             ),
+//             child: Container(
+//               width: double.infinity,
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(10.sp),
+//                 color: ColorManager.primary,
+//               ),
+//               child: Center(
+//                 child: Column(
+//                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                   children: [
+//                     SizedBox(height: 1.h),
+//                     Container(
+//                       padding: EdgeInsetsDirectional.symmetric(
+//                         horizontal: 5.w,
+//                         vertical: 2.h,
+//                       ),
+//                       decoration: BoxDecoration(
+//                         border: Border.all(),
+//                         borderRadius: BorderRadius.circular(10.sp),
+//                         color: ColorManager.white,
+//                       ),
+//                       child: Text(
+//                         jobCard.jobCardNumber,
+//                         style: TextStyle(
+//                           fontSize: 15.sp,
+//                           fontWeight: FontWeight.w600,
+//                           color: ColorManager.black,
+//                         ),
+//                       ),
+//                     ),
+//                     SizedBox(height: 1.h),
+//                     Padding(
+//                       padding: EdgeInsetsDirectional.symmetric(horizontal: 8.w),
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Text(
+//                             jobCard.customerName[1],
+//                             maxLines: 1,
+//                             overflow: TextOverflow.ellipsis,
+//                             style: TextStyle(
+//                               fontSize: 12.sp,
+//                               fontWeight: FontWeight.w600,
+//                               color: ColorManager.white,
+//                             ),
+//                           ),
+//                           if (jobCard.flatNumber != "") SizedBox(height: 1.h),
+//                           Text(
+//                             jobCard.flatNumber,
+//                             maxLines: 1,
+//                             overflow: TextOverflow.ellipsis,
+//                             style: TextStyle(
+//                               fontSize: 9.sp,
+//                               fontWeight: FontWeight.w600,
+//                               color: ColorManager.white,
+//                             ),
+//                           ),
+//                           if (jobCard.flatNumber != "") SizedBox(height: 1.h),
+//                           Text(
+//                             jobCard.location,
+//                             maxLines: 1,
+//                             overflow: TextOverflow.ellipsis,
+//                             style: TextStyle(
+//                               fontSize: 9.sp,
+//                               fontWeight: FontWeight.w600,
+//                               color: ColorManager.white,
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     SizedBox(height: 1.h),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ),
+//           Padding(
+//             padding: EdgeInsetsDirectional.only(top: 5.sp, end: 5.sp),
+//             child: Card(
+//               elevation: 8.sp,
+//               shape: OutlineInputBorder(
+//                 borderRadius: BorderRadius.circular(10.sp),
+//                 borderSide: BorderSide.none,
+//               ),
+//               child: CircleAvatar(
+//                 radius: 8.sp,
+//                 backgroundColor: jobCard.startWork && !jobCard.revisit
+//                     ? Colors.green
+//                     : jobCard.revisit
+//                         ? ColorManager.secondary
+//                         : jobCard.action == "broadcast" &&
+//                                 jobCard.reportType == "FAULT REPORT"
+//                             ? Colors.red
+//                             : jobCard.userName == ConstanceManager.name
+//                                 ? Colors.yellow
+//                                 : ColorManager.white,
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     ),
+//   );
+// }
 
 List<Widget> amcCardWidgets({
   required List<AmcCard> amcCards,
@@ -1019,24 +1564,28 @@ List<Widget> amcCardWidgets({
   int index = 0;
   for (AmcCard amcCard in amcCards) {
     if (amcCard.totalAc > 0) {
-      list.add(amcCardWidget(
+      list.add(
+        amcCardWidget(
           amcCard: amcCard,
           id: amcCard.id,
           context: context,
           index: index,
-          bloc: bloc));
+          bloc: bloc,
+        ),
+      );
     }
     index++;
   }
   return list;
 }
 
-Widget amcCardWidget(
-    {required AmcCard amcCard,
-    required MainBloc bloc,
-    required BuildContext context,
-    required int id,
-    required int index}) {
+Widget amcCardWidget({
+  required AmcCard amcCard,
+  required MainBloc bloc,
+  required BuildContext context,
+  required int id,
+  required int index,
+}) {
   return InkWell(
     onTap: () async {
       /// FaultPdf test
@@ -1078,32 +1627,42 @@ Widget amcCardWidget(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.sp),
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton(
-                          onPressed: () {
-                            OpenFile.open(filePath);
-                            context.pop();
-                          },
-                          child: Text(
-                            "Open PDF",
-                            style: TextStyle(color: ColorManager.secondary),
-                          )),
-                      TextButton(
-                          onPressed: () {
-                            context.push(AmcCardScreen1(
-                                amcCardId: amcCard.id, amcCard: amcCard));
-                          },
-                          child: Text(
-                            "Report",
-                            style: TextStyle(color: ColorManager.secondary),
-                          )),
-                    ],
-                  ));
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25.sp),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        //TODO Defined OpenFilePlus
+
+                        OpenFileSafePlus.open(filePath);
+
+                        context.pop();
+                      },
+                      child: Text(
+                        "Open PDF",
+                        style: TextStyle(color: ColorManager.secondary),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        context.push(
+                          AmcCardScreen1(
+                            amcCardId: amcCard.id,
+                            amcCard: amcCard,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Report",
+                        style: TextStyle(color: ColorManager.secondary),
+                      ),
+                    ),
+                  ],
+                ),
+              );
             },
           );
         });
@@ -1114,65 +1673,69 @@ Widget amcCardWidget(
       child: Card(
         elevation: 8.sp,
         shape: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.sp),
-            borderSide: BorderSide.none),
+          borderRadius: BorderRadius.circular(10.sp),
+          borderSide: BorderSide.none,
+        ),
         child: Container(
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.sp),
-              color: ColorManager.primary),
+            borderRadius: BorderRadius.circular(10.sp),
+            color: ColorManager.primary,
+          ),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  height: 1.h,
-                ),
+                SizedBox(height: 1.h),
                 Container(
                   width: 20.w,
                   height: 6.h,
                   padding: EdgeInsetsDirectional.symmetric(
-                      horizontal: 2.w, vertical: 2.h),
+                    horizontal: 2.w,
+                    vertical: 2.h,
+                  ),
                   decoration: BoxDecoration(
-                      border: Border.all(),
-                      borderRadius: BorderRadius.circular(10.sp),
-                      color: ColorManager.white),
+                    border: Border.all(),
+                    borderRadius: BorderRadius.circular(10.sp),
+                    color: ColorManager.white,
+                  ),
                   child: Text(
                     amcCard.companyName,
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w600,
-                        color: ColorManager.black),
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w600,
+                      color: ColorManager.black,
+                    ),
                   ),
                 ),
-                SizedBox(
-                  height: 1.h,
-                ),
+                SizedBox(height: 1.h),
                 Container(
                   width: 20.w,
                   height: 6.h,
                   padding: EdgeInsetsDirectional.symmetric(
-                      horizontal: 2.w, vertical: 2.h),
+                    horizontal: 2.w,
+                    vertical: 2.h,
+                  ),
                   decoration: BoxDecoration(
-                      border: Border.all(),
-                      borderRadius: BorderRadius.circular(10.sp),
-                      color: ColorManager.white),
+                    border: Border.all(),
+                    borderRadius: BorderRadius.circular(10.sp),
+                    color: ColorManager.white,
+                  ),
                   child: Text(
                     amcCard.totalAc.toString(),
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w600,
-                        color: ColorManager.black),
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w600,
+                      color: ColorManager.black,
+                    ),
                   ),
                 ),
-                SizedBox(
-                  height: 1.h,
-                ),
+                SizedBox(height: 1.h),
               ],
             ),
           ),
@@ -1208,28 +1771,22 @@ showDialogSuccess({
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(25.sp),
         ),
-        title: Text(
-          text,
-          style: TextStyle(
-            color: ColorManager.primary,
-          ),
-        ),
+        title: Text(text, style: TextStyle(color: ColorManager.primary)),
         actions: [
           TextButton(
-              onPressed: onPressed,
-              child: Text(
-                "Okay",
-                style: TextStyle(color: ColorManager.secondary),
-              )),
+            onPressed: onPressed,
+            child: Text(
+              "Okay",
+              style: TextStyle(color: ColorManager.secondary),
+            ),
+          ),
         ],
       );
     },
   );
 }
 
-showDialogLoading({
-  required BuildContext context,
-}) {
+showDialogLoading({required BuildContext context}) {
   return showDialog(
     barrierDismissible: false,
     context: context,

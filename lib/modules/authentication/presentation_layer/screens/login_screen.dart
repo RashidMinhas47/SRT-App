@@ -65,12 +65,14 @@ class LoginScreen extends StatelessWidget {
                         state is! LoginLoadingAuthState
                             ? defaultButton(
                                 onPressed: () {
+
                                   if (formKey.currentState!.validate()) {
                                     bloc.add(LoginEvent(
                                         context: context,
                                         password: passwordController.text,
                                         userName: userNameController.text));
                                   }
+
                                 },
                                 buttonColor: ColorManager.primary,
                                 text: "Log in",

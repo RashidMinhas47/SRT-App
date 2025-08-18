@@ -6,16 +6,19 @@ import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/components/components.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/history_screen.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sizer/sizer.dart';
 
 //ignore: must_be_immutable
 class FaultScreen3 extends StatelessWidget {
   final JobCard jobCard;
 
-  const FaultScreen3(
-      {super.key, required this.jobCard});
+  const FaultScreen3({super.key, required this.jobCard});
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +46,8 @@ class FaultScreen3 extends StatelessWidget {
             showDialogLoading(context: context);
           } else if (state is ReviewReportLoadingState) {
             showDialogLoading(context: context);
+          } else if (state is ReviewReportState) {
+            context.pop();
           } else if (state is SubmitFaultReportErrorState) {
             context.pop();
           }
@@ -204,7 +209,40 @@ class FaultScreen3 extends StatelessWidget {
                         Expanded(
                             child: defaultButton(
                                 buttonColor: ColorManager.secondary,
-                                onPressed: () {
+                                onPressed: () async {
+                                  final directory =
+                                      await getApplicationDocumentsDirectory();
+                                  final filePath =
+                                      "${directory.path}/jobcard_${jobCard.id}_fault.pdf";
+                                  final pdfFile = File(filePath);
+                                  if (await pdfFile.exists()) {
+                                    await pdfFile.delete();
+                                    print("File Deleted");
+                                  }
+                                  final connectivityResults =
+                                      await Connectivity().checkConnectivity();
+                                  final hasInternet = connectivityResults
+                                      .any((r) => r != ConnectivityResult.none);
+
+                                  if (!hasInternet) {
+                                    final signaturePath =
+                                        bloc.signaturePhoto?.path;
+                                    final cachedReport = {
+                                      'jobCardId': jobCard.id,
+                                      'formModel': bloc.getFaultModels.last
+                                          .toJson(id: jobCard.id),
+                                      'signaturePath': signaturePath,
+                                    };
+                                    await Hive.box('offlineReports').put(
+                                        jobCard.id.toString(), cachedReport);
+
+                                    defaultToast(
+                                        msg:
+                                            "You're offline. We'll send it when back online.");
+
+                                    return;
+                                  }
+
                                   // if (bloc.signaturePhoto != null) {
                                   //   bloc.getFaultModels.last.comment =
                                   //       commentController.text;
@@ -212,8 +250,9 @@ class FaultScreen3 extends StatelessWidget {
                                   //       technician1Controller.text;
                                   //   bloc.getFaultModels.last.technician2 =
                                   //       technician2Controller.text;
-                                    bloc.add(SubmitFaultReportEvent(
-                                        jobCard: jobCard,));
+                                  bloc.add(SubmitFaultReportEvent(
+                                    jobCard: jobCard,
+                                  ));
                                   // } else {
                                   //   warnToast(msg: "Please complete your data");
                                   // }

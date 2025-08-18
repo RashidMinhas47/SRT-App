@@ -1,9 +1,13 @@
+
 import 'package:bayanat/core/local/shared_prefrences.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
+import 'package:bayanat/modules/authentication/presentation_layer/components/components.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'core/services/dep_injection.dart';
 import 'core/utils/theme_manager.dart';
@@ -12,6 +16,7 @@ import 'modules/authentication/presentation_layer/screens/splash_screen.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_card_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/fault_pdf.dart';
+// import 'package:device_preview/device_preview.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +42,13 @@ Future<void> main() async {
   });
   ConstanceManager.name = await CacheHelper.getData(key: "name");
   runApp(const MyApp());
+
+  // runApp(
+  //   DevicePreview(
+  //     enabled: !kReleaseMode, // Enable in debug only
+  //     builder: (context) => const MyApp(),
+  //   ),
+  // );
 }
 
 class MyApp extends StatelessWidget {
@@ -47,6 +59,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Sizer(builder: (context, orientation, deviceType) {
+
       return MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(
@@ -63,6 +76,9 @@ class MyApp extends StatelessWidget {
               ),
         ],
         child: MaterialApp(
+         
+          // locale: DevicePreview.locale(context),
+          // builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,
           theme: getAppTheme(),
           home: FutureBuilder(

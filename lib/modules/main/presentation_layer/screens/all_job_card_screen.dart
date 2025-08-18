@@ -10,7 +10,7 @@ import '../components/components.dart';
 
 class AllJobCardScreen extends StatefulWidget {
   final List<JobCard> jobCards;
-  List<JobCard> filteredJobCards = [];
+  final List<JobCard> filteredJobCards = [];
 
   AllJobCardScreen({super.key, required this.jobCards});
 
@@ -35,9 +35,12 @@ class _AllJobCardScreenState extends State<AllJobCardScreen> {
 
   void _filterJobCards(String query) {
     setState(() {
+      
       currentItemCount = itemsPerPage;
       filteredJobCards = allJobCards.where((jobCard) {
+
         return jobCard.id.toString().contains(query) ||
+        jobCard.jobCardNumber.toLowerCase().contains(query) ||
             jobCard.location.toLowerCase().contains(query.toLowerCase()) ||
             jobCard.flatNumber.toString().contains(query);
       }).toList();
@@ -51,6 +54,7 @@ class _AllJobCardScreenState extends State<AllJobCardScreen> {
   Widget build(BuildContext context) {
     MainBloc bloc = sl();
     return Scaffold(
+     
       body: BlocBuilder<MainBloc, MainState>(
         builder: (context, state) {
           return SingleChildScrollView(
@@ -105,7 +109,7 @@ class _AllJobCardScreenState extends State<AllJobCardScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 20.sp),
                     child: Column(
                       children: [
-                        Wrap(
+                        Wrap( 
                           direction: Axis.horizontal,
                           children: displayedJobCards.map((jobCard) {
                             return jobCardWidget(
@@ -134,7 +138,7 @@ class _AllJobCardScreenState extends State<AllJobCardScreen> {
                                 }
                               });
                             },
-                            child: Text('Load More'),
+                            child: const Text('Load More'),
                           ),
                       ],
                     ),

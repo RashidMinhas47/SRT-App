@@ -1,11 +1,15 @@
+import 'dart:io';
+
 import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/core/utils/navigation_manager.dart';
 import 'package:bayanat/modules/authentication/presentation_layer/screens/splash_screen.dart';
 import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
 import 'package:bayanat/modules/main/presentation_layer/components/components.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/history_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/local/shared_prefrences.dart';
@@ -18,8 +22,32 @@ import 'all_job_card_screen.dart';
 class JobCardScreen extends StatelessWidget {
   const JobCardScreen({super.key});
 
+  Future<bool> requestStoragePermission(BuildContext context) async {
+    if (Platform.isAndroid) {
+      int sdkInt = int.tryParse(RegExp(r'\d+')
+                  .firstMatch(Platform.operatingSystemVersion)
+                  ?.group(0) ??
+              '0') ??
+          0;
+
+      if (sdkInt >= 33) {
+        // Android 13+ → use mediaImages for photos/images
+        return await Permission.photos.request().isGranted;
+      } else {
+        // Android 12 and below
+        return await Permission.storage.request().isGranted;
+      }
+    } else {
+      return await Permission.photos.request().isGranted;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      requestStoragePermission(context);
+    });
+
     MainBloc bloc = sl();
     DateTime now = DateTime.now();
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();

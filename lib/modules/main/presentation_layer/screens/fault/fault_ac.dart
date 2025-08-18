@@ -10,6 +10,7 @@ import 'package:bayanat/modules/main/presentation_layer/components/components.da
 import 'package:bayanat/modules/main/presentation_layer/screens/fault/complaint_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../../../../core/services/dep_injection.dart';
 import '../../../../../core/utils/color_manager.dart';
@@ -209,10 +210,11 @@ class FaultAc extends StatelessWidget {
                               Row(
                                 children: [
                                   Text(
+                                    
                                     "sub ",
                                     style: TextStyle(
                                         color: ColorManager.primary,
-                                        fontSize: 9.sp,
+                                        fontSize: 10.sp,
                                         fontWeight: FontWeight.bold),
                                   ),
                                   Expanded(
@@ -233,36 +235,33 @@ class FaultAc extends StatelessWidget {
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    validatorText: '',
-                                    controller: modelController,
-                                    label: "Model",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Model';
-                                      }
-                                      return null;
-                                    }),
-                              ),
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+
+                              defaultFormField(
+                                  validatorText: '',
+                                  controller: modelController,
+                                  label: "Model",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Model';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    controller: locationController,
-                                    label: "Location",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Location';
-                                      }
-                                      return null;
-                                    }),
-                              ),
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+                              defaultFormField(
+                                  controller: locationController,
+                                  label: "Location",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Location';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
@@ -280,7 +279,7 @@ class FaultAc extends StatelessWidget {
                                     "Category",
                                     style: TextStyle(
                                         color: ColorManager.primary,
-                                        fontSize: 9.sp,
+                                        fontSize: 10.sp,
                                         fontWeight: FontWeight.bold),
                                   ),
                                   Expanded(
@@ -297,35 +296,31 @@ class FaultAc extends StatelessWidget {
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    controller: makeController,
-                                    label: "Make",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Make';
-                                      }
-                                      return null;
-                                    }),
-                              ),
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+                              defaultFormField(
+                                  controller: makeController,
+                                  label: "Make",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Make';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    controller: serialNumberController,
-                                    label: "Serial Number",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Serial Number';
-                                      }
-                                      return null;
-                                    }),
-                              ),
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+                              defaultFormField(
+                                  controller: serialNumberController,
+                                  label: "Serial Number",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Serial Number';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
@@ -683,7 +678,7 @@ class FaultAc extends StatelessWidget {
                                 borderRadius:
                                     BorderRadiusDirectional.circular(10.sp)),
                             child: TextButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   if (serviceType != null &&
                                       productId != -1 &&
                                       quantityTypeServiceController.text !=
@@ -704,6 +699,7 @@ class FaultAc extends StatelessWidget {
                                             beforePhotosNetwork.isNotEmpty)) {
                                       print(
                                           "faultFormModel.beforePhotosIds, ${faultFormModel.beforePhotosIds}");
+
                                       bloc.add(UpdateFaultDataEvent(
                                         id: jobCard.id,
                                         faultFormModel: FaultFormModel(
@@ -742,6 +738,12 @@ class FaultAc extends StatelessWidget {
                                           comment: faultFormModel.comment,
                                         ),
                                       ));
+                                      //Start Update Local PDF File
+                                      bloc.add(GetPDFEvent(
+                                        jobCardId: jobCard.id,
+                                        pdfType: "fault",
+                                      ));
+                                      //End Update Local PDF File
                                       category = null;
                                       sub = null;
                                       modelController.clear();

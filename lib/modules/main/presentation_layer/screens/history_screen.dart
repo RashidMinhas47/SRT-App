@@ -1,4 +1,5 @@
 import 'package:bayanat/core/utils/navigation_manager.dart';
+import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,14 +24,52 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final MainBloc bloc = sl();
   int _visibleRowCount = 20;
 
+//=============================================
+
+  List<JobCard> displayedHistoryJobCards = [];
+  List<JobCard> allJobCards = [];
+  List<JobCard> filteredJobCards = [];
+ @override
+void initState() {
+  super.initState();
+  allJobCards = bloc.jobCards.toList();
+  displayedHistoryJobCards = allJobCards.take(_visibleRowCount).toList();
+}
+
+  void _filterJobCards(String query) {
+  setState(() {
+    _visibleRowCount = 20;
+    if (query.isEmpty) {
+      filteredJobCards = [];
+    } else {
+      filteredJobCards = allJobCards.where((jobCard) {
+        return jobCard.id.toString().contains(query) ||
+            jobCard.jobCardNumber.toLowerCase().contains(query.toLowerCase()) ||
+            jobCard.location.toLowerCase().contains(query.toLowerCase()) ||
+            jobCard.flatNumber.toString().contains(query);
+      }).toList();
+    }
+    displayedHistoryJobCards =
+        filteredJobCards.isNotEmpty ? filteredJobCards : allJobCards;
+  });
+}
+
+//=============================================
+
+
   @override
   Widget build(BuildContext context) {
     // MainBloc bloc = sl();
     return BlocBuilder<MainBloc, MainState>(
       builder: (context, state) {
-        final allRows =
-            getHistoryRows(context: context, history: bloc.jobCards).toList();
-        final visibleRows = allRows.take(_visibleRowCount).toList();
+        final dataSource = filteredJobCards.isNotEmpty ? filteredJobCards : allJobCards;
+final rows = getHistoryRows(context: context, history: dataSource).toList();
+final visibleRows = rows.take(_visibleRowCount).toList();
+
+        // final allRows =
+        //     getHistoryRows(context: context, history: bloc.jobCards).toList();
+
+        // final visibleRows = allRows.take(_visibleRowCount).toList();
 
         return PopScope(
           canPop: false,
@@ -67,9 +106,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     padding: EdgeInsets.all(20.sp),
                     child: state is GetJobCardLoadingState
                         ? const Center(child: CircularProgressIndicator())
-                        : bloc.jobCards.isNotEmpty && allRows.isNotEmpty
+                        : bloc.jobCards.isNotEmpty && rows.isNotEmpty
                             ? Column(
                                 children: [
+                                  TextField(
+                    onChanged: (char) {
+                      _filterJobCards(char);
+                    },
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'Search...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintStyle: TextStyle(
+                        color: ColorManager.primary,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(vertical: 5.w),
+                    ),
+                  ),
+                   SizedBox(height: 1.h),
                                   Table(
                                     border: TableBorder.all(
                                         color: ColorManager.primary),
@@ -90,7 +149,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       ...visibleRows,
                                     ],
                                   ),
-                                  if (_visibleRowCount < allRows.length)
+                                  if (_visibleRowCount < rows.length)
                                     Padding(
                                       padding: EdgeInsets.only(top: 2.h),
                                       child: ElevatedButton(

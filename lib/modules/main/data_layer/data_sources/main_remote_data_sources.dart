@@ -202,7 +202,8 @@ class MainRemoteDataSource extends BaseMainRemoteDataSource {
                       "fields": jobs,
                       "limit": limit,
                       "offset": offset,
-                      "order": "job_card_number asc"
+                      "order":
+                          "job_card_number desc" //change to "job_card_number asc"asc if need oldest first
                     },
                     "args": [{}],
                   }
@@ -210,6 +211,8 @@ class MainRemoteDataSource extends BaseMainRemoteDataSource {
               ),
             )
             .timeout(const Duration(seconds: 20));
+
+        print(" Session ID${ConstanceManager.sessionId.toString()}");
 
         if (response.statusCode == 200) {
           var value = jsonDecode(response.body);
@@ -327,16 +330,19 @@ class MainRemoteDataSource extends BaseMainRemoteDataSource {
   }) async {
     String pdfBase64 = "";
     int attempt = 0;
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
 
     try {
+      print("PDF Trying");
       final directory = await getApplicationDocumentsDirectory();
       final filePath = "${directory.path}/jobcard_${jobCardId}_$pdfType.pdf";
+      final filePaths = "$filePath=$timestamp"; //added with timestamp
       final file = File(filePath);
-
       if (await file.exists()) {
-        return Right(filePath);
+        print("PDF File Path $filePath");
+        //return Right(filePath);
+        return Right(filePaths);
       }
-
       while (attempt < maxRetries) {
         try {
           final response = await http
@@ -370,7 +376,7 @@ class MainRemoteDataSource extends BaseMainRemoteDataSource {
                   },
                 ),
               )
-              .timeout(const Duration(seconds: 20));
+              .timeout(const Duration(seconds: 60));
 
           if (response.statusCode == 200) {
             var result = jsonDecode(response.body)?["result"];
@@ -1326,6 +1332,7 @@ class MainRemoteDataSource extends BaseMainRemoteDataSource {
           });
         },
       );
+
       return Right(products);
     } on Exception catch (error) {
       return Left(error);

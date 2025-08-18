@@ -25,10 +25,11 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:open_file_safe_plus/open_file_safe_plus.dart';
 
 // import 'package:odoo_rpc/odoo_rpc.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_file_plus/open_file_plus.dart';
+// import 'package:open_file_plus/open_file_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../../../core/remote/api_helper/api_constance.dart';
@@ -74,6 +75,10 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   List<Product> products = [];
   File? signaturePhoto;
   File? tenantSignature;
+
+  //Save Signature Path
+  String? signaturePath;
+  String? tenantSignaturePath;
 
   /// AMC CARD VARIABLES
   List<JobCard> allJobCards = []; //remove this when update code
@@ -172,6 +177,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         sparesC.remove(spareCModel);
         emit(const AddSparesBuilderToListState());
       }
+
       /// FAULT EVENTS
       else if (event is SelectSubEvent) {
         emit(SelectSubState(sub: event.sub));
@@ -352,23 +358,23 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           await picker
               .pickImage(source: ImageSource.gallery, imageQuality: 50)
               .then((value) async {
-                if (value == null) {
-                  errorToast(msg: 'please add your signature');
-                } else {
-                  signaturePhoto = File(value.path);
-                }
-              });
+            if (value == null) {
+              errorToast(msg: 'please add your signature');
+            } else {
+              signaturePhoto = File(value.path);
+            }
+          });
           emit(SelectSignaturePhotoState(signaturePhoto: signaturePhoto!));
         } else if (event.type == "bill") {
           emit(RemoveBillPhotoState(billPhotos: billPhotosFile));
           await picker
               .pickImage(source: ImageSource.camera, imageQuality: 50)
               .then((value) {
-                if (value != null) {
-                  billPhotosFile.add(File(value.path));
-                  emit(SelectBillPhotoState(billPhotos: billPhotosFile));
-                }
-              });
+            if (value != null) {
+              billPhotosFile.add(File(value.path));
+              emit(SelectBillPhotoState(billPhotos: billPhotosFile));
+            }
+          });
         }
       } else if (event is SelectReportTypeEvent) {
         if (event.index == 0) {
@@ -390,6 +396,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           emit(SelectSignaturePhotoState(signaturePhoto: tenantSignature!));
         }
       }
+
       /// JOB CARD EVENTS
       else if (event is GetJobCardEvent) {
         print("isFetching: $isFetching");
@@ -432,15 +439,18 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       //     emit(GetJobCardSuccessfullyState(event.context));
       //   });
       // }
+
       else if (event is GetPDFEvent) {
         var result = await GetPDFUseCase(
           sl(),
         ).get(jobCardId: event.jobCardId, pdfType: event.pdfType);
         result.fold(
           (l) {
+            print("GetPDFEvent 1:");
             emit(const GetPDFErrorState());
           },
           (r) {
+            print("GetPDFEvent 2: $r");
             emit(GetPDFSuccessfullyState(r));
           },
         );
@@ -464,10 +474,13 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         ) async {
           List<int> pdfBytes = base64Decode(encodedFile);
           String filePath = await savePdfToFile(pdfBytes);
-          OpenFile.open(filePath);
+          //TODO  Defined OpenFilePlus
+          OpenFileSafePlus.open(filePath);
+
         });
         emit(const ReviewReportState());
       }
+
       /// AMC CARD EVENTS
       else if (event is SubmitAmcCardReportEvent) {
         emit(SubmitAmcCardReportLoadingState());

@@ -1,0 +1,2 @@
+/Volumes/Data/SRT/android/app/.cxx/Debug/6g3f615f/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Volumes/Data/SRT/android/app/.cxx/Debug/6g3f615f/armeabi-v7a/CMakeFiles/rebuild_cache.dir

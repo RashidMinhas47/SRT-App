@@ -72,6 +72,15 @@ class SignaturePreviewScreen extends StatelessWidget {
   //   }
   //   return name;
   // }
+
+// Future<File> uint8ListToFile(
+//       {required Uint8List uint8list, required String fileName}) async {
+//     final permDir = await getApplicationDocumentsDirectory();
+//     final file = File('${permDir.path}/$fileName');
+//     await file.writeAsBytes(uint8list);
+//     return file;
+//   }
+
   Future<File> uint8ListToFile(
       {required Uint8List uint8list, required String fileName}) async {
     final tempDir = await getTemporaryDirectory();

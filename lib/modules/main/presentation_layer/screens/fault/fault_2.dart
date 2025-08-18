@@ -117,7 +117,7 @@ class FaultScreen2 extends StatelessWidget {
                                     "sub ",
                                     style: TextStyle(
                                         color: ColorManager.primary,
-                                        fontSize: 9.sp,
+                                        fontSize: 10.sp,
                                         fontWeight: FontWeight.bold),
                                   ),
                                   Expanded(
@@ -138,36 +138,32 @@ class FaultScreen2 extends StatelessWidget {
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    validatorText: '',
-                                    controller: modelController,
-                                    label: "Model",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Model';
-                                      }
-                                      return null;
-                                    }),
-                              ),
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+                              defaultFormField(
+                                  validatorText: '',
+                                  controller: modelController,
+                                  label: "Model",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Model';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    controller: locationController,
-                                    label: "Location",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Location';
-                                      }
-                                      return null;
-                                    }),
-                              ),
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+                              defaultFormField(
+                                  controller: locationController,
+                                  label: "Location",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Location';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
@@ -185,7 +181,7 @@ class FaultScreen2 extends StatelessWidget {
                                     "Category",
                                     style: TextStyle(
                                         color: ColorManager.primary,
-                                        fontSize: 9.sp,
+                                        fontSize: 10.sp,
                                         fontWeight: FontWeight.bold),
                                   ),
                                   Expanded(
@@ -202,36 +198,31 @@ class FaultScreen2 extends StatelessWidget {
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    controller: makeController,
-                                    label: "Make",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Make';
-                                      }
-                                      return null;
-                                    }),
-                              ),
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+                              defaultFormField(
+                                  controller: makeController,
+                                  label: "Make",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Make';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
-                              SizedBox(
-                                height: 5.h,
-                                child: defaultFormField(
-                                    controller: serialNumberController,
-                                    label: "Serial Number",
-                                    type: TextInputType.text,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'You must write a Serial Number';
-                                      }
-                                      return null;
-                                    }),
-                              ),
-
+                              //removed defaultFormField covered with SizedBox( height: 5.h)
+                              defaultFormField(
+                                  controller: serialNumberController,
+                                  label: "Serial Number",
+                                  type: TextInputType.text,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'You must write a Serial Number';
+                                    }
+                                    return null;
+                                  }),
                               SizedBox(
                                 height: 10.sp,
                               ),
@@ -240,6 +231,9 @@ class FaultScreen2 extends StatelessWidget {
                         ],
                       ),
                     ),
+                    SizedBox(
+                                height: 10.sp,
+                              ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 4.w),
                       child: defaultFormField(
@@ -530,7 +524,7 @@ class FaultScreen2 extends StatelessWidget {
                                           "") {
                                     bloc.add(AddServiceTypeBuilderToListEvent(
                                         ServiceTypeModel(
-                                          productId: productId,
+                                            productId: productId,
                                             quantity: double.parse(
                                                 quantityTypeServiceController
                                                     .text),

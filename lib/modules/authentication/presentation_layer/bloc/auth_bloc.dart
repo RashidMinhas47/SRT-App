@@ -41,7 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           email: event.userName,
           password: event.password,
         );
-
+        print("Login Event Result: $result");
         await result.fold((l) {
           errorToast(msg: "Access Denied");
           emit(const LoginErrorAuthState());
@@ -58,12 +58,43 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             unawaited(sl<BaseAuthRemoteDataSource>()
                 .fetchUserProfile(cookie!, userId!));
           } else {
-            errorToast(msg: "Access Denied");
+            errorToast(msg: "Wrong Credentials! Try Again");
           }
 
           emit(LoginSuccessfulAuthState(context: event.context));
         });
       }
+
+      // else if (event is LoginEvent) {
+      //   emit(const LoginLoadingAuthState());
+
+      //   final result = await LoginWithEmailAndPassUseCase(sl()).call(
+      //     email: event.userName,
+      //     password: event.password,
+      //   );
+
+      //   await result.fold((l) {
+      //     errorToast(msg: "Access Denied");
+      //     emit(const LoginErrorAuthState());
+      //   }, (r) async {
+      //     if (r) {
+      //       defaultToast(msg: "Accepted");
+
+      //       final cookie = ConstanceManager.sessionId;
+      //       final userId = ConstanceManager.userId;
+
+      //       event.context.pushAndRemove(const JobCardScreen());
+
+      //       // Fetch profile in background
+      //       unawaited(sl<BaseAuthRemoteDataSource>()
+      //           .fetchUserProfile(cookie!, userId!));
+      //     } else {
+      //       errorToast(msg: "Access Denied");
+      //     }
+
+      //     emit(LoginSuccessfulAuthState(context: event.context));
+      //   });
+      // }
     });
   }
 }
