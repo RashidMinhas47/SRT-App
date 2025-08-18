@@ -11,6 +11,11 @@ import '../../modules/main/domain_layer/repsitories/base_main_repository.dart';
 import '../../modules/main/presentation_layer/bloc/main_bloc.dart';
 import '../local/shared_prefrences.dart';
 import '../remote/api_helper/api_constance.dart';
+import '../../modules/petty_cash/data_layer/data_sources/petty_cash_remote_data_source.dart';
+import '../../modules/petty_cash/data_layer/repositories/petty_cash_repository.dart';
+import '../../modules/petty_cash/domain_layer/repositories/base_petty_cash_repository.dart';
+import '../../modules/petty_cash/domain_layer/use_cases/submit_petty_cash_usecase.dart';
+import '../../modules/petty_cash/presentation_layer/bloc/petty_cash_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -33,12 +38,23 @@ class ServiceLocator {
     BaseMainRepository baseMainRepository = MainRepository(sl());
     sl.registerLazySingleton(() => baseMainRepository);
 
+    /// petty cash
+    BasePettyCashRemoteDataSource pettyRemote = PettyCashRemoteDataSource();
+    sl.registerLazySingleton<BasePettyCashRemoteDataSource>(() => pettyRemote);
+    BasePettyCashRepository pettyRepo = PettyCashRepository(sl());
+    sl.registerLazySingleton<BasePettyCashRepository>(() => pettyRepo);
+    SubmitPettyCashUseCase pettyUseCase = SubmitPettyCashUseCase(sl());
+    sl.registerLazySingleton(() => pettyUseCase);
+
     /// blocs
     AuthBloc authBloc = AuthBloc(AuthInitial());
     sl.registerLazySingleton(() => authBloc);
 
     MainBloc mainBloc = MainBloc(MainInitial());
     sl.registerLazySingleton(() => mainBloc);
+
+    PettyCashBloc pettyBloc = PettyCashBloc(submitUseCase: sl());
+    sl.registerLazySingleton(() => pettyBloc);
 
     /// odoo
     // ConstanceManager.sessionId = await CacheHelper.getData(key: "sessionId");

@@ -11,4 +11,5 @@ class ApiModels {
   static const String product = "product.product";
   static const String serviceLine = "crmsrt.service_line";
   static const String users = "res.users";
+  static const String pettyCash = "crmsrt.petty_cash"; // petty cash bills
 }

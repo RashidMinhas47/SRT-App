@@ -16,6 +16,7 @@ import 'modules/authentication/presentation_layer/screens/splash_screen.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_card_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/fault_pdf.dart';
+import 'modules/petty_cash/presentation_layer/bloc/petty_cash_bloc.dart';
 // import 'package:device_preview/device_preview.dart';
 
 Future<void> main() async {
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
                   context: context,
                 )) //..add(const GetMyDataEvent()),
               ),
+          BlocProvider<PettyCashBloc>(create: (_) => sl()),
         ],
         child: MaterialApp(
          
