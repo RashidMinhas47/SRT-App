@@ -7,4 +7,3 @@ abstract class BasePettyCashRepository {
     required PettyCashModel pettyCash,
   });
 }
-

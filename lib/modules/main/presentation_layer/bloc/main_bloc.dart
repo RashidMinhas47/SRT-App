@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:bayanat/core/remote/api_helper/api_models.dart';
 import 'package:bayanat/core/remote/api_helper/methods.dart';
 import 'package:bayanat/core/utils/navigation_manager.dart';
-import 'package:bayanat/modules/authentication/presentation_layer/screens/splash_screen.dart';
 import 'package:bayanat/modules/main/data_layer/models/amc_ac_checklsit_model.dart';
 import 'package:bayanat/modules/main/data_layer/models/amc_model.dart';
 import 'package:bayanat/modules/main/data_layer/models/spare_c_model.dart';

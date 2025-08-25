@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_file_safe_plus/open_file_safe_plus.dart';
 // import 'package:open_file_plus/open_file_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../../../core/services/dep_injection.dart';
 import '../../../../core/utils/color_manager.dart';

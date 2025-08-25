@@ -5,6 +5,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../data_layer/models/petty_cash_model.dart';
+import '../../domain_layer/entities/petty_cash.dart';
 import '../../domain_layer/use_cases/submit_petty_cash_usecase.dart';
 
 part 'petty_cash_event.dart';
@@ -32,6 +33,17 @@ class PettyCashBloc extends Bloc<PettyCashEvent, PettyCashState> {
           amount: event.amount,
           date: event.date,
           billPhotosBase64: base64Photos,
+          billType: event.billType,
+          billNumber: event.billNumber,
+          customerProjectName: event.customerProjectName,
+          location: event.location,
+          comments: event.comments,
+          isAdvanceRequest: event.isAdvanceRequest,
+          advancePurpose: event.advancePurpose,
+          expectedAmount: event.expectedAmount,
+          projectCustomerName: event.projectCustomerName,
+          userId: event.userId,
+          createdAt: DateTime.now(),
         );
         final result = await submitUseCase.submit(pettyCash: model);
         result.fold(
@@ -54,4 +66,3 @@ class PettyCashBloc extends Bloc<PettyCashEvent, PettyCashState> {
     return encoded;
   }
 }
-

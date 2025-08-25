@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/core/utils/navigation_manager.dart';
 import 'package:bayanat/modules/main/data_layer/models/fault_model.dart';
@@ -7,10 +6,8 @@ import 'package:bayanat/modules/main/data_layer/models/service_type_model.dart';
 import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/components/components.dart';
-import 'package:bayanat/modules/main/presentation_layer/screens/fault/complaint_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../../../../core/services/dep_injection.dart';
 import '../../../../../core/utils/color_manager.dart';

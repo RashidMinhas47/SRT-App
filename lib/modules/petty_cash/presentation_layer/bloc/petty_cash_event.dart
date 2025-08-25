@@ -23,13 +23,49 @@ class SubmitPettyCashEvent extends PettyCashEvent {
   final String description;
   final double amount;
   final DateTime date;
+  final BillType billType;
+  final String? billNumber;
+  final String? customerProjectName;
+  final String location;
+  final String comments;
+  final bool isAdvanceRequest;
+  final String? advancePurpose;
+  final double? expectedAmount;
+  final String? projectCustomerName;
+  final String userId;
+
   const SubmitPettyCashEvent({
     required this.vendorName,
     required this.description,
     required this.amount,
     required this.date,
+    required this.billType,
+    this.billNumber,
+    this.customerProjectName,
+    required this.location,
+    required this.comments,
+    this.isAdvanceRequest = false,
+    this.advancePurpose,
+    this.expectedAmount,
+    this.projectCustomerName,
+    required this.userId,
   });
-  @override
-  List<Object?> get props => [vendorName, description, amount, date];
-}
 
+  @override
+  List<Object?> get props => [
+        vendorName,
+        description,
+        amount,
+        date,
+        billType,
+        billNumber,
+        customerProjectName,
+        location,
+        comments,
+        isAdvanceRequest,
+        advancePurpose,
+        expectedAmount,
+        projectCustomerName,
+        userId,
+      ];
+}

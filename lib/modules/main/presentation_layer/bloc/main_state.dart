@@ -368,7 +368,7 @@ class ClosePDFState extends MainState {
 class JobCardsBatchLoadingState extends MainState {
   final List<JobCard> jobCards;
 
-  JobCardsBatchLoadingState(this.jobCards);
+  const JobCardsBatchLoadingState(this.jobCards);
 
   @override
   List<Object> get props => [jobCards];

@@ -1,96 +1,230 @@
 import 'package:dartz/dartz.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
-import '../../domain/entities/petty_cash_entry.dart';
+import '../../domain/entities/petty_cash_bill.dart';
 import '../../domain/repositories/petty_cash_repository.dart';
-import '../datasources/petty_cash_remote_datasource.dart';
-import '../models/petty_cash_model.dart';
+import '../datasources/petty_cash_remote_data_source.dart';
+import '../models/petty_cash_bill_model.dart';
 
 class PettyCashRepositoryImpl implements PettyCashRepository {
-  final PettyCashRemoteDataSource remote;
-  PettyCashRepositoryImpl(this.remote);
+  final PettyCashRemoteDataSource remoteDataSource;
+
+  PettyCashRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<Either<Exception, bool>> submit({required PettyCashEntry entry}) async {
+  Future<Either<Exception, PettyCashBill>> submitBill(
+      PettyCashBill bill) async {
     try {
-      // Upload images first and map to attachment IDs
-      final attachmentIds = <int>[];
-      for (final img in entry.billPhotosBase64) {
-        final res = await remote.uploadAttachment(img);
-        res.fold((l) => null, (r) => attachmentIds.add(r));
+      // Check network connectivity
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
       }
 
-      final model = PettyCashModel(
-        id: entry.id,
-        type: entry.type,
-        amount: entry.amount,
-        date: entry.date,
-        description: entry.description,
-        submittedByUserId: entry.submittedByUserId,
-        referenceId: entry.referenceId,
-        currencyCode: entry.currencyCode,
-        vendorName: entry.vendorName,
-        invoiceNumber: entry.invoiceNumber,
-        billPhotosBase64: const [],
-        attachmentIds: [...(entry.attachmentIds ?? []), ...attachmentIds],
-        expectedSettlementDate: entry.expectedSettlementDate,
-        settlementNotes: entry.settlementNotes,
-      );
+      // Convert entity to model
+      final billModel = PettyCashBillModel.fromEntity(bill);
 
-      return await remote.submit(model);
+      // Submit to remote data source
+      final result = await remoteDataSource.submitBill(billModel);
+
+      return result.fold(
+        (exception) => Left(exception),
+        (model) => Right(model.toEntity()),
+      );
     } on Exception catch (e) {
       return Left(e);
     }
   }
 
   @override
-  Future<Either<Exception, bool>> update({required PettyCashEntry entry}) async {
+  Future<Either<Exception, PettyCashBill>> updateBill(
+      PettyCashBill bill) async {
     try {
-      if (entry.id == null) return Left(Exception('Missing id'));
-
-      final attachmentIds = <int>[];
-      for (final img in entry.billPhotosBase64) {
-        final res = await remote.uploadAttachment(img);
-        res.fold((l) => null, (r) => attachmentIds.add(r));
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
       }
 
-      final model = PettyCashModel(
-        id: entry.id,
-        type: entry.type,
-        amount: entry.amount,
-        date: entry.date,
-        description: entry.description,
-        submittedByUserId: entry.submittedByUserId,
-        referenceId: entry.referenceId,
-        currencyCode: entry.currencyCode,
-        vendorName: entry.vendorName,
-        invoiceNumber: entry.invoiceNumber,
-        billPhotosBase64: const [],
-        attachmentIds: [...(entry.attachmentIds ?? []), ...attachmentIds],
-        expectedSettlementDate: entry.expectedSettlementDate,
-        settlementNotes: entry.settlementNotes,
-      );
+      final billModel = PettyCashBillModel.fromEntity(bill);
+      final result = await remoteDataSource.updateBill(billModel);
 
-      return await remote.update(model);
+      return result.fold(
+        (exception) => Left(exception),
+        (model) => Right(model.toEntity()),
+      );
     } on Exception catch (e) {
       return Left(e);
     }
   }
 
   @override
-  Future<Either<Exception, bool>> delete({required int id}) {
-    return remote.delete(id);
+  Future<Either<Exception, List<PettyCashBill>>> getUserBills(
+      String userId) async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
+      }
+
+      final result = await remoteDataSource.getUserBills(userId);
+
+      return result.fold(
+        (exception) => Left(exception),
+        (models) => Right(models.map((model) => model.toEntity()).toList()),
+      );
+    } on Exception catch (e) {
+      return Left(e);
+    }
   }
 
   @override
-  Future<Either<Exception, PettyCashEntry>> getById({required int id}) async {
-    final res = await remote.getById(id);
-    return res.map((r) => r);
+  Future<Either<Exception, List<PettyCashBill>>> getPendingAdvances(
+      String userId) async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
+      }
+
+      final result = await remoteDataSource.getPendingAdvances(userId);
+
+      return result.fold(
+        (exception) => Left(exception),
+        (models) => Right(models.map((model) => model.toEntity()).toList()),
+      );
+    } on Exception catch (e) {
+      return Left(e);
+    }
   }
 
   @override
-  Future<Either<Exception, List<PettyCashEntry>>> list({int? offset, int? limit}) async {
-    final res = await remote.list(offset: offset, limit: limit);
-    return res.map((r) => r);
+  Future<Either<Exception, String>> uploadPhoto(String filePath) async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
+      }
+
+      return await remoteDataSource.uploadPhoto(filePath);
+    } on Exception catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<Exception, PettyCashBill>> linkBillToAdvance(
+      String billId, String advanceId) async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
+      }
+
+      final result =
+          await remoteDataSource.linkBillToAdvance(billId, advanceId);
+
+      return result.fold(
+        (exception) => Left(exception),
+        (model) => Right(model.toEntity()),
+      );
+    } on Exception catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<Exception, List<PettyCashBill>>> getFilteredBills({
+    String? userId,
+    BillStatus? status,
+    BillType? billType,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
+      }
+
+      final result = await remoteDataSource.getFilteredBills(
+        userId: userId,
+        status: status?.name,
+        billType: billType?.name,
+        startDate: startDate?.toIso8601String().split('T')[0],
+        endDate: endDate?.toIso8601String().split('T')[0],
+      );
+
+      return result.fold(
+        (exception) => Left(exception),
+        (models) => Right(models.map((model) => model.toEntity()).toList()),
+      );
+    } on Exception catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<Exception, PettyCashBill>> updateBillStatus(
+      String billId, BillStatus status, String? adminComments) async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
+      }
+
+      final result = await remoteDataSource.updateBillStatus(
+          billId, status.name, adminComments);
+
+      return result.fold(
+        (exception) => Left(exception),
+        (model) => Right(model.toEntity()),
+      );
+    } on Exception catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<Exception, String>> exportToExcel({
+    String? userId,
+    BillStatus? status,
+    BillType? billType,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      final hasInternet =
+          connectivityResults.any((r) => r != ConnectivityResult.none);
+      if (!hasInternet) {
+        return Left(Exception('No internet connection'));
+      }
+
+      return await remoteDataSource.exportToExcel(
+        userId: userId,
+        status: status?.name,
+        billType: billType?.name,
+        startDate: startDate?.toIso8601String().split('T')[0],
+        endDate: endDate?.toIso8601String().split('T')[0],
+      );
+    } on Exception catch (e) {
+      return Left(e);
+    }
   }
 }
-

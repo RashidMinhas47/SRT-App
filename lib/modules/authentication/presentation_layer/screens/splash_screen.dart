@@ -1,8 +1,6 @@
 import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/core/utils/navigation_manager.dart';
 import 'package:bayanat/modules/authentication/presentation_layer/components/components.dart';
-import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
-import 'package:bayanat/modules/main/presentation_layer/screens/fault/fault_2.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 

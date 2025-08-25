@@ -8,7 +8,6 @@ import '../../../../core/local/shared_prefrences.dart';
 import '../../../../core/remote/api_helper/api_constance.dart';
 import '../../../../core/remote/api_helper/api_models.dart';
 import '../../../../core/remote/api_helper/methods.dart';
-import '../../../../core/services/dep_injection.dart';
 import 'package:http/http.dart' as http;
 
 abstract class BaseAuthRemoteDataSource {

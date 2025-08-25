@@ -106,7 +106,7 @@ Widget defaultButton({
     );
 
 class CustomPositioned extends StatelessWidget {
-  const CustomPositioned({Key? key, required this.child}) : super(key: key);
+  const CustomPositioned({super.key, required this.child});
   final Widget child;
   @override
   Widget build(BuildContext context) {

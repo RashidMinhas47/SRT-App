@@ -1,13 +1,9 @@
-
 import 'package:bayanat/core/local/shared_prefrences.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
-import 'package:bayanat/modules/authentication/presentation_layer/components/components.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'core/services/dep_injection.dart';
 import 'core/utils/theme_manager.dart';
@@ -17,6 +13,7 @@ import 'modules/main/presentation_layer/screens/pdfs/amc_card_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/fault_pdf.dart';
 import 'modules/petty_cash/presentation_layer/bloc/petty_cash_bloc.dart';
+import 'modules/petty_cash/presentation_layer/bloc/pending_bills_bloc.dart';
 // import 'package:device_preview/device_preview.dart';
 
 Future<void> main() async {
@@ -60,7 +57,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Sizer(builder: (context, orientation, deviceType) {
-
       return MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(
@@ -76,9 +72,9 @@ class MyApp extends StatelessWidget {
                 )) //..add(const GetMyDataEvent()),
               ),
           BlocProvider<PettyCashBloc>(create: (_) => sl()),
+          BlocProvider<PendingBillsBloc>(create: (_) => sl()),
         ],
         child: MaterialApp(
-         
           // locale: DevicePreview.locale(context),
           // builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,

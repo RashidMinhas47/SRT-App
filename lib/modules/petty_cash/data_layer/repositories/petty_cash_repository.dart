@@ -16,4 +16,3 @@ class PettyCashRepository extends BasePettyCashRepository {
     return remote.submitPettyCash(pettyCash: pettyCash);
   }
 }
-

@@ -32,4 +32,3 @@ class SubmitPettyCashErrorState extends PettyCashState {
   @override
   List<Object?> get props => [message];
 }
-

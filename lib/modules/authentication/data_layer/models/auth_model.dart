@@ -2,8 +2,7 @@
 
  //ignore: must_be_immutable
  class AuthModel extends Auth {
-   AuthModel({required String uid, required String token})
-       : super(uid: uid, token: token);
+   AuthModel({required super.uid, required super.token});
 
    factory AuthModel.fromJson (Map <String, dynamic> json){
      return AuthModel(uid: json['uid'], token: json['token']);

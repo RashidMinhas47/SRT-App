@@ -6,7 +6,6 @@ import 'package:bayanat/modules/main/data_layer/models/service_type_model.dart';
 import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/components/components.dart';
-import 'package:bayanat/modules/main/presentation_layer/screens/fault/complaint_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sizer/sizer.dart';

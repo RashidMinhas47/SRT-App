@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:bayanat/core/remote/api_helper/end_points.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/modules/main/data_layer/models/amc_ac_checklsit_model.dart';
@@ -13,7 +12,6 @@ import 'package:bayanat/modules/main/data_layer/models/spare_c_model.dart';
 import 'package:bayanat/modules/main/data_layer/models/spare_model.dart';
 import 'package:bayanat/modules/main/domain_layer/entities/amc_building.dart';
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/remote/api_helper/api_constance.dart';
 import '../../../../core/remote/api_helper/api_models.dart';

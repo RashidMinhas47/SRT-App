@@ -1,4 +1,3 @@
-import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:get_it/get_it.dart';
 // import 'package:odoo_rpc/odoo_rpc.dart';
 import '../../modules/authentication/data_layer/data_sources/auth_remote_data_sources.dart';
@@ -9,13 +8,12 @@ import '../../modules/main/data_layer/data_sources/main_remote_data_sources.dart
 import '../../modules/main/data_layer/repositories/main_repository.dart';
 import '../../modules/main/domain_layer/repsitories/base_main_repository.dart';
 import '../../modules/main/presentation_layer/bloc/main_bloc.dart';
-import '../local/shared_prefrences.dart';
-import '../remote/api_helper/api_constance.dart';
 import '../../modules/petty_cash/data_layer/data_sources/petty_cash_remote_data_source.dart';
 import '../../modules/petty_cash/data_layer/repositories/petty_cash_repository.dart';
 import '../../modules/petty_cash/domain_layer/repositories/base_petty_cash_repository.dart';
 import '../../modules/petty_cash/domain_layer/use_cases/submit_petty_cash_usecase.dart';
 import '../../modules/petty_cash/presentation_layer/bloc/petty_cash_bloc.dart';
+import '../../modules/petty_cash/presentation_layer/bloc/pending_bills_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -39,8 +37,9 @@ class ServiceLocator {
     sl.registerLazySingleton(() => baseMainRepository);
 
     /// petty cash
-    BasePettyCashRemoteDataSource pettyRemote = PettyCashRemoteDataSource();
+    PettyCashRemoteDataSource pettyRemote = PettyCashRemoteDataSource();
     sl.registerLazySingleton<BasePettyCashRemoteDataSource>(() => pettyRemote);
+    sl.registerLazySingleton<PettyCashRemoteDataSource>(() => pettyRemote);
     BasePettyCashRepository pettyRepo = PettyCashRepository(sl());
     sl.registerLazySingleton<BasePettyCashRepository>(() => pettyRepo);
     SubmitPettyCashUseCase pettyUseCase = SubmitPettyCashUseCase(sl());
@@ -55,6 +54,10 @@ class ServiceLocator {
 
     PettyCashBloc pettyBloc = PettyCashBloc(submitUseCase: sl());
     sl.registerLazySingleton(() => pettyBloc);
+
+    PendingBillsBloc pendingBillsBloc =
+        PendingBillsBloc(remoteDataSource: sl());
+    sl.registerLazySingleton(() => pendingBillsBloc);
 
     /// odoo
     // ConstanceManager.sessionId = await CacheHelper.getData(key: "sessionId");
