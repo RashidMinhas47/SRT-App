@@ -36,6 +36,10 @@ abstract class BasePettyCashRemoteDataSource {
 
   // Get user's petty cash requests with PDF links
   Future<Either<Exception, List<PettyCashModel>>> getUserPettyCashRequests();
+
+  // Enhanced debug methods
+  Future<void> debugModelAndData();
+  Future<void> testDifferentSearchMethods();
 }
 
 class PettyCashRemoteDataSource extends BasePettyCashRemoteDataSource {
@@ -461,100 +465,310 @@ class PettyCashRemoteDataSource extends BasePettyCashRemoteDataSource {
     try {
       _debugPrint('Getting pending bills...');
       final currentUserId = ConstanceManager.userId?.toString() ?? 'unknown';
-      _debugPrint('Current user ID: $currentUserId');
+      final currentUserIdInt = int.tryParse(currentUserId) ?? 0;
+      _debugPrint(
+          'Current user ID (string): $currentUserId, (int): $currentUserIdInt');
 
       final url = ApiConsts.baseUrl + ApiEndPoints.callKw;
-      final body = {
-        "params": {
-          "model": ApiModels.pettyCash,
-          "method": "search_read",
-          "kwargs": {
-            "domain": [
-              ["x_status", "=", "pendingBillSubmission"],
-              ["x_is_advance_request", "=", true],
-              ["x_user_id", "=", currentUserId]
-            ],
-            "fields": [
-              "id",
-              "x_vendor_name",
-              "x_description",
-              "x_amount",
-              "x_date",
-              "x_bill_type",
-              "x_bill_number",
-              "x_customer_project_name",
-              "x_location",
-              "x_comments",
-              "x_is_advance_request",
-              "x_advance_purpose",
-              "x_expected_amount",
-              "x_project_customer_name",
-              "x_status",
-              "x_user_id",
-              "create_date",
-              "write_date"
-            ]
-          },
-          "args": []
-        }
-      };
 
-      _debugPrint('Get pending bills request: ${jsonEncode(body)}');
-
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          'Connection': 'keep-alive',
-          'Cookie': ConstanceManager.sessionId.toString(),
+      // First, try to get bills from petty cash model
+      final List<Map<String, dynamic>> pettyCashSearchVariants = [
+        {
+          "domain": [
+            ["x_status", "=", "pendingBillSubmission"],
+            ["x_is_advance_request", "=", true],
+            ["x_user_id", "=", currentUserIdInt]
+          ],
+          "description": "Petty Cash - Integer User ID"
         },
-        body: jsonEncode(body),
-      );
+        {
+          "domain": [
+            ["x_status", "=", "pendingBillSubmission"],
+            ["x_is_advance_request", "=", true],
+            ["x_user_id", "=", currentUserId]
+          ],
+          "description": "Petty Cash - String User ID"
+        },
+        {
+          "domain": [
+            ["x_status", "=", "pendingBillSubmission"],
+            ["x_is_advance_request", "=", true],
+            ["user_id", "=", currentUserIdInt]
+          ],
+          "description": "Petty Cash - user_id field (int)"
+        },
+        {
+          "domain": [
+            ["x_status", "=", "pendingBillSubmission"],
+            ["x_is_advance_request", "=", true],
+            ["create_uid", "=", currentUserIdInt]
+          ],
+          "description": "Petty Cash - create_uid field"
+        }
+      ];
 
-      _debugPrint('Get pending bills response status: ${response.statusCode}');
-      _debugPrint('Get pending bills response body: ${response.body}');
+      // Try petty cash model first
+      for (int i = 0; i < pettyCashSearchVariants.length; i++) {
+        final variant = pettyCashSearchVariants[i];
+        _debugPrint(
+            'Trying petty cash search variant ${i + 1}: ${variant["description"]}');
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        _debugPrint('Response data keys: ${responseData.keys.toList()}');
-
-        if (responseData.containsKey("result")) {
-          final List<dynamic> bills = responseData["result"];
-          _debugPrint('Raw bills data: $bills');
-
-          if (bills.isEmpty) {
-            _debugPrint('No pending bills found for user: $currentUserId');
-            return Right([]);
+        final body = {
+          "params": {
+            "model": ApiModels.pettyCash,
+            "method": "search_read",
+            "kwargs": {
+              "domain": variant["domain"],
+              "fields": [
+                "id",
+                "x_vendor_name",
+                "x_description",
+                "x_amount",
+                "x_date",
+                "x_bill_type",
+                "x_bill_number",
+                "x_customer_project_name",
+                "x_location",
+                "x_comments",
+                "x_is_advance_request",
+                "x_advance_purpose",
+                "x_expected_amount",
+                "x_project_customer_name",
+                "x_status",
+                "x_user_id",
+                "create_date",
+                "write_date"
+              ]
+            },
+            "args": []
           }
+        };
 
-          final List<PettyCashModel> pendingBills = [];
-          for (int i = 0; i < bills.length; i++) {
-            try {
-              final bill = PettyCashModel.fromJson(bills[i]);
-              pendingBills.add(bill);
-              _debugPrint('Successfully parsed bill $i: ${bill.id}');
-            } catch (e) {
-              _debugPrint('Error parsing bill $i: $e');
-              _debugPrint('Bill $i data: ${bills[i]}');
+        _debugPrint('Petty cash request: ${jsonEncode(body)}');
+
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Connection': 'keep-alive',
+            'Cookie': ConstanceManager.sessionId.toString(),
+          },
+          body: jsonEncode(body),
+        );
+
+        _debugPrint('Petty cash response status: ${response.statusCode}');
+        _debugPrint('Petty cash response body: ${response.body}');
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          if (responseData.containsKey("result")) {
+            final List<dynamic> bills = responseData["result"];
+
+            if (bills.isNotEmpty) {
+              _debugPrint(
+                  '✅ Found ${bills.length} petty cash records with ${variant["description"]}');
+
+              final List<PettyCashModel> pendingBills = [];
+              for (int j = 0; j < bills.length; j++) {
+                try {
+                  final bill = PettyCashModel.fromJson(bills[j]);
+                  pendingBills.add(bill);
+                  _debugPrint(
+                      'Successfully parsed petty cash bill $j: ${bill.id}');
+                } catch (e) {
+                  _debugPrint('Error parsing petty cash bill $j: $e');
+                  _debugPrint('Bill $j data: ${bills[j]}');
+                }
+              }
+
+              return Right(pendingBills);
+            } else {
+              _debugPrint(
+                  '❌ No petty cash bills found with ${variant["description"]}');
             }
+          } else {
+            _debugPrint(
+                '❌ Petty cash response missing "result" key for ${variant["description"]}');
+            _debugPrint('Available keys: ${responseData.keys.toList()}');
           }
-
-          _debugPrint(
-              'Successfully parsed ${pendingBills.length} pending bills');
-          return Right(pendingBills);
         } else {
-          _debugPrint('Response does not contain "result" key');
-          return Left(
-              Exception('Invalid response format: missing "result" key'));
+          _debugPrint(
+              '❌ Petty cash HTTP Error ${response.statusCode} for ${variant["description"]}');
         }
       }
 
-      return Left(Exception(
-          'Failed to get pending bills: ${response.statusCode} - ${response.body}'));
+      // If petty cash model fails, try job card model where bills might be stored
+      _debugPrint(
+          'Petty cash model not found or no records, trying job card model...');
+
+      final List<Map<String, dynamic>> jobCardSearchVariants = [
+        {
+          "domain": [
+            ["comments", "ilike", "Petty Cash"],
+            ["assigned_user_id", "=", currentUserIdInt]
+          ],
+          "description": "Job Card - Petty Cash Comments + User ID"
+        },
+        {
+          "domain": [
+            ["comments", "ilike", "Petty Cash"]
+          ],
+          "description": "Job Card - Petty Cash Comments Only"
+        },
+        {
+          "domain": [
+            ["assigned_user_id", "=", currentUserIdInt]
+          ],
+          "description": "Job Card - User ID Only"
+        }
+      ];
+
+      for (int i = 0; i < jobCardSearchVariants.length; i++) {
+        final variant = jobCardSearchVariants[i];
+        _debugPrint(
+            'Trying job card search variant ${i + 1}: ${variant["description"]}');
+
+        final body = {
+          "params": {
+            "model": ApiModels.jobCard,
+            "method": "search_read",
+            "kwargs": {
+              "domain": variant["domain"],
+              "fields": [
+                "id",
+                "customer_name",
+                "work_description",
+                "comments",
+                "location",
+                "assigned_user_id",
+                "create_date",
+                "write_date"
+              ]
+            },
+            "args": []
+          }
+        };
+
+        _debugPrint('Job card request: ${jsonEncode(body)}');
+
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Connection': 'keep-alive',
+            'Cookie': ConstanceManager.sessionId.toString(),
+          },
+          body: jsonEncode(body),
+        );
+
+        _debugPrint('Job card response status: ${response.statusCode}');
+        _debugPrint('Job card response body: ${response.body}');
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          if (responseData.containsKey("result")) {
+            final List<dynamic> requests = responseData["result"];
+            if (requests.isNotEmpty) {
+              _debugPrint(
+                  '✅ Found ${requests.length} job card records with ${variant["description"]}');
+              final List<PettyCashModel> models = [];
+
+              for (int j = 0; j < requests.length; j++) {
+                try {
+                  // Convert job card data to petty cash model
+                  final jobCardData = requests[j];
+                  final comments = jobCardData['comments'] ?? '';
+
+                  // Only process if it's a petty cash entry
+                  if (comments.toString().contains('Petty Cash')) {
+                    final pettyCashData =
+                        _convertJobCardToPettyCash(jobCardData);
+                    final model = PettyCashModel.fromJson(pettyCashData);
+                    models.add(model);
+                    _debugPrint(
+                        'Successfully converted job card to petty cash: ${jobCardData['id']}');
+                  }
+                } catch (e) {
+                  _debugPrint('Error parsing job card record $j: $e');
+                }
+              }
+
+              if (models.isNotEmpty) {
+                _debugPrint(
+                    '✅ Successfully converted ${models.length} job card records to petty cash models');
+                return Right(models);
+              } else {
+                _debugPrint('❌ No valid petty cash records found in job cards');
+              }
+            } else {
+              _debugPrint(
+                  '❌ No job card records found with ${variant["description"]}');
+            }
+          } else {
+            _debugPrint(
+                '❌ Job card response missing "result" key for ${variant["description"]}');
+            _debugPrint('Available keys: ${responseData.keys.toList()}');
+          }
+        } else {
+          _debugPrint(
+              '❌ Job card HTTP Error ${response.statusCode} for ${variant["description"]}');
+        }
+      }
+
+      _debugPrint('⚠️ No pending bills found with any search method');
+      return Right([]);
     } catch (e) {
       _debugPrint('Error getting pending bills: $e');
       return Left(e as Exception);
     }
+  }
+
+  // Helper method to convert job card data to petty cash format
+  Map<String, dynamic> _convertJobCardToPettyCash(
+      Map<String, dynamic> jobCardData) {
+    final comments = jobCardData['comments'] ?? '';
+    final customerName = jobCardData['customer_name'] ?? '';
+    final workDescription = jobCardData['work_description'] ?? '';
+    final location = jobCardData['location'] ?? '';
+
+    // Extract amount from comments if possible
+    double amount = 0.0;
+    final amountMatch =
+        RegExp(r'Petty Cash: ([\d.]+)').firstMatch(comments.toString());
+    if (amountMatch != null) {
+      amount = double.tryParse(amountMatch.group(1) ?? '0') ?? 0.0;
+    }
+
+    // Extract date from comments if possible
+    DateTime date = DateTime.now();
+    final dateMatch =
+        RegExp(r'(\d{4}-\d{2}-\d{2})').firstMatch(comments.toString());
+    if (dateMatch != null) {
+      date = DateTime.tryParse(dateMatch.group(1) ?? '') ?? DateTime.now();
+    }
+
+    return {
+      "id": jobCardData['id']?.toString(),
+      "x_vendor_name": customerName,
+      "x_description": workDescription,
+      "x_amount": amount,
+      "x_date": date.toIso8601String().split('T').first,
+      "x_bill_type": "miscellaneous",
+      "x_bill_number": "",
+      "x_customer_project_name": "",
+      "x_location": location,
+      "x_comments": comments,
+      "x_is_advance_request":
+          true, // Assume it's an advance request since it's pending
+      "x_advance_purpose": "",
+      "x_expected_amount": amount,
+      "x_project_customer_name": "",
+      "x_status": "pendingBillSubmission",
+      "x_user_id": jobCardData['assigned_user_id']?.toString() ?? "",
+      "create_date":
+          jobCardData['create_date'] ?? DateTime.now().toIso8601String(),
+      "write_date": jobCardData['write_date']
+    };
   }
 
   @override
@@ -749,9 +963,449 @@ class PettyCashRemoteDataSource extends BasePettyCashRemoteDataSource {
   Future<Either<Exception, List<PettyCashModel>>>
       getUserPettyCashRequests() async {
     try {
-      _debugPrint('Getting user\'s petty cash requests...');
+      _debugPrint('=== GETTING USER PETTY CASH REQUESTS ===');
       final currentUserId = ConstanceManager.userId?.toString() ?? 'unknown';
-      _debugPrint('Current user ID: $currentUserId');
+      final currentUserIdInt = int.tryParse(currentUserId) ?? 0;
+      _debugPrint(
+          'Current user ID (string): $currentUserId, (int): $currentUserIdInt');
+
+      final url = ApiConsts.baseUrl + ApiEndPoints.callKw;
+
+      // Try multiple search approaches
+      final List<Map<String, dynamic>> searchVariants = [
+        {
+          "domain": [
+            ["x_user_id", "=", currentUserIdInt]
+          ],
+          "description": "x_user_id (integer)"
+        },
+        {
+          "domain": [
+            ["x_user_id", "=", currentUserId]
+          ],
+          "description": "x_user_id (string)"
+        },
+        {
+          "domain": [
+            ["user_id", "=", currentUserIdInt]
+          ],
+          "description": "user_id (integer)"
+        },
+        {
+          "domain": [
+            ["create_uid", "=", currentUserIdInt]
+          ],
+          "description": "create_uid (integer)"
+        },
+        {"domain": [], "description": "no filter (all records)"}
+      ];
+
+      for (int i = 0; i < searchVariants.length; i++) {
+        final variant = searchVariants[i];
+        _debugPrint('🔍 Trying search approach: ${variant["description"]}');
+
+        final body = {
+          "params": {
+            "model": ApiModels.pettyCash,
+            "method": "search_read",
+            "kwargs": {
+              "domain": variant["domain"],
+              "fields": [
+                "id",
+                "x_vendor_name",
+                "x_description",
+                "x_amount",
+                "x_date",
+                "x_bill_type",
+                "x_bill_number",
+                "x_customer_project_name",
+                "x_location",
+                "x_comments",
+                "x_is_advance_request",
+                "x_advance_purpose",
+                "x_expected_amount",
+                "x_project_customer_name",
+                "x_status",
+                "x_user_id",
+                "create_date",
+                "write_date"
+              ],
+              "limit": variant["description"] == "no filter (all records)"
+                  ? 10
+                  : null
+            },
+            "args": []
+          }
+        };
+
+        _debugPrint('Request body: ${jsonEncode(body)}');
+
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Connection': 'keep-alive',
+            'Cookie': ConstanceManager.sessionId.toString(),
+          },
+          body: jsonEncode(body),
+        );
+
+        _debugPrint('Response status: ${response.statusCode}');
+        _debugPrint('Response body: ${response.body}');
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          if (responseData.containsKey("result")) {
+            final List<dynamic> requests = responseData["result"];
+
+            if (requests.isNotEmpty) {
+              _debugPrint(
+                  '✅ Found ${requests.length} records using ${variant["description"]}');
+
+              // If this is the "no filter" search, just log what we found and continue
+              if (variant["description"] == "no filter (all records)") {
+                _debugPrint('Sample records from all data:');
+                for (int j = 0; j < requests.take(3).length; j++) {
+                  _debugPrint('  Record $j: ${requests[j]}');
+                }
+                continue; // Don't return this data, just use it for debugging
+              }
+
+              final List<PettyCashModel> userRequests = [];
+              for (int j = 0; j < requests.length; j++) {
+                try {
+                  final model = PettyCashModel.fromJson(requests[j]);
+                  userRequests.add(model);
+                  _debugPrint(
+                      '✅ Successfully parsed record $j: ID=${model.id}');
+                } catch (e, stackTrace) {
+                  _debugPrint('❌ Error parsing record $j: $e');
+                  _debugPrint('Record $j data: ${requests[j]}');
+                  _debugPrint('Stack trace: $stackTrace');
+                }
+              }
+
+              if (userRequests.isNotEmpty) {
+                _debugPrint(
+                    '=== SUCCESS: Found ${userRequests.length} user petty cash requests ===');
+                return Right(userRequests);
+              }
+            } else {
+              _debugPrint('No records found with ${variant["description"]}');
+            }
+          } else {
+            _debugPrint(
+                '❌ Response missing "result" key for ${variant["description"]}');
+            _debugPrint('Available keys: ${responseData.keys.toList()}');
+          }
+        } else {
+          _debugPrint(
+              '❌ HTTP Error ${response.statusCode} for ${variant["description"]}');
+        }
+      }
+
+      _debugPrint('⚠️ No records found with any search approach');
+      return Right([]);
+    } catch (e, stackTrace) {
+      _debugPrint('❌ Exception in getUserPettyCashRequests: $e');
+      _debugPrint('Stack trace: $stackTrace');
+      return Left(e as Exception);
+    }
+  }
+
+  // Enhanced debug methods
+  @override
+  Future<void> debugModelAndData() async {
+    _debugPrint('=== DEBUGGING MODEL AND DATA ===');
+
+    try {
+      // 1. Check if model exists and get its structure
+      final modelFields = await _checkPettyCashModel();
+      if (modelFields != null) {
+        _debugPrint('✅ Model exists with fields:');
+        modelFields.forEach((key, value) {
+          _debugPrint('  - $key: ${value['type'] ?? 'unknown type'}');
+        });
+      } else {
+        _debugPrint('❌ Model not found or not accessible');
+      }
+
+      // 2. Test basic search without domain filters
+      final url = ApiConsts.baseUrl + ApiEndPoints.callKw;
+      final basicSearchBody = {
+        "params": {
+          "model": ApiModels.pettyCash,
+          "method": "search",
+          "kwargs": {"domain": [], "limit": 5},
+          "args": []
+        }
+      };
+
+      _debugPrint('Testing basic search...');
+      final searchResponse = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Connection': 'keep-alive',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode(basicSearchBody),
+      );
+
+      if (searchResponse.statusCode == 200) {
+        final searchData = jsonDecode(searchResponse.body);
+        if (searchData.containsKey("result")) {
+          final ids = searchData["result"];
+          _debugPrint('Found ${ids.length} records with IDs: $ids');
+        }
+      } else {
+        _debugPrint('Basic search failed: ${searchResponse.statusCode}');
+      }
+
+      // 3. Check current user permissions
+      final userCheckBody = {
+        "params": {
+          "model": "res.users",
+          "method": "search_read",
+          "kwargs": {
+            "domain": [
+              ["id", "=", ConstanceManager.userId ?? 0]
+            ],
+            "fields": ["id", "name", "groups_id"]
+          },
+          "args": []
+        }
+      };
+
+      _debugPrint('Checking user permissions...');
+      final userResponse = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Connection': 'keep-alive',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode(userCheckBody),
+      );
+
+      if (userResponse.statusCode == 200) {
+        final userData = jsonDecode(userResponse.body);
+        _debugPrint('User data: ${userData["result"]}');
+      } else {
+        _debugPrint('User check failed: ${userResponse.statusCode}');
+      }
+
+      // 4. Test different field access patterns
+      await _testFieldAccess();
+    } catch (e) {
+      _debugPrint('Error in model/data debug: $e');
+    }
+
+    _debugPrint('=== END MODEL AND DATA DEBUG ===');
+  }
+
+  Future<void> _testFieldAccess() async {
+    _debugPrint('Testing field access patterns...');
+
+    final url = ApiConsts.baseUrl + ApiEndPoints.callKw;
+    final fieldTests = [
+      {
+        "fields": ["id", "x_user_id"],
+        "description": "Basic fields with x_user_id"
+      },
+      {
+        "fields": ["id", "user_id"],
+        "description": "Basic fields with user_id"
+      },
+      {
+        "fields": ["id", "create_uid"],
+        "description": "Basic fields with create_uid"
+      },
+      {
+        "fields": ["id", "write_uid"],
+        "description": "Basic fields with write_uid"
+      }
+    ];
+
+    for (final test in fieldTests) {
+      try {
+        final body = {
+          "params": {
+            "model": ApiModels.pettyCash,
+            "method": "search_read",
+            "kwargs": {"domain": [], "fields": test["fields"], "limit": 3},
+            "args": []
+          }
+        };
+
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Connection': 'keep-alive',
+            'Cookie': ConstanceManager.sessionId.toString(),
+          },
+          body: jsonEncode(body),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data.containsKey("result")) {
+            final results = data["result"];
+            _debugPrint(
+                '✅ ${test["description"]}: Success - ${results.length} records');
+            if (results.isNotEmpty) {
+              _debugPrint('   Sample: ${results.first}');
+            }
+          }
+        } else {
+          _debugPrint(
+              '❌ ${test["description"]}: Failed - ${response.statusCode}');
+        }
+      } catch (e) {
+        _debugPrint('❌ ${test["description"]}: Error - $e');
+      }
+    }
+  }
+
+  @override
+  Future<void> testDifferentSearchMethods() async {
+    _debugPrint('=== TESTING DIFFERENT SEARCH METHODS ===');
+
+    final currentUserId = ConstanceManager.userId?.toString() ?? 'unknown';
+    final currentUserIdInt = int.tryParse(currentUserId) ?? 0;
+    final url = ApiConsts.baseUrl + ApiEndPoints.callKw;
+
+    // Test 1: Search by string user ID
+    await _testSearch(
+        'String User ID (x_user_id)',
+        [
+          ["x_user_id", "=", currentUserId]
+        ],
+        url);
+
+    // Test 2: Search by integer user ID
+    await _testSearch(
+        'Integer User ID (x_user_id)',
+        [
+          ["x_user_id", "=", currentUserIdInt]
+        ],
+        url);
+
+    // Test 3: Search without user filter
+    await _testSearch('No User Filter', [], url);
+
+    // Test 4: Search with different field name variations
+    await _testSearch(
+        'user_id field (int)',
+        [
+          ["user_id", "=", currentUserIdInt]
+        ],
+        url);
+    await _testSearch(
+        'user_id field (string)',
+        [
+          ["user_id", "=", currentUserId]
+        ],
+        url);
+    await _testSearch(
+        'create_uid field',
+        [
+          ["create_uid", "=", currentUserIdInt]
+        ],
+        url);
+    await _testSearch(
+        'write_uid field',
+        [
+          ["write_uid", "=", currentUserIdInt]
+        ],
+        url);
+
+    // Test 5: Search with LIKE operator
+    await _testSearch(
+        'x_user_id LIKE',
+        [
+          ["x_user_id", "ilike", currentUserId]
+        ],
+        url);
+
+    // Test 6: Search with IN operator
+    await _testSearch(
+        'x_user_id IN',
+        [
+          [
+            "x_user_id",
+            "in",
+            [currentUserId, currentUserIdInt]
+          ]
+        ],
+        url);
+
+    _debugPrint('=== END SEARCH METHODS TEST ===');
+  }
+
+  Future<void> _testSearch(
+      String testName, List<dynamic> domain, String url) async {
+    try {
+      _debugPrint('Testing: $testName');
+
+      final body = {
+        "params": {
+          "model": ApiModels.pettyCash,
+          "method": "search_read",
+          "kwargs": {
+            "domain": domain,
+            "fields": [
+              "id",
+              "x_user_id",
+              "user_id",
+              "create_uid",
+              "x_vendor_name"
+            ],
+            "limit": 5
+          },
+          "args": []
+        }
+      };
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Connection': 'keep-alive',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data.containsKey("result")) {
+          final results = data["result"];
+          _debugPrint('  ✅ $testName: Found ${results.length} records');
+          if (results.isNotEmpty) {
+            _debugPrint('  Sample: ${results.take(2)}');
+          }
+        } else {
+          _debugPrint('  ❌ $testName: No result key in response');
+          if (data.containsKey("error")) {
+            _debugPrint('  Error: ${data["error"]}');
+          }
+        }
+      } else {
+        _debugPrint('  ❌ $testName: HTTP ${response.statusCode}');
+        _debugPrint('  Response: ${response.body}');
+      }
+    } catch (e) {
+      _debugPrint('  ❌ $testName: Error - $e');
+    }
+  }
+
+  // Method to get detailed record information
+  Future<Either<Exception, List<Map<String, dynamic>>>>
+      getAllRecordsWithDetails() async {
+    try {
+      _debugPrint('=== GETTING ALL RECORDS WITH DETAILS ===');
 
       final url = ApiConsts.baseUrl + ApiEndPoints.callKw;
       final body = {
@@ -759,9 +1413,80 @@ class PettyCashRemoteDataSource extends BasePettyCashRemoteDataSource {
           "model": ApiModels.pettyCash,
           "method": "search_read",
           "kwargs": {
-            "domain": [
-              ["x_user_id", "=", currentUserId],
-            ],
+            "domain": [],
+            "fields": [], // Empty fields array returns all fields
+            "limit": 20
+          },
+          "args": []
+        }
+      };
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Connection': 'keep-alive',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode(body),
+      );
+
+      _debugPrint('Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData.containsKey("result")) {
+          final List<dynamic> records = responseData["result"];
+          _debugPrint('Found ${records.length} total records');
+
+          // Log field information from first record
+          if (records.isNotEmpty) {
+            final firstRecord = records.first as Map<String, dynamic>;
+            _debugPrint(
+                'Available fields in records: ${firstRecord.keys.toList()}');
+
+            // Look for user-related fields
+            final userFields = firstRecord.keys
+                .where((key) =>
+                    key.toLowerCase().contains('user') ||
+                    key.toLowerCase().contains('uid'))
+                .toList();
+            _debugPrint('User-related fields found: $userFields');
+
+            for (final field in userFields) {
+              _debugPrint('$field values in first 5 records:');
+              for (int i = 0; i < records.take(5).length; i++) {
+                final record = records[i] as Map<String, dynamic>;
+                _debugPrint('  Record $i: $field = ${record[field]}');
+              }
+            }
+          }
+
+          return Right(records.cast<Map<String, dynamic>>());
+        }
+      }
+
+      return Left(Exception('Failed to get records: ${response.statusCode}'));
+    } catch (e) {
+      _debugPrint('Error getting all records: $e');
+      return Left(e as Exception);
+    }
+  }
+
+  // Method to search with custom domain
+  Future<Either<Exception, List<PettyCashModel>>> searchWithCustomDomain(
+      List<dynamic> domain) async {
+    try {
+      _debugPrint('=== CUSTOM DOMAIN SEARCH ===');
+      _debugPrint('Domain: $domain');
+
+      final url = ApiConsts.baseUrl + ApiEndPoints.callKw;
+      final body = {
+        "params": {
+          "model": ApiModels.pettyCash,
+          "method": "search_read",
+          "kwargs": {
+            "domain": domain,
             "fields": [
               "id",
               "x_vendor_name",
@@ -787,8 +1512,6 @@ class PettyCashRemoteDataSource extends BasePettyCashRemoteDataSource {
         }
       };
 
-      _debugPrint('Get user petty cash requests request: ${jsonEncode(body)}');
-
       final response = await http.post(
         Uri.parse(url),
         headers: {
@@ -799,27 +1522,30 @@ class PettyCashRemoteDataSource extends BasePettyCashRemoteDataSource {
         body: jsonEncode(body),
       );
 
-      _debugPrint(
-          'Get user petty cash requests response status: ${response.statusCode}');
-      _debugPrint(
-          'Get user petty cash requests response body: ${response.body}');
+      _debugPrint('Custom search response status: ${response.statusCode}');
+      _debugPrint('Custom search response: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         if (responseData.containsKey("result")) {
           final List<dynamic> requests = responseData["result"];
-          final List<PettyCashModel> userRequests =
-              requests.map((req) => PettyCashModel.fromJson(req)).toList();
+          final List<PettyCashModel> models = [];
 
-          _debugPrint('Found ${userRequests.length} user petty cash requests');
-          return Right(userRequests);
+          for (int i = 0; i < requests.length; i++) {
+            try {
+              final model = PettyCashModel.fromJson(requests[i]);
+              models.add(model);
+            } catch (e) {
+              _debugPrint('Error parsing record $i: $e');
+            }
+          }
+
+          return Right(models);
         }
       }
 
-      return Left(Exception(
-          'Failed to get user petty cash requests: ${response.statusCode}'));
+      return Left(Exception('Custom search failed: ${response.statusCode}'));
     } catch (e) {
-      _debugPrint('Error getting user petty cash requests: $e');
       return Left(e as Exception);
     }
   }

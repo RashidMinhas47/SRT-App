@@ -13,6 +13,7 @@ class ConstanceManager {
   static String? workPhone;
   // static int? companyId;
   // static bool? isSystem;
+  //TODO: Why this amwal.om is used here
   static const String amwal = "https://amwal.om/";
   static List<String> acTypes = const [
     'Split AC',
