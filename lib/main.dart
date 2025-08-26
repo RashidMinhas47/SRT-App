@@ -33,6 +33,11 @@ Future<void> main() async {
       ConstanceManager.sessionId = value;
     }
   });
+  await CacheHelper.getData(key: "userId").then((value) {
+    if (value != false) {
+      ConstanceManager.userId = value;
+    }
+  });
   await CacheHelper.getData(key: "workPhone").then((value) {
     if (value != false) {
       ConstanceManager.workPhone = value;
