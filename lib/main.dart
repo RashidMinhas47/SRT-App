@@ -2,7 +2,7 @@ import 'package:bayanat/core/local/shared_prefrences.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
-import 'package:bayanat/modules/petty_cash/data_layer/data_sources/petty_cash_remote_data_source.dart';
+import 'package:bayanat/modules/petty_cash/controllers/expense_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -15,9 +15,19 @@ import 'modules/authentication/presentation_layer/screens/splash_screen.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_card_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/fault_pdf.dart';
-import 'modules/petty_cash/presentation_layer/bloc/petty_cash_bloc.dart';
-import 'modules/petty_cash/presentation_layer/bloc/pending_bills_bloc.dart';
 // import 'package:device_preview/device_preview.dart';
+import 'package:get/get.dart';
+import '../../modules/petty_cash/controllers/employe_controller.dart';
+import '../../modules/petty_cash/controllers/expense_controller.dart';
+
+class AppBindings extends Bindings {
+  @override
+  void dependencies() {
+    // Initialize controllers
+    Get.lazyPut<EmployeeController>(() => EmployeeController(), fenix: true);
+    Get.lazyPut<ExpenseController>(() => ExpenseController(), fenix: true);
+  }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +57,7 @@ Future<void> main() async {
     }
   });
   ConstanceManager.name = await CacheHelper.getData(key: "name");
-  Get.put(PettyCashController());
+  Get.put(ExpenseController());
 
   runApp(const MyApp());
 
@@ -87,6 +97,7 @@ class MyApp extends StatelessWidget {
         child: GetMaterialApp(
           // locale: DevicePreview.locale(context),
           // builder: DevicePreview.appBuilder,
+          initialBinding: AppBindings(),
           debugShowCheckedModeBanner: false,
           theme: getAppTheme(),
           home: FutureBuilder(

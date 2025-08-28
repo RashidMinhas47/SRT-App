@@ -3,15 +3,14 @@ import 'dart:io';
 
 import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
-import 'package:bayanat/modules/petty_cash/data_layer/data_sources/petty_cash_remote_data_source.dart';
+import 'package:bayanat/modules/petty_cash/controllers/expense_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../main/presentation_layer/components/components.dart';
-import '../../data_layer/models/petty_cash_model.dart';
-import '../../domain_layer/entities/petty_cash.dart';
+import '../../models/petty_cash.dart';
 import 'pending_bills_screen.dart';
 
 class PettyCashFormScreen extends StatefulWidget {
@@ -37,7 +36,7 @@ class _PettyCashFormScreenState extends State<PettyCashFormScreen> {
   DateTime _selectedDate = DateTime.now();
 
   // GetX controller
-  late final PettyCashController _pettyCashController;
+  late final ExpenseController _pettyCashController;
 
   // Local state for bill photos
   final List<File> _billPhotos = [];
@@ -57,7 +56,7 @@ class _PettyCashFormScreenState extends State<PettyCashFormScreen> {
   void initState() {
     super.initState();
     // Initialize GetX controller
-    _pettyCashController = Get.put(PettyCashController());
+    _pettyCashController = Get.put(ExpenseController());
   }
 
   @override

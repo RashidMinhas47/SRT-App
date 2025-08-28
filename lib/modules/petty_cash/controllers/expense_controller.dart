@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:bayanat/modules/petty_cash/models/petty_cash.dart';
 import 'package:get/get.dart';
 import 'package:bayanat/core/remote/api_helper/api_models.dart';
 import 'package:bayanat/core/remote/api_helper/api_constance.dart';
@@ -8,9 +9,7 @@ import 'package:bayanat/core/remote/api_helper/methods.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:http/http.dart' as http;
 
-import '../../data_layer/models/petty_cash_model.dart';
-
-class PettyCashController extends GetxController {
+class ExpenseController extends GetxController {
   // Observable states
   final RxBool isLoading = false.obs;
   final RxBool isSubmitting = false.obs;
