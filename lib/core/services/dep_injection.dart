@@ -37,13 +37,13 @@ class ServiceLocator {
     sl.registerLazySingleton(() => baseMainRepository);
 
     /// petty cash
-    PettyCashRemoteDataSource pettyRemote = PettyCashRemoteDataSource();
-    sl.registerLazySingleton<BasePettyCashRemoteDataSource>(() => pettyRemote);
-    sl.registerLazySingleton<PettyCashRemoteDataSource>(() => pettyRemote);
-    BasePettyCashRepository pettyRepo = PettyCashRepository(sl());
-    sl.registerLazySingleton<BasePettyCashRepository>(() => pettyRepo);
-    SubmitPettyCashUseCase pettyUseCase = SubmitPettyCashUseCase(sl());
-    sl.registerLazySingleton(() => pettyUseCase);
+    // PettyCashRemoteDataSource pettyRemote = PettyCashRemoteDataSource();
+    // sl.registerLazySingleton<BasePettyCashRemoteDataSource>(() => pettyRemote);
+    // sl.registerLazySingleton<PettyCashRemoteDataSource>(() => pettyRemote);
+    // BasePettyCashRepository pettyRepo = PettyCashRepository(sl());
+    // sl.registerLazySingleton<BasePettyCashRepository>(() => pettyRepo);
+    // SubmitPettyCashUseCase pettyUseCase = SubmitPettyCashUseCase(sl());
+    // sl.registerLazySingleton(() => pettyUseCase);
 
     /// blocs
     AuthBloc authBloc = AuthBloc(AuthInitial());
@@ -52,12 +52,12 @@ class ServiceLocator {
     MainBloc mainBloc = MainBloc(MainInitial());
     sl.registerLazySingleton(() => mainBloc);
 
-    PettyCashBloc pettyBloc = PettyCashBloc(submitUseCase: sl());
-    sl.registerLazySingleton(() => pettyBloc);
+    // PettyCashBloc pettyBloc = PettyCashBloc(submitUseCase: sl());
+    // sl.registerLazySingleton(() => pettyBloc);
 
-    PendingBillsBloc pendingBillsBloc =
-        PendingBillsBloc(remoteDataSource: sl());
-    sl.registerLazySingleton(() => pendingBillsBloc);
+    // PendingBillsBloc pendingBillsBloc =
+    //     PendingBillsBloc(remoteDataSource: sl());
+    // sl.registerLazySingleton(() => pendingBillsBloc);
 
     /// odoo
     // ConstanceManager.sessionId = await CacheHelper.getData(key: "sessionId");

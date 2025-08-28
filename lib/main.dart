@@ -2,8 +2,11 @@ import 'package:bayanat/core/local/shared_prefrences.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
+import 'package:bayanat/modules/petty_cash/data_layer/data_sources/petty_cash_remote_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
+import 'package:get/route_manager.dart';
 import 'package:sizer/sizer.dart';
 import 'core/services/dep_injection.dart';
 import 'core/utils/theme_manager.dart';
@@ -44,6 +47,8 @@ Future<void> main() async {
     }
   });
   ConstanceManager.name = await CacheHelper.getData(key: "name");
+  Get.put(PettyCashController());
+
   runApp(const MyApp());
 
   // runApp(
@@ -76,10 +81,10 @@ class MyApp extends StatelessWidget {
                   context: context,
                 )) //..add(const GetMyDataEvent()),
               ),
-          BlocProvider<PettyCashBloc>(create: (_) => sl()),
-          BlocProvider<PendingBillsBloc>(create: (_) => sl()),
+          // BlocProvider<PettyCashBloc>(create: (_) => sl()),
+          // BlocProvider<PendingBillsBloc>(create: (_) => sl()),
         ],
-        child: MaterialApp(
+        child: GetMaterialApp(
           // locale: DevicePreview.locale(context),
           // builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,
