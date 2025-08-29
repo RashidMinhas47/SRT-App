@@ -1,0 +1,722 @@
+import 'dart:convert';
+import 'package:bayanat/core/remote/api_helper/api_models.dart';
+import 'package:bayanat/core/utils/constance_manager.dart';
+import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
+import 'package:bayanat/modules/petty_cash/models/tax_type.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import '../../../core/remote/api_helper/api_constance.dart';
+import '../models/tax_model.dart';
+import '../models/account_model.dart';
+import '../models/employee_model.dart';
+
+class HrExpenseController extends GetxController {
+  final RxBool isLoading = false.obs;
+  final RxBool isSubmitting = false.obs;
+  final RxString error = ''.obs;
+
+  // Lists for dropdown data
+  final RxList<Map<String, dynamic>> categories = <Map<String, dynamic>>[].obs;
+  final RxList<TaxModel> taxes = <TaxModel>[].obs;
+  final RxList<AccountModel> accounts = <AccountModel>[].obs;
+
+  // Update to store just company field data
+  final RxString companyField = ''.obs;
+
+  // Add RxMap to store field descriptions
+  final RxMap<String, dynamic> paymentModeField = <String, dynamic>{}.obs;
+
+  // Add employees list
+  final RxList<EmployeeModel> employees = <EmployeeModel>[].obs;
+  final RxInt selectedEmployeeId = RxInt(0);
+
+  // Add filtered taxes list
+  final RxList<TaxType> filteredTaxes = <TaxType>[].obs;
+
+  final Rx<TextEditingController> totalAmountCompanyController =
+      TextEditingController().obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchDropdownData();
+  }
+
+  Future<void> fetchDropdownData() async {
+    try {
+      isLoading.value = true;
+      await Future.wait([
+        _fetchCategories(),
+        _fetchTaxes(),
+        _fetchAccounts(),
+        _fetchCompanyField(),
+        _fetchPaymentModeField(),
+        _fetchEmployees(), // Add employees fetch
+        _fetchTaxes(),
+      ]);
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      print('📍 Fetching expense categories...');
+
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(), // Add session cookie
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'product.product',
+            'method': 'search_read',
+            'args': [],
+            'kwargs': {
+              'fields': ['id', 'name'],
+              'domain': [
+                ['can_be_expensed', '=', true]
+              ],
+            }
+          }
+        }),
+      );
+
+      print('🔍 Response Status Code: ${response.statusCode}');
+      print('🔍 Response Headers: ${response.headers}');
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print('✅ Response Body: ${jsonEncode(result)}');
+
+        if (result['result'] != null) {
+          categories.value = List<Map<String, dynamic>>.from(result['result']);
+          print('✅ Categories fetched: ${categories.length}');
+        } else {
+          throw Exception('No results found in response');
+        }
+      } else {
+        print('❌ Error Response Body: ${response.body}');
+        throw Exception('Failed to fetch categories: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error fetching categories: $e');
+      error.value = 'Error fetching expense categories: $e';
+      rethrow;
+    }
+  }
+
+  Future<void> _fetchTaxes() async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'account.tax',
+            'method': 'search_read',
+            'args': [],
+            'kwargs': {
+              'fields': ['id', 'name'],
+              'domain': [
+                ['active', '=', true]
+              ],
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] != null) {
+          // Only keep the two required tax names
+          filteredTaxes.value = (result['result'] as List)
+              .map((tax) => TaxType.fromJson(tax))
+              .where((tax) =>
+                  tax.name == "Purchase Tax 5%" || tax.name == "Vat 5%")
+              .toList();
+        }
+      } else {
+        throw Exception('Failed to fetch taxes: ${response.statusCode}');
+      }
+    } catch (e) {
+      error.value = 'Error fetching taxes: $e';
+      rethrow;
+    }
+  }
+
+  Future<void> _fetchAccounts() async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': ApiModels.account,
+            'method': 'search_read',
+            'args': [],
+            'kwargs': {
+              'fields': ['id', 'display_name', 'code'],
+              'domain': [
+                ['deprecated', '=', false],
+                ['internal_type', '=', 'other']
+              ],
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] != null) {
+          accounts.value = (result['result'] as List)
+              .map((account) => AccountModel.fromJson(account))
+              .toList();
+        }
+      } else {
+        throw Exception('Failed to fetch accounts: ${response.statusCode}');
+      }
+    } catch (e) {
+      error.value = 'Error fetching accounts: $e';
+      rethrow;
+    }
+  }
+
+  // Update fetchDropdownData to include company field fetch
+  Future<void> _fetchCompanyField() async {
+    try {
+      print('📍 Fetching company field...');
+
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.expense',
+            'method': 'fields_get',
+            'args': [],
+            'kwargs': {
+              'attributes': ['string', 'required', 'type', 'selection'],
+              'fieldnames': ['company_id']
+            }
+          }
+        }),
+      );
+
+      print('🔍 Response Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print('✅ Response Body: ${jsonEncode(result)}');
+
+        if (result['result'] != null &&
+            result['result']['company_id'] != null) {
+          companyField.value = result['result']['company_id'].toString();
+          print('✅ Company field info: ${companyField.value}');
+        } else {
+          throw Exception('Company field info not found in response');
+        }
+      } else {
+        print('❌ Error Response Body: ${response.body}');
+        throw Exception(
+            'Failed to fetch company field: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error fetching company field: $e');
+      error.value = 'Error fetching company field: $e';
+      rethrow;
+    }
+  }
+
+  Future<void> _fetchPaymentModeField() async {
+    try {
+      print('📍 Fetching payment mode field...');
+
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'ir.model.fields',
+            'method': 'search_read',
+            'args': [],
+            'kwargs': {
+              'fields': ['id', 'field_description', 'selection'],
+              'domain': [
+                ['model', '=', 'hr.expense'],
+                ['name', '=', 'payment_mode'],
+              ],
+            }
+          }
+        }),
+      );
+
+      print('🔍 Response Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print('✅ Response Body: ${jsonEncode(result)}');
+
+        if (result['result'] != null && result['result'].isNotEmpty) {
+          paymentModeField.value = result['result'][0];
+          print('✅ Payment Mode field info: ${paymentModeField.value}');
+        } else {
+          throw Exception('Payment Mode field info not found in response');
+        }
+      } else {
+        print('❌ Error Response Body: ${response.body}');
+        throw Exception(
+            'Failed to fetch payment mode field: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error fetching payment mode field: $e');
+      error.value = 'Error fetching payment mode field: $e';
+      rethrow;
+    }
+  }
+
+  // Add method to fetch employees
+  Future<void> _fetchEmployees() async {
+    try {
+      print('📍 Fetching employees...');
+
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.employee',
+            'method': 'search_read',
+            'args': [],
+            'kwargs': {
+              'fields': ['id', 'name', 'user_id'],
+              'domain': [
+                ['active', '=', true]
+              ],
+            }
+          }
+        }),
+      );
+
+      print('🔍 Response Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print('✅ Response Body: ${jsonEncode(result)}');
+
+        if (result['result'] != null) {
+          employees.value = (result['result'] as List)
+              .map((emp) => EmployeeModel.fromJson(emp))
+              .toList();
+          print('✅ Employees fetched: ${employees.length}');
+        } else {
+          throw Exception('No employees found in response');
+        }
+      } else {
+        throw Exception('Failed to fetch employees: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error fetching employees: $e');
+      error.value = 'Error fetching employees: $e';
+      rethrow;
+    }
+  }
+
+  Future<bool> submitExpense(HrExpenseModel expense) async {
+    try {
+      print('📝 Starting expense submission...');
+      isSubmitting.value = true;
+
+      // First get the employee ID
+      // final employeeId = await _getCurrentEmployeeId();
+      // if (employeeId == null) {
+      //   print('❌ No employee ID found for current user');
+      //   error.value = 'No employee record found for current user';
+      //   Get.snackbar(
+      //     'Error',
+      //     'No employee record found for current user',
+      //     snackPosition: SnackPosition.TOP,
+      //     backgroundColor: Colors.red,
+      //     colorText: Colors.white,
+      //   );
+      //   return false;
+      // }
+
+      if (selectedEmployeeId.value == 0) {
+        error.value = 'Please select an employee';
+        Get.snackbar(
+          'Error',
+          'Please select an employee',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+
+      // Format data according to Odoo's hr.expense model requirements
+      final expenseData = {
+        'name': expense.name,
+        'product_id': expense.productId,
+        'unit_amount': double.parse(totalAmountCompanyController.value.text),
+        'quantity': 1.0,
+        'date': expense.date?.toIso8601String().split('T')[0],
+        'employee_id': selectedEmployeeId.value,
+        'payment_mode': 'company_account',
+        // Only add account_id if not null
+        if (expense.accountId != null) 'account_id': expense.accountId,
+        // 'reference': expense.reference,
+        // 'total_amount_company': _totalAmountCompany,
+        // Only add tax_ids if not empty
+        // if (expense.taxIds != null && expense.taxIds!.isNotEmpty)
+        //   'tax_ids': [
+        //     [6, 0, expense.taxIds]
+        //   ],
+      };
+
+      // if (expense.taxIds != null && expense.taxIds!.isNotEmpty) {
+      //   print(expense.taxIds);
+      //   expenseData['tax_ids'] = [
+      //     [6, 0, expense.taxIds]
+      //   ];
+      // }
+
+      print('📦 Expense data to submit: ${jsonEncode(expenseData)}');
+
+      // Validate mandatory fields
+      if (expenseData['name'] == null ||
+          expenseData['product_id'] == null ||
+          expenseData['unit_amount'] == null ||
+          expenseData['date'] == null) {
+        print('❌ Mandatory fields missing');
+        error.value = 'Please fill all required fields';
+        Get.snackbar(
+          'Error',
+          'Please fill all required fields',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.expense',
+            'method': 'create',
+            'args': [expenseData],
+            'kwargs': {},
+          }
+        }),
+      );
+
+      print('🔍 Response Status Code: ${response.statusCode}');
+      print('🔍 Response Headers: ${response.headers}');
+      print('🔍 Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print('✅ Response Body: ${jsonEncode(result)}');
+
+        if (result['result'] != null) {
+          print(
+              '✅ Expense submitted successfully with ID: ${result['result']}');
+          Get.snackbar(
+            'Success',
+            'Expense submitted successfully',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          return true;
+        } else if (result['error'] != null) {
+          // Handle Odoo error message
+          final errorData = result['error']['data'];
+          final errorMessage =
+              errorData['message'] ?? errorData['debug'] ?? 'Unknown error';
+          print('❌ Odoo Error: $errorMessage');
+          error.value = 'Server Error: $errorMessage';
+          Get.snackbar(
+            'Error',
+            'Failed to submit expense: $errorMessage',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          return false;
+        }
+      }
+
+      print('❌ Error Response Body: ${response.body}');
+      error.value = 'Failed to submit expense: ${response.statusCode}';
+      Get.snackbar(
+        'Error',
+        'Failed to submit expense: ${response.statusCode}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    } catch (e) {
+      print('❌ Exception during submission: $e');
+      error.value = 'Error submitting expense: $e';
+      Get.snackbar(
+        'Error',
+        'Error submitting expense: $e',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  // Future<bool> submitExpenseWithCustomData(
+  //     Map<String, dynamic> expenseData) async {
+  //   try {
+  //     print('📝 Starting expense submission with custom data...');
+  //     isSubmitting.value = true;
+
+  //     if (selectedEmployeeId.value == 0) {
+  //       error.value = 'Please select an employee';
+  //       Get.snackbar(
+  //         'Error',
+  //         'Please select an employee',
+  //         snackPosition: SnackPosition.TOP,
+  //         backgroundColor: Colors.red,
+  //         colorText: Colors.white,
+  //       );
+  //       return false;
+  //     }
+
+  //     // Add employee_id and payment_mode to the data
+  //     expenseData['employee_id'] = selectedEmployeeId.value;
+  //     expenseData['payment_mode'] = 'company_account'; // Fixed value
+
+  //     print('📦 Custom Expense data to submit: ${jsonEncode(expenseData)}');
+
+  //     // Validate mandatory fields
+  //     if (expenseData['name'] == null ||
+  //         expenseData['product_id'] == null ||
+  //         // expenseData['unit_amount'] == null ||
+  //         expenseData['date'] == null) {
+  //       print('❌ Mandatory fields missing');
+  //       error.value = 'Please fill all required fields';
+  //       Get.snackbar(
+  //         'Error',
+  //         'Please fill all required fields',
+  //         snackPosition: SnackPosition.TOP,
+  //         backgroundColor: Colors.red,
+  //         colorText: Colors.white,
+  //       );
+  //       return false;
+  //     }
+
+  //     final response = await http.post(
+  //       Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Cookie': ConstanceManager.sessionId.toString(),
+  //       },
+  //       body: jsonEncode({
+  //         'params': {
+  //           'model': 'hr.expense',
+  //           'method': 'create',
+  //           'args': [expenseData],
+  //           'kwargs': {},
+  //         }
+  //       }),
+  //     );
+
+  //     print('🔍 Response Status Code: ${response.statusCode}');
+  //     print('🔍 Response Headers: ${response.headers}');
+  //     print('🔍 Response Body: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final result = jsonDecode(response.body);
+  //       print('✅ Response Body: ${jsonEncode(result)}');
+
+  //       if (result['result'] != null) {
+  //         print(
+  //             '✅ Expense submitted successfully with ID: ${result['result']}');
+  //         Get.snackbar(
+  //           'Success',
+  //           'Expense submitted successfully',
+  //           snackPosition: SnackPosition.TOP,
+  //           backgroundColor: Colors.green,
+  //           colorText: Colors.white,
+  //         );
+  //         return true;
+  //       } else if (result['error'] != null) {
+  //         // Handle Odoo error message
+  //         final errorData = result['error']['data'];
+  //         final errorMessage =
+  //             errorData['message'] ?? errorData['debug'] ?? 'Unknown error';
+  //         print('❌ Odoo Error: $errorMessage');
+  //         error.value = 'Server Error: $errorMessage';
+  //         Get.snackbar(
+  //           'Error',
+  //           'Failed to submit expense: $errorMessage',
+  //           snackPosition: SnackPosition.TOP,
+  //           backgroundColor: Colors.red,
+  //           colorText: Colors.white,
+  //         );
+  //         return false;
+  //       }
+  //     }
+
+  //     print('❌ Error Response Body: ${response.body}');
+  //     error.value = 'Failed to submit expense: ${response.statusCode}';
+  //     Get.snackbar(
+  //       'Error',
+  //       'Failed to submit expense: ${response.statusCode}',
+  //       snackPosition: SnackPosition.TOP,
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //     return false;
+  //   } catch (e) {
+  //     print('❌ Exception during submission: $e');
+  //     error.value = 'Error submitting expense: $e';
+  //     Get.snackbar(
+  //       'Error',
+  //       'Error submitting expense: $e',
+  //       snackPosition: SnackPosition.TOP,
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //     return false;
+  //   } finally {
+  //     isSubmitting.value = false;
+  //   }
+  // }
+
+  // Update _getCurrentEmployeeId to be more robust
+  // Future<int?> _getCurrentEmployeeId() async {
+  //   try {
+  //     print('🔍 Fetching employee ID for user: ${ConstanceManager.userId}');
+
+  //     final response = await http.post(
+  //       Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Cookie': ConstanceManager.sessionId.toString(),
+  //       },
+  //       body: jsonEncode({
+  //         'params': {
+  //           'model': 'hr.employee',
+  //           'method': 'search_read',
+  //           'args': [],
+  //           'kwargs': {
+  //             'fields': ['id', 'name'],
+  //             'domain': [
+  //               ['user_id', '=', ConstanceManager.userId],
+  //             ],
+  //             'limit': 1,
+  //           }
+  //         }
+  //       }),
+  //     );
+
+  //     print('🔍 Response Status Code: ${response.statusCode}');
+
+  //     if (response.statusCode == 200) {
+  //       final result = jsonDecode(response.body);
+  //       print('✅ Response Body: ${jsonEncode(result)}');
+
+  //       if (result['result'] != null && result['result'].isNotEmpty) {
+  //         final employeeId = result['result'][0]['id'] as int;
+  //         print('✅ Found employee ID: $employeeId');
+  //         return employeeId;
+  //       } else {
+  //         print('⚠️ No employee record found');
+  //         return null;
+  //       }
+  //     }
+
+  //     print('❌ Failed to fetch employee ID');
+  //     return null;
+  //   } catch (e) {
+  //     print('❌ Error fetching employee ID: $e');
+  //     return null;
+  //   }
+  // }
+
+  // Add method for archiving expenses instead of deleting
+  Future<bool> archiveExpense(int expenseId) async {
+    try {
+      print('📝 Archiving expense: $expenseId');
+
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.expense',
+            'method': 'write',
+            'args': [
+              [expenseId],
+              {'active': false}
+            ],
+            'kwargs': {},
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] == true) {
+          print('✅ Expense archived successfully');
+          return true;
+        }
+      }
+
+      print('❌ Failed to archive expense');
+      return false;
+    } catch (e) {
+      print('❌ Error archiving expense: $e');
+      return false;
+    }
+  }
+
+  // Helper method to get account by ID
+  AccountModel? getAccountById(int id) {
+    return accounts.firstWhereOrNull((account) => account.id == id);
+  }
+
+  // Helper method to get tax by ID
+  TaxModel? getTaxById(int id) {
+    return taxes.firstWhereOrNull((tax) => tax.id == id);
+  }
+}

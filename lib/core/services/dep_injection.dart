@@ -8,8 +8,6 @@ import '../../modules/main/data_layer/data_sources/main_remote_data_sources.dart
 import '../../modules/main/data_layer/repositories/main_repository.dart';
 import '../../modules/main/domain_layer/repsitories/base_main_repository.dart';
 import '../../modules/main/presentation_layer/bloc/main_bloc.dart';
-import '../../modules/petty_cash/domain_layer/repositories/base_petty_cash_repository.dart';
-import '../../modules/petty_cash/domain_layer/use_cases/submit_petty_cash_usecase.dart';
 
 final sl = GetIt.instance;
 

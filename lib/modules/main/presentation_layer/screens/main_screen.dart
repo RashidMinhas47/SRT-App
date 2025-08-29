@@ -6,6 +6,7 @@ import 'package:bayanat/modules/authentication/presentation_layer/screens/splash
 import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
 import 'package:bayanat/modules/main/presentation_layer/components/components.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/history_screen.dart';
+import 'package:bayanat/modules/petty_cash/presentation_layer/screens/hr_expense_screen.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -282,7 +283,7 @@ class JobCardScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                   SizedBox(
@@ -457,7 +458,12 @@ class JobCardScreen extends StatelessWidget {
                               : bloc.amcCards.isEmpty &&
                                       jobCardsUnCompleted.isEmpty
                                   ? 0.75
-                                  : 0.45))
+                                  : 0.45)),
+                  IconButton(
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => ExpenseFormScreen())),
+                    icon: Icon(Icons.add),
+                  ),
                 ],
               ),
             );

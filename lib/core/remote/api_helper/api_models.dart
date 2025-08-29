@@ -17,4 +17,6 @@ class ApiModels {
   //MY Work
   static const String expense = "hr.expense"; // petty cash bills
   static const String employee = "hr.employee";
+  static const String account = "account.account";
+  static const String accountTax = "account.tax";
 }

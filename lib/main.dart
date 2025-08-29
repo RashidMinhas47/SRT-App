@@ -3,6 +3,7 @@ import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
 import 'package:bayanat/modules/petty_cash/controllers/expense_controller.dart';
+import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -16,9 +17,7 @@ import 'modules/main/presentation_layer/screens/pdfs/amc_card_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/fault_pdf.dart';
 // import 'package:device_preview/device_preview.dart';
-import 'package:get/get.dart';
 import '../../modules/petty_cash/controllers/employe_controller.dart';
-import '../../modules/petty_cash/controllers/expense_controller.dart';
 
 class AppBindings extends Bindings {
   @override
@@ -26,6 +25,7 @@ class AppBindings extends Bindings {
     // Initialize controllers
     Get.lazyPut<EmployeeController>(() => EmployeeController(), fenix: true);
     Get.lazyPut<ExpenseController>(() => ExpenseController(), fenix: true);
+    Get.lazyPut<HrExpenseController>(() => HrExpenseController(), fenix: true);
   }
 }
 
