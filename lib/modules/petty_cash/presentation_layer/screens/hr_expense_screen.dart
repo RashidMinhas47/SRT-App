@@ -170,11 +170,13 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       final expense = HrExpenseModel(
         name: _descriptionController.text,
+
         productId: _selectedCategoryId,
         employeeId: _controller.selectedEmployeeId.value,
         paymentMode: _paymentMode,
         accountId: _selectedAccountId,
-        amount: double.tryParse(_amountController.text),
+        amount: double.tryParse(
+            _controller.totalAmountCompanyController.value.text),
         date: DateTime.now(),
         companyId: _selectedCompanyId?.toString(),
         // Add other fields as needed

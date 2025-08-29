@@ -4,6 +4,7 @@ import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:bayanat/modules/petty_cash/models/tax_type.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/remote/api_helper/api_constance.dart';
@@ -347,75 +348,44 @@ class HrExpenseController extends GetxController {
       print('📝 Starting expense submission...');
       isSubmitting.value = true;
 
-      // First get the employee ID
-      // final employeeId = await _getCurrentEmployeeId();
-      // if (employeeId == null) {
-      //   print('❌ No employee ID found for current user');
-      //   error.value = 'No employee record found for current user';
-      //   Get.snackbar(
-      //     'Error',
-      //     'No employee record found for current user',
-      //     snackPosition: SnackPosition.TOP,
-      //     backgroundColor: Colors.red,
-      //     colorText: Colors.white,
-      //   );
-      //   return false;
-      // }
-
       if (selectedEmployeeId.value == 0) {
         error.value = 'Please select an employee';
-        Get.snackbar(
-          'Error',
-          'Please select an employee',
-          snackPosition: SnackPosition.TOP,
+        Fluttertoast.showToast(
+          msg: 'Please select an employee',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
           backgroundColor: Colors.red,
-          colorText: Colors.white,
+          textColor: Colors.white,
         );
         return false;
       }
 
-      // Format data according to Odoo's hr.expense model requirements
       final expenseData = {
         'name': expense.name,
         'product_id': expense.productId,
-        'unit_amount': double.parse(totalAmountCompanyController.value.text),
+        'unit_amount': expense.amount ?? 100,
         'quantity': 1.0,
         'date': expense.date?.toIso8601String().split('T')[0],
         'employee_id': selectedEmployeeId.value,
         'payment_mode': 'company_account',
-        // Only add account_id if not null
         if (expense.accountId != null) 'account_id': expense.accountId,
-        // 'reference': expense.reference,
-        // 'total_amount_company': _totalAmountCompany,
-        // Only add tax_ids if not empty
-        // if (expense.taxIds != null && expense.taxIds!.isNotEmpty)
-        //   'tax_ids': [
-        //     [6, 0, expense.taxIds]
-        //   ],
+        'reference': expense.reference,
       };
-
-      // if (expense.taxIds != null && expense.taxIds!.isNotEmpty) {
-      //   print(expense.taxIds);
-      //   expenseData['tax_ids'] = [
-      //     [6, 0, expense.taxIds]
-      //   ];
-      // }
 
       print('📦 Expense data to submit: ${jsonEncode(expenseData)}');
 
-      // Validate mandatory fields
       if (expenseData['name'] == null ||
           expenseData['product_id'] == null ||
           expenseData['unit_amount'] == null ||
           expenseData['date'] == null) {
         print('❌ Mandatory fields missing');
         error.value = 'Please fill all required fields';
-        Get.snackbar(
-          'Error',
-          'Please fill all required fields',
-          snackPosition: SnackPosition.TOP,
+        Fluttertoast.showToast(
+          msg: 'Please fill all required fields',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
           backgroundColor: Colors.red,
-          colorText: Colors.white,
+          textColor: Colors.white,
         );
         return false;
       }
@@ -447,12 +417,12 @@ class HrExpenseController extends GetxController {
         if (result['result'] != null) {
           print(
               '✅ Expense submitted successfully with ID: ${result['result']}');
-          Get.snackbar(
-            'Success',
-            'Expense submitted successfully',
-            snackPosition: SnackPosition.TOP,
+          Fluttertoast.showToast(
+            msg: 'Expense submitted successfully',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.TOP,
             backgroundColor: Colors.green,
-            colorText: Colors.white,
+            textColor: Colors.white,
           );
           return true;
         } else if (result['error'] != null) {
@@ -462,12 +432,12 @@ class HrExpenseController extends GetxController {
               errorData['message'] ?? errorData['debug'] ?? 'Unknown error';
           print('❌ Odoo Error: $errorMessage');
           error.value = 'Server Error: $errorMessage';
-          Get.snackbar(
-            'Error',
-            'Failed to submit expense: $errorMessage',
-            snackPosition: SnackPosition.TOP,
+          Fluttertoast.showToast(
+            msg: 'Failed to submit expense: $errorMessage',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.TOP,
             backgroundColor: Colors.red,
-            colorText: Colors.white,
+            textColor: Colors.white,
           );
           return false;
         }
@@ -475,23 +445,23 @@ class HrExpenseController extends GetxController {
 
       print('❌ Error Response Body: ${response.body}');
       error.value = 'Failed to submit expense: ${response.statusCode}';
-      Get.snackbar(
-        'Error',
-        'Failed to submit expense: ${response.statusCode}',
-        snackPosition: SnackPosition.TOP,
+      Fluttertoast.showToast(
+        msg: 'Failed to submit expense: ${response.statusCode}',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
         backgroundColor: Colors.red,
-        colorText: Colors.white,
+        textColor: Colors.white,
       );
       return false;
     } catch (e) {
       print('❌ Exception during submission: $e');
       error.value = 'Error submitting expense: $e';
-      Get.snackbar(
-        'Error',
-        'Error submitting expense: $e',
-        snackPosition: SnackPosition.TOP,
+      Fluttertoast.showToast(
+        msg: 'Error submitting expense: $e',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
         backgroundColor: Colors.red,
-        colorText: Colors.white,
+        textColor: Colors.white,
       );
       return false;
     } finally {
