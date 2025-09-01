@@ -134,6 +134,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
 
                 // Customer Selection Dropdown
                 Obx(() => DropdownButtonFormField<int>(
+                      icon: Icon(Icons.keyboard_arrow_down),
                       value: _controller.selectedCustomerId.value == 0
                           ? null
                           : _controller.selectedCustomerId.value,
@@ -168,20 +169,29 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                         fillColor: Colors.grey[50],
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 16),
-                        suffixIcon: const Icon(Icons.keyboard_arrow_down,
-                            color: Colors.grey),
                       ),
                       items: _controller.customers
-                          .map((customer) => DropdownMenuItem<int>(
-                                value: customer['id'] as int,
+                          .map(
+                            (customer) => DropdownMenuItem<int>(
+                              value: customer['id'] as int,
+                              child: SizedBox(
+                                width:
+                                    200, // 👈 Limit width of text inside dropdown
                                 child: Text(
-                                  customer['translated_display_name'] as String,
+                                  customer['translated_display_name']
+                                      .toString()
+                                      .trim(),
+                                  overflow: TextOverflow
+                                      .ellipsis, // 👈 Prevent overflow
+                                  maxLines: 1,
                                   style: const TextStyle(
                                     color: Colors.black87,
                                     fontSize: 16,
                                   ),
                                 ),
-                              ))
+                              ),
+                            ),
+                          )
                           .toList(),
                       onChanged: (int? value) {
                         _controller.selectedCustomerId.value = value ?? 0;
@@ -196,6 +206,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                       validator: (v) =>
                           v == null ? 'Please select a customer' : null,
                     )),
+
                 const SizedBox(height: 20),
                 // Customer Mobile Number
                 TextFormField(
@@ -294,6 +305,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
 
                 // Assigned User Selection
                 Obx(() => DropdownButtonFormField<int>(
+                      icon: const Icon(Icons.keyboard_arrow_down,
+                          color: Colors.grey),
                       value: _controller.selectedUserId.value == 0
                           ? null
                           : _controller.selectedUserId.value,
@@ -328,8 +341,6 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                         fillColor: Colors.grey[50],
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 16),
-                        suffixIcon: const Icon(Icons.keyboard_arrow_down,
-                            color: Colors.grey),
                       ),
                       items: _controller.users
                           .map((user) => DropdownMenuItem<int>(
@@ -511,8 +522,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     if (v?.isEmpty ?? true) {
                       return 'Work description is required';
                     }
-                    if (v!.length < 10) {
-                      return 'Description must be at least 10 characters';
+                    if (v!.length < 1) {
+                      return 'Description must be at least 1 character';
                     }
                     return null;
                   },
@@ -521,6 +532,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
 
                 // Highlight Selection
                 DropdownButtonFormField<String>(
+                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey),
                   value: _selectedHighlight,
                   decoration: InputDecoration(
                     labelText: 'Highlight *',
@@ -553,8 +565,6 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     fillColor: Colors.grey[50],
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),
-                    suffixIcon: const Icon(Icons.keyboard_arrow_down,
-                        color: Colors.grey),
                   ),
                   items: _controller.highlightOptions
                       .map((option) => DropdownMenuItem<String>(
