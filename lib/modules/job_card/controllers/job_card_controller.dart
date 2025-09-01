@@ -67,6 +67,18 @@ class JobCardController extends GetxController {
         return false;
       }
 
+      if (selectedCustomerId.value == 0) {
+        error.value = 'Please select a customer';
+        Fluttertoast.showToast(
+          msg: 'Please select a customer',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return false;
+      }
+
       final jobCardData = {
         'customer_name': selectedCustomerId.value,
         'customer_mobile_number': jobCard.customerMobileNumber,
@@ -85,7 +97,7 @@ class JobCardController extends GetxController {
 
       // Validate mandatory fields
       if (jobCardData['customer_name'] == null ||
-          jobCardData['customer_name'].toString().isEmpty ||
+          jobCardData['customer_name'] == 0 ||
           jobCardData['customer_mobile_number'] == null ||
           jobCardData['customer_mobile_number'].toString().isEmpty ||
           jobCardData['location'] == null ||
@@ -132,12 +144,18 @@ class JobCardController extends GetxController {
           print(
               '✅ Job Card submitted successfully with ID: ${result['result']}');
           Fluttertoast.showToast(
-            msg: 'Job Card submitted successfully',
-            toastLength: Toast.LENGTH_SHORT,
+            msg: 'Job Card submitted successfully!',
+            toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.TOP,
             backgroundColor: Colors.green,
             textColor: Colors.white,
+            timeInSecForIosWeb: 2,
           );
+
+          // Wait for 2 seconds then navigate to home screen
+          await Future.delayed(const Duration(seconds: 2));
+          Get.offAllNamed('/'); // Navigate to home screen and clear stack
+
           return true;
         } else if (result['error'] != null) {
           // Handle Odoo error message

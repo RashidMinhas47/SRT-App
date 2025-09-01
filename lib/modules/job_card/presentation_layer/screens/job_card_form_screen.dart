@@ -1,8 +1,6 @@
 import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/modules/job_card/controllers/job_card_controller.dart';
 import 'package:bayanat/modules/job_card/models/job_card_model.dart';
-import 'package:bayanat/modules/main/data_layer/models/job_card_model.dart'
-    hide JobCardModel;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -704,20 +702,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
         highlight: _selectedHighlight ?? 'no',
       );
 
-      final success = await _controller.submitJobCard(jobCard);
-      if (success) {
-        Get.snackbar(
-          'Success',
-          'Job Card submitted successfully!',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
-        Get.back();
-      }
+      await _controller.submitJobCard(jobCard);
     }
   }
 
