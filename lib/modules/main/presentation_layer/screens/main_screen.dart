@@ -102,25 +102,27 @@ class JobCardScreen extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 2.h),
-                      InkWell(
-                        onTap: () {
-                          context.push(const PettyCashFormScreen());
-                        },
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.receipt_long,
-                              size: 30.sp,
-                            ),
-                            Text(
-                              'Petty Cash',
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      //TODO: Next job will be done here
+                      // InkWell(
+                      //   onTap: () {
+                      //     context.push(const PettyCashFormScreen());
+                      //   },
+                      //   child: Column(
+                      //     children: [
+                      //       Icon(
+                      //         Icons.receipt_long,
+                      //         size: 30.sp,
+                      //       ),
+                      //       Text(
+                      //         'Petty Cash',
+                      //         style: TextStyle(
+                      //           fontSize: 14.sp,
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
+
                       SizedBox(height: 2.h),
                       InkWell(
                         onTap: () {
@@ -480,11 +482,12 @@ class JobCardScreen extends StatelessWidget {
                                       jobCardsUnCompleted.isEmpty
                                   ? 0.75
                                   : 0.45)),
-                  IconButton(
-                    onPressed: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => ExpenseFormScreen())),
-                    icon: Icon(Icons.add),
-                  ),
+                  //TODO: Expenses Navigation Button is here
+                  // IconButton(
+                  //   onPressed: () => Navigator.push(context,
+                  //       MaterialPageRoute(builder: (_) => ExpenseFormScreen())),
+                  //   icon: Icon(Icons.add),
+                  // ),
                 ],
               ),
             );

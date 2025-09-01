@@ -1,3 +1,4 @@
+import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/modules/job_card/controllers/job_card_controller.dart';
 import 'package:bayanat/modules/job_card/models/job_card_model.dart';
 import 'package:bayanat/modules/main/data_layer/models/job_card_model.dart'
@@ -38,7 +39,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.indigo[700],
+        backgroundColor: ColorManager.primary,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
@@ -50,7 +51,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0C248A)),
                 ),
                 SizedBox(height: 16),
                 Text(
@@ -83,16 +84,17 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.indigo[50],
+                    color: ColorManager.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.indigo[200]!, width: 1),
+                    border: Border.all(
+                        color: ColorManager.primary.withOpacity(0.3), width: 1),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.indigo[600],
+                          color: ColorManager.primary.withOpacity(0.8),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -130,54 +132,71 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Customer Name
-                TextFormField(
-                  controller: _customerNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Customer Name *',
-                    labelStyle: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    helperText: 'Enter the customer\'s full name',
-                    helperStyle: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
-                    suffixIcon: const Icon(Icons.person, color: Colors.grey),
-                  ),
-                  validator: (v) {
-                    if (v?.isEmpty ?? true) {
-                      return 'Customer name is required';
-                    }
-                    if (v!.length < 2) {
-                      return 'Name must be at least 2 characters';
-                    }
-                    return null;
-                  },
-                ),
+                // Customer Selection Dropdown
+                Obx(() => DropdownButtonFormField<int>(
+                      value: _controller.selectedCustomerId.value == 0
+                          ? null
+                          : _controller.selectedCustomerId.value,
+                      decoration: InputDecoration(
+                        labelText: 'Select Customer *',
+                        labelStyle: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        helperText: 'Select a customer from the list',
+                        helperStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              const BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              const BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorManager.kPrimary, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        suffixIcon: const Icon(Icons.keyboard_arrow_down,
+                            color: Colors.grey),
+                      ),
+                      items: _controller.customers
+                          .map((customer) => DropdownMenuItem<int>(
+                                value: customer['id'] as int,
+                                child: Text(
+                                  customer['translated_display_name'] as String,
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (int? value) {
+                        _controller.selectedCustomerId.value = value ?? 0;
+                        if (value != null) {
+                          final customerName =
+                              _controller.getCustomerNameById(value);
+                          _customerNameController.text = customerName ?? '';
+                        } else {
+                          _customerNameController.clear();
+                        }
+                      },
+                      validator: (v) =>
+                          v == null ? 'Please select a customer' : null,
+                    )),
                 const SizedBox(height: 20),
-
                 // Customer Mobile Number
                 TextFormField(
                   controller: _customerMobileController,
@@ -205,8 +224,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -254,8 +273,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -302,8 +321,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Colors.indigo, width: 2),
+                          borderSide: const BorderSide(
+                              color: ColorManager.kPrimary, width: 2),
                         ),
                         filled: true,
                         fillColor: Colors.grey[50],
@@ -359,8 +378,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -398,8 +417,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -437,8 +456,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -477,8 +496,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -527,8 +546,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.indigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -568,8 +587,8 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(
                       colors: [
-                        Colors.indigo[600]!,
-                        Colors.indigo[700]!,
+                        ColorManager.kPrimary.withOpacity(0.8),
+                        ColorManager.kPrimary.withOpacity(0.6),
                       ],
                     ),
                   ),

@@ -67,20 +67,8 @@ class JobCardController extends GetxController {
         return false;
       }
 
-      if (selectedCustomerId.value == 0) {
-        error.value = 'Please select a customer';
-        Fluttertoast.showToast(
-          msg: 'Please select a customer',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
-        return false;
-      }
-
       final jobCardData = {
-        'customer_id': selectedCustomerId.value,
+        'customer_name': selectedCustomerId.value,
         'customer_mobile_number': jobCard.customerMobileNumber,
         'location': jobCard.location,
         'assigned_user_id': selectedUserId.value,
@@ -96,8 +84,8 @@ class JobCardController extends GetxController {
       print('📦 Job Card data to submit: ${jsonEncode(jobCardData)}');
 
       // Validate mandatory fields
-      if (jobCardData['customer_id'] == null ||
-          jobCardData['customer_id'] == 0 ||
+      if (jobCardData['customer_name'] == null ||
+          jobCardData['customer_name'].toString().isEmpty ||
           jobCardData['customer_mobile_number'] == null ||
           jobCardData['customer_mobile_number'].toString().isEmpty ||
           jobCardData['location'] == null ||
@@ -258,9 +246,8 @@ class JobCardController extends GetxController {
             'method': 'search_read',
             'args': [],
             'kwargs': {
-              'fields': ['id', 'name', 'phone', 'mobile'],
+              'fields': ['id', 'translated_display_name'],
               'domain': [
-                ['is_company', '=', false],
                 ['active', '=', true]
               ],
             }
@@ -298,6 +285,12 @@ class JobCardController extends GetxController {
   // Helper method to get customer by ID
   Map<String, dynamic>? getCustomerById(int id) {
     return customers.firstWhereOrNull((customer) => customer['id'] == id);
+  }
+
+  // Helper method to get customer name by ID
+  String? getCustomerNameById(int id) {
+    final customer = getCustomerById(id);
+    return customer?['translated_display_name'] as String?;
   }
 
   // Helper method to validate mobile number

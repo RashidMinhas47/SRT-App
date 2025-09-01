@@ -3,6 +3,7 @@ import 'package:hexcolor/hexcolor.dart';
 
 class ColorManager {
   static Color primary = HexColor("#0C248A");
+  static const Color kPrimary = Color(0xFF0C248A);
   static Color secondary = HexColor("#2570FA");
   static Color card = HexColor('#D4D7D9');
   static Color grey1 = Colors.grey[200]!;
