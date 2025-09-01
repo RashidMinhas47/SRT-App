@@ -1,5 +1,7 @@
 import 'package:bayanat/modules/job_card/controllers/job_card_controller.dart';
 import 'package:bayanat/modules/job_card/models/job_card_model.dart';
+import 'package:bayanat/modules/main/data_layer/models/job_card_model.dart'
+    hide JobCardModel;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
