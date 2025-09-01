@@ -4,6 +4,7 @@ import 'package:bayanat/modules/main/presentation_layer/bloc/main_bloc.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
 import 'package:bayanat/modules/petty_cash/controllers/expense_controller.dart';
 import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
+import 'package:bayanat/modules/job_card/controllers/job_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -26,6 +27,7 @@ class AppBindings extends Bindings {
     Get.lazyPut<EmployeeController>(() => EmployeeController(), fenix: true);
     Get.lazyPut<ExpenseController>(() => ExpenseController(), fenix: true);
     Get.lazyPut<HrExpenseController>(() => HrExpenseController(), fenix: true);
+    Get.lazyPut<JobCardController>(() => JobCardController(), fenix: true);
   }
 }
 

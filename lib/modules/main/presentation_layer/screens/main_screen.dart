@@ -7,6 +7,7 @@ import 'package:bayanat/modules/main/domain_layer/entities/job_card.dart';
 import 'package:bayanat/modules/main/presentation_layer/components/components.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/history_screen.dart';
 import 'package:bayanat/modules/petty_cash/presentation_layer/screens/hr_expense_screen.dart';
+import 'package:bayanat/modules/job_card/presentation_layer/screens/job_card_form_screen.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -113,6 +114,26 @@ class JobCardScreen extends StatelessWidget {
                             ),
                             Text(
                               'Petty Cash',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      InkWell(
+                        onTap: () {
+                          context.push(const JobCardFormScreen());
+                        },
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.work,
+                              size: 30.sp,
+                            ),
+                            Text(
+                              'Job Card',
                               style: TextStyle(
                                 fontSize: 14.sp,
                               ),
