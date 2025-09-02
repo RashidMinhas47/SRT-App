@@ -210,26 +210,74 @@ class MainRemoteDataSource extends BaseMainRemoteDataSource {
             )
             .timeout(const Duration(seconds: 20));
 
-        print(" Session ID${ConstanceManager.sessionId.toString()}");
+        print("🔑 Session ID: ${ConstanceManager.sessionId.toString()}");
+        print("📡 API URL: ${ApiConsts.baseUrl + ApiEndPoints.callKw}");
+        print("📋 Request Body: ${jsonEncode({
+              "params": {
+                "model": ApiModels.jobCard,
+                "method": ApiMethods.searchRead,
+                "kwargs": {
+                  "fields": jobs,
+                  "limit": limit,
+                  "offset": offset,
+                  "order": "job_card_number desc"
+                },
+                "args": [{}],
+              }
+            })}");
 
         if (response.statusCode == 200) {
           var value = jsonDecode(response.body);
+          print('🔍 API Response Status: ${response.statusCode}');
+          print('🔍 API Response Body: ${response.body}');
+          print('🔍 Parsed Response: ${jsonEncode(value)}');
+
+          if (value["result"] != null) {
+            print('📊 Result is List: ${value["result"] is List}');
+            print('📊 Result length: ${value["result"]?.length ?? "null"}');
+            print('📊 Result type: ${value["result"].runtimeType}');
+
+            if (value["result"] is List &&
+                (value["result"] as List).isNotEmpty) {
+              print('📋 First element: ${jsonEncode(value["result"][0])}');
+            }
+          } else {
+            print('❌ Result is null or missing');
+          }
+
           value["result"].forEach((element) {
-            jobCards.add(JobCardModel.fromJson(element));
+            try {
+              print('🔍 Processing element: ${jsonEncode(element)}');
+              final jobCard = JobCardModel.fromJson(element);
+              jobCards.add(jobCard);
+              print('✅ Successfully parsed job card with ID: ${jobCard.id}');
+            } catch (parseError) {
+              print('❌ Error parsing job card element: $parseError');
+              print('❌ Element data: ${jsonEncode(element)}');
+            }
           });
 
+          print('🎯 Total job cards parsed: ${jobCards.length}');
           return Right(jobCards); // Return the job cards on success
         } else {
           // Handle non-200 responses
+          print('❌ HTTP Error: ${response.statusCode}');
+          print('❌ Response body: ${response.body}');
+          print('❌ Response headers: ${response.headers}');
           return Left(
               Exception("Failed to fetch job cards: ${response.statusCode}"));
         }
       } on Exception catch (e) {
         // Handle exceptions
+        print('❌ Exception during attempt ${attempt + 1}: $e');
+        print('❌ Exception type: ${e.runtimeType}');
         attempt++;
         if (attempt < maxRetries) {
+          print(
+              '🔄 Retrying in ${retryDelay.inMilliseconds}ms... (Attempt ${attempt + 1}/$maxRetries)');
           await Future.delayed(retryDelay); // Wait before retrying
         } else {
+          print('❌ All retry attempts failed');
           return Left(Exception(
               "Failed to fetch job cards after $maxRetries attempts: $e"));
         }

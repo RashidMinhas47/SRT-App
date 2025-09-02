@@ -189,6 +189,7 @@ class JobCardScreen extends StatelessWidget {
           builder: (context, state) {
             List<JobCard> jobCardsUnCompleted =
                 jobCards(jobCards: bloc.jobCards);
+
             List<Widget> amcCardsWidgets = amcCardWidgets(
                 bloc: bloc, context: context, amcCards: bloc.amcCards);
             return SingleChildScrollView(
@@ -315,10 +316,21 @@ class JobCardScreen extends StatelessWidget {
                   state is GetJobCardLoadingState
                       ? Padding(
                           padding: EdgeInsets.symmetric(vertical: 5.h),
-                          child:
+                          child: Column(
+                            children: [
                               const Center(child: CircularProgressIndicator()),
+                              SizedBox(height: 2.h),
+                              Text(
+                                'Loading job cards...',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
                         )
-                      : jobCardsUnCompleted.isNotEmpty
+                      : bloc.jobCards.isNotEmpty
                           ? Column(
                               children: [
                                 SizedBox(

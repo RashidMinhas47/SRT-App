@@ -145,12 +145,14 @@ class SelectAmcAcTypeEvent extends MainEvent {
   List<Object?> get props => [acType];
 }
 
-
 class GetPDFEvent extends MainEvent {
   final int jobCardId;
   final String pdfType;
 
-  const GetPDFEvent({required this.jobCardId, required this.pdfType, });
+  const GetPDFEvent({
+    required this.jobCardId,
+    required this.pdfType,
+  });
 
   @override
   List<Object?> get props => [jobCardId, pdfType];
@@ -421,7 +423,6 @@ class AddToAmcCardQuestionsListEvent extends MainEvent {
   @override
   List<Object?> get props => [index];
 }
-
 
 // Updated to AddSignatureEventto save Customer Signature Locally
 class AddSignatureEvent extends MainEvent {

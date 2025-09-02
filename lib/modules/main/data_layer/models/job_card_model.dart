@@ -29,43 +29,95 @@ class JobCardModel extends JobCard {
 
 //fault_file
   static JobCard fromJson(Map<String, dynamic> json) {
-    return JobCard(
-      faultIds: List<int>.from(json["fault_ids"]),
-      assignedUserId:
-          json["assigned_user_id"] != false ? json["assigned_user_id"][0] : -1,
-      description:
-          json['work_description'] != false ? json['work_description'] : '',
-      location: json['location'] != false ? json['location'] : '',
-      revisit: json['revisit'],
-      startWork: json['start_work'],
-      faultFile: json['Attending_Technician'] != false
-          ? json['Attending_Technician']
-          : '',
-      action: json['action'] != false ? json['action'] : '',
-      amcFile: json['amc_file'] != false ? json['amc_file'] : '',
-      userName: json['User_name'] != false ? json['User_name'] : '',
-      id: json['id'] != false ? json['id'] : 0,
-      comment: json['comments'] != false ? json['comments'] : '',
-      quotationStatus:
-          json['quotation_status'] != false ? json['quotation_status'] : '',
-      writeDate: json['write_date'] != false ? json['write_date'] : '',
-      brand: json['brand'] != false ? json['brand'] : '',
-      phoneNumber: json['customer_mobile_number'] != false
-          ? json['customer_mobile_number']
-          : '',
-      reportType: json['report_type'] != false ? json['report_type'] : '',
-      buildingNumber: json['customer_building_number'] != false
-          ? json['customer_building_number']
-          : '',
-      complaintNumber:
-          json['complaint_number'] != false ? json['complaint_number'] : '',
-      jobCardNumber:
-          json['job_card_number'] != false ? json['job_card_number'] : '',
-      flatNumber: json['customer_house_flat_number'] != false
-          ? json['customer_house_flat_number']
-          : '',
-      customerName:
-          json['customer_name'] != false ? json['customer_name'] : [0, ''],
-    );
+    try {
+      // Safe handling of fault_ids
+      List<int> faultIds = [];
+      if (json["fault_ids"] != false && json["fault_ids"] != null) {
+        if (json["fault_ids"] is List) {
+          try {
+            faultIds = List<int>.from(json["fault_ids"]);
+          } catch (e) {
+            print(
+                '⚠️ Warning: Could not parse fault_ids: ${json["fault_ids"]}');
+            faultIds = [];
+          }
+        }
+      }
+
+      // Safe handling of assigned_user_id
+      int assignedUserId = -1;
+      if (json["assigned_user_id"] != false &&
+          json["assigned_user_id"] != null) {
+        if (json["assigned_user_id"] is List &&
+            (json["assigned_user_id"] as List).isNotEmpty) {
+          assignedUserId = json["assigned_user_id"][0];
+        } else if (json["assigned_user_id"] is int) {
+          assignedUserId = json["assigned_user_id"];
+        }
+      }
+
+      // Safe handling of customer_name
+      List customerName = [0, ''];
+      if (json['customer_name'] != false && json['customer_name'] != null) {
+        if (json['customer_name'] is List) {
+          customerName = json['customer_name'];
+        } else {
+          customerName = [0, json['customer_name'].toString()];
+        }
+      }
+
+      return JobCard(
+        faultIds: faultIds,
+        assignedUserId: assignedUserId,
+        description: _safeString(json, 'work_description'),
+        location: _safeString(json, 'location'),
+        revisit: _safeBool(json, 'revisit'),
+        startWork: _safeBool(json, 'start_work'),
+        faultFile: _safeString(json, 'Attending_Technician'),
+        action: _safeString(json, 'action'),
+        amcFile: _safeString(json, 'amc_file'),
+        userName: _safeString(json, 'User_name'),
+        id: _safeInt(json, 'id'),
+        comment: _safeString(json, 'comments'),
+        quotationStatus: _safeString(json, 'quotation_status'),
+        writeDate: _safeString(json, 'write_date'),
+        brand: _safeString(json, 'brand'),
+        phoneNumber: _safeString(json, 'customer_mobile_number'),
+        reportType: _safeString(json, 'report_type'),
+        buildingNumber: _safeString(json, 'customer_building_number'),
+        complaintNumber: _safeString(json, 'complaint_number'),
+        jobCardNumber: _safeString(json, 'job_card_number'),
+        flatNumber: _safeString(json, 'customer_house_flat_number'),
+        customerName: customerName,
+      );
+    } catch (e) {
+      print('❌ Error parsing job card: $e');
+      print('❌ JSON data: ${json.toString()}');
+      rethrow;
+    }
+  }
+
+  // Helper methods for safe parsing
+  static String _safeString(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value == false || value == null) return '';
+    return value.toString();
+  }
+
+  static int _safeInt(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value == false || value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static bool _safeBool(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value == false || value == null) return false;
+    if (value is bool) return value;
+    if (value is String) return value.toLowerCase() == 'true';
+    if (value is int) return value != 0;
+    return false;
   }
 }

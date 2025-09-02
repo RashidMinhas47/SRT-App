@@ -1031,30 +1031,22 @@ class CurveClipper extends CustomClipper<Path> {
 List<JobCard> jobCards({required List<JobCard> jobCards}) {
   List<JobCard> list = [];
 
-  // for (JobCard jobCard in jobCards) {
-  //   if (isUserAssigned(jobCard) &&
-  //       (isAmcService(jobCard) ||
-  //           isUserAndBrandMatch(jobCard) ||
-  //           isBroadcastAction(jobCard))) {
-  //     list.add(jobCard);
-  //   }
-  // }
-  for (JobCard jobCard in jobCards) {
-    if (isUserAssigned(jobCard) &&
-        (isAmcService(jobCard) ||
-            isUserAndBrandMatch(jobCard) ||
-            isBroadcastAction(jobCard))) {
-      list.add(jobCard);
-    }
+  // Show ALL job cards instead of filtering them
+  for (int i = 0; i < jobCards.length; i++) {
+    JobCard jobCard = jobCards[i];
+
+    // Add ALL job cards to the list
+    list.add(jobCard);
   }
 
   return list;
 }
 
 bool isUserAssigned(JobCard jobCard) {
-  return (jobCard.assignedUserId != -1 &&
+  bool result = (jobCard.assignedUserId != -1 &&
           jobCard.assignedUserId == ConstanceManager.userId) ||
       jobCard.assignedUserId == -1;
+  return result;
 }
 
 bool isAmcService(JobCard jobCard) {

@@ -397,35 +397,63 @@ class MainBloc extends Bloc<MainEvent, MainState> {
 
       /// JOB CARD EVENTS
       else if (event is GetJobCardEvent) {
-        print("isFetching: $isFetching");
-        if (isFetching) return; // Prevent concurrent fetches
+        print("🔄 GetJobCardEvent triggered");
+        print("📊 Current isFetching: $isFetching");
+        if (isFetching) {
+          print("⏳ Already fetching, skipping...");
+          return; // Prevent concurrent fetches
+        }
         isFetching = true;
         emit(const GetJobCardLoadingState());
 
         jobCards.clear();
         int offset = 0;
         const int batchSize = 100;
+        int batchCount = 0;
+
+        print("🚀 Starting job card fetch with batch size: $batchSize");
 
         while (true) {
+          batchCount++;
+          print("📦 Fetching batch $batchCount with offset: $offset");
+
           final result = await GetJobCardsUseCase(
             sl(),
           ).call(offset: offset, limit: batchSize);
 
           if (result.isLeft()) {
+            print(
+                '❌ Error in batch $batchCount: ${result.fold((l) => l.toString(), (r) => 'Unknown error')}');
             emit(const GetJobCardErrorState());
             break;
           } else {
             final newJobCards = result.getOrElse(() => []);
+            print(
+                '✅ Batch $batchCount: ${newJobCards.length} job cards received');
+
             if (newJobCards.isEmpty) {
+              print('🏁 No more job cards, finishing fetch');
+              print('🎯 Total job cards fetched: ${jobCards.length}');
               emit(GetJobCardSuccessfullyState(jobCards));
               break;
             }
+
+            // Debug: Print details of each job card in this batch
+            for (int i = 0; i < newJobCards.length; i++) {
+              final jobCard = newJobCards[i];
+              print(
+                  '📋 Job Card ${i + 1} in batch $batchCount: ID=${jobCard.id}, Number=${jobCard.jobCardNumber}, Customer=${jobCard.customerName}');
+            }
+
             jobCards.addAll(newJobCards);
+            print('📈 Total job cards so far: ${jobCards.length}');
             emit(JobCardsBatchLoadingState(List.from(jobCards)));
             offset += batchSize;
           }
         }
         isFetching = false;
+        print(
+            "🏁 GetJobCardEvent completed. Total job cards: ${jobCards.length}");
       }
       // else if (event is GetJobCardEvent) {
       //   emit(const GetJobCardLoadingState());
@@ -474,7 +502,6 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           String filePath = await savePdfToFile(pdfBytes);
           //TODO  Defined OpenFilePlus
           OpenFileSafePlus.open(filePath);
-
         });
         emit(const ReviewReportState());
       }
