@@ -1196,6 +1196,18 @@ Widget jobCardWidget({
         bloc.add(
           NavigationToFaultScreenEvent(jobCard: jobCard, context: context),
         );
+      } 
+      // Default case: For ALL other job cards (including new ones), navigate to fault screen
+      else {
+        bloc.beforePhotosFile.clear();
+        bloc.afterPhotosFile.clear();
+        bloc.billPhotosFile.clear();
+        bloc.getFaultModels.clear();
+        bloc.signaturePhoto = null;
+        bloc.tenantSignature = null;
+        bloc.add(
+          NavigationToFaultScreenEvent(jobCard: jobCard, context: context),
+        );
       }
     },
     child: SizedBox(
