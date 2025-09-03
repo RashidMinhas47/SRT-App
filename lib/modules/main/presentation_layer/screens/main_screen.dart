@@ -23,9 +23,14 @@ import 'all_job_card_screen.dart';
 
 import '../../../petty_cash/presentation_layer/screens/petty_cash_form_screen.dart';
 
-class JobCardScreen extends StatelessWidget {
+class JobCardScreen extends StatefulWidget {
   const JobCardScreen({super.key});
 
+  @override
+  State<JobCardScreen> createState() => _JobCardScreenState();
+}
+
+class _JobCardScreenState extends State<JobCardScreen> {
   Future<bool> requestStoragePermission(BuildContext context) async {
     if (Platform.isAndroid) {
       int sdkInt = int.tryParse(RegExp(r'\d+')
@@ -58,6 +63,7 @@ class JobCardScreen extends StatelessWidget {
     int currentHour = now.hour;
     return RefreshIndicator(
       onRefresh: () async {
+        setState(() {});
         bloc.add(GetJobCardEvent(context: context));
         bloc.add(const GetProductsEvent());
         bloc.add(GetAmcCardsEvent(
