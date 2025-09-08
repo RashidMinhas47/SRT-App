@@ -501,63 +501,63 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                   ),
                   maxLines: 3,
                 ),
-                const SizedBox(height: 20),
+                // const SizedBox(height: 20),
 
-                // Highlight Selection (optional)
-                DropdownButtonFormField<String>(
-                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-                  value: _selectedHighlight,
-                  decoration: InputDecoration(
-                    labelText: 'Highlight',
-                    labelStyle: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    helperText: 'Select whether this job should be highlighted',
-                    helperStyle: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: ColorManager.kPrimary, width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
-                  ),
-                  items: _controller.highlightOptions
-                      .map((option) => DropdownMenuItem<String>(
-                            value: option['value'],
-                            child: Text(
-                              option['label']!,
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _selectedHighlight = value;
-                    });
-                    _controller.selectedHighlight.value = value ?? '';
-                  },
-                ),
+                // // Highlight Selection (optional)
+                // DropdownButtonFormField<String>(
+                //   icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                //   value: _selectedHighlight,
+                //   decoration: InputDecoration(
+                //     labelText: 'Highlight',
+                //     labelStyle: const TextStyle(
+                //       color: Colors.black87,
+                //       fontSize: 16,
+                //       fontWeight: FontWeight.w500,
+                //     ),
+                //     helperText: 'Select whether this job should be highlighted',
+                //     helperStyle: const TextStyle(
+                //       color: Colors.grey,
+                //       fontSize: 12,
+                //     ),
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //       borderSide:
+                //           const BorderSide(color: Colors.grey, width: 1),
+                //     ),
+                //     enabledBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //       borderSide:
+                //           const BorderSide(color: Colors.grey, width: 1),
+                //     ),
+                //     focusedBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //       borderSide: const BorderSide(
+                //           color: ColorManager.kPrimary, width: 2),
+                //     ),
+                //     filled: true,
+                //     fillColor: Colors.grey[50],
+                //     contentPadding: const EdgeInsets.symmetric(
+                //         horizontal: 16, vertical: 16),
+                //   ),
+                //   items: _controller.highlightOptions
+                //       .map((option) => DropdownMenuItem<String>(
+                //             value: option['value'],
+                //             child: Text(
+                //               option['label']!,
+                //               style: const TextStyle(
+                //                 color: Colors.black87,
+                //                 fontSize: 16,
+                //               ),
+                //             ),
+                //           ))
+                //       .toList(),
+                //   onChanged: (String? value) {
+                //     setState(() {
+                //       _selectedHighlight = value;
+                //     });
+                //     _controller.selectedHighlight.value = value ?? '';
+                //   },
+                // ),
                 const SizedBox(height: 32),
 
                 // Submit Button
