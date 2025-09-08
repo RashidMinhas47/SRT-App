@@ -14,6 +14,7 @@ class JobCardFormScreen extends StatefulWidget {
 class _JobCardFormScreenState extends State<JobCardFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _customerNameController = TextEditingController();
+  final _customerDisplayController = TextEditingController();
   final _customerMobileController = TextEditingController();
   final _locationController = TextEditingController();
   final _customerBuildingController = TextEditingController();
@@ -130,80 +131,74 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Customer Selection Dropdown
-                Obx(() => DropdownButtonFormField<int>(
-                      icon: Icon(Icons.keyboard_arrow_down),
-                      value: _controller.selectedCustomerId.value == 0
-                          ? null
-                          : _controller.selectedCustomerId.value,
-                      decoration: InputDecoration(
-                        labelText: 'Select Customer *',
-                        labelStyle: const TextStyle(
-                          color: Colors.black87,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        helperText: 'Select a customer from the list',
-                        helperStyle: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Colors.grey, width: 1),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Colors.grey, width: 1),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                              color: ColorManager.kPrimary, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                      ),
-                      items: _controller.customers
-                          .map(
-                            (customer) => DropdownMenuItem<int>(
-                              value: customer['id'] as int,
-                              child: SizedBox(
-                                width:
-                                    200, // 👈 Limit width of text inside dropdown
-                                child: Text(
-                                  customer['translated_display_name']
-                                      .toString()
-                                      .trim(),
-                                  overflow: TextOverflow
-                                      .ellipsis, // 👈 Prevent overflow
-                                  maxLines: 1,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 16,
-                                  ),
+                // Customer Selection (searchable)
+                FormField<int>(
+                  validator: (v) => _controller.selectedCustomerId.value == 0
+                      ? 'Please select a customer'
+                      : null,
+                  builder: (state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: _openCustomerSearchDialog,
+                          child: AbsorbPointer(
+                            absorbing: true,
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                labelText: 'Select Customer *',
+                                labelStyle: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
                                 ),
+                                helperText:
+                                    'Tap to search and select a customer',
+                                helperStyle: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 1),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 1),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: ColorManager.kPrimary, width: 2),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                                suffixIcon: const Icon(Icons.search,
+                                    color: Colors.grey),
                               ),
+                              controller: _customerDisplayController,
+                              readOnly: true,
                             ),
-                          )
-                          .toList(),
-                      onChanged: (int? value) {
-                        _controller.selectedCustomerId.value = value ?? 0;
-                        if (value != null) {
-                          final customerName =
-                              _controller.getCustomerNameById(value);
-                          _customerNameController.text = customerName ?? '';
-                        } else {
-                          _customerNameController.clear();
-                        }
-                      },
-                      validator: (v) =>
-                          v == null ? 'Please select a customer' : null,
-                    )),
+                          ),
+                        ),
+                        if (state.hasError)
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(top: 8.0, left: 12.0),
+                            child: Text(
+                              state.errorText ?? '',
+                              style: TextStyle(
+                                  color: Colors.red[700], fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
 
                 const SizedBox(height: 20),
                 // Customer Mobile Number
@@ -296,60 +291,60 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 const SizedBox(height: 20),
 
                 // Assigned User Selection (optional)
-                Obx(() => DropdownButtonFormField<int>(
-                      icon: const Icon(Icons.keyboard_arrow_down,
-                          color: Colors.grey),
-                      value: _controller.selectedUserId.value == 0
-                          ? null
-                          : _controller.selectedUserId.value,
-                      decoration: InputDecoration(
-                        labelText: 'Assigned User',
-                        labelStyle: const TextStyle(
-                          color: Colors.black87,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        helperText: 'Select the user assigned to this job',
-                        helperStyle: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Colors.grey, width: 1),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Colors.grey, width: 1),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                              color: ColorManager.kPrimary, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                      ),
-                      items: _controller.users
-                          .map((user) => DropdownMenuItem<int>(
-                                value: user['id'] as int,
-                                child: Text(
-                                  user['name'] as String,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ))
-                          .toList(),
-                      onChanged: (int? value) {
-                        _controller.selectedUserId.value = value ?? 0;
-                      },
-                    )),
+                DropdownButtonFormField<int>(
+                  icon:
+                      const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                  value: _controller.selectedUserId.value == 0
+                      ? null
+                      : _controller.selectedUserId.value,
+                  decoration: InputDecoration(
+                    labelText: 'Assigned User',
+                    labelStyle: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    helperText: 'Select the user assigned to this job',
+                    helperStyle: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: ColorManager.kPrimary, width: 2),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                  ),
+                  items: _controller.users
+                      .map((user) => DropdownMenuItem<int>(
+                            value: user['id'] as int,
+                            child: Text(
+                              user['name'] as String,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (int? value) {
+                    _controller.selectedUserId.value = value ?? 0;
+                  },
+                ),
                 const SizedBox(height: 20),
 
                 // Customer Building Name/Number
@@ -627,34 +622,31 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 const SizedBox(height: 16),
 
                 // Error Display
-                Obx(() {
-                  if (_controller.error.value.isNotEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red[200]!, width: 1),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.red[600]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _controller.error.value,
-                              style: TextStyle(
-                                color: Colors.red[700],
-                                fontSize: 14,
+                _controller.error.value.isNotEmpty
+                    ? Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red[200]!, width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red[600]),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _controller.error.value,
+                                style: TextStyle(
+                                  color: Colors.red[700],
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ],
             ),
           ),
@@ -690,6 +682,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
   @override
   void dispose() {
     _customerNameController.dispose();
+    _customerDisplayController.dispose();
     _customerMobileController.dispose();
     _locationController.dispose();
     _customerBuildingController.dispose();
@@ -697,5 +690,89 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
     _complaintNumberController.dispose();
     _workDescriptionController.dispose();
     super.dispose();
+  }
+
+  void _openCustomerSearchDialog() async {
+    final List<Map<String, dynamic>> allCustomers =
+        List<Map<String, dynamic>>.from(_controller.customers);
+    String query = '';
+    final TextEditingController searchController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        List<Map<String, dynamic>> filtered =
+            List<Map<String, dynamic>>.from(allCustomers);
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            void applyFilter(String q) {
+              setStateDialog(() {
+                query = q;
+                filtered = allCustomers
+                    .where((c) => (c['translated_display_name']
+                                ?.toString()
+                                .toLowerCase() ??
+                            '')
+                        .contains(query.toLowerCase()))
+                    .toList();
+              });
+            }
+
+            return AlertDialog(
+              title: const Text('Select Customer'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        hintText: 'Search customer...',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: applyFilter,
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: filtered.isEmpty
+                          ? const Center(child: Text('No results'))
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) {
+                                final customer = filtered[index];
+                                final customerName =
+                                    customer['translated_display_name']
+                                            ?.toString() ??
+                                        '';
+                                return ListTile(
+                                  title: Text(customerName),
+                                  onTap: () {
+                                    final int id = customer['id'] as int;
+                                    _controller.selectedCustomerId.value = id;
+                                    _customerNameController.text = customerName;
+                                    _customerDisplayController.text =
+                                        customerName;
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }
