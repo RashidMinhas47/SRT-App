@@ -21,6 +21,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
   final _customerHouseFlatController = TextEditingController();
   final _complaintNumberController = TextEditingController();
   final _workDescriptionController = TextEditingController();
+  final _assignedUserDisplayController = TextEditingController();
 
   String? _selectedHighlight;
   final _controller = Get.put(JobCardController());
@@ -287,60 +288,51 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Assigned User Selection (optional)
-                DropdownButtonFormField<int>(
-                  icon:
-                      const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-                  value: _controller.selectedUserId.value == 0
-                      ? null
-                      : _controller.selectedUserId.value,
-                  decoration: InputDecoration(
-                    labelText: 'Assigned User',
-                    labelStyle: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                // Assigned User Selection (searchable, optional)
+                GestureDetector(
+                  onTap: _openUserSearchDialog,
+                  child: AbsorbPointer(
+                    absorbing: true,
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Assigned User',
+                        labelStyle: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        helperText:
+                            'Tap to search and select a user (optional)',
+                        helperStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              const BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              const BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorManager.kPrimary, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        suffixIcon:
+                            const Icon(Icons.search, color: Colors.grey),
+                      ),
+                      controller: _assignedUserDisplayController,
+                      readOnly: true,
                     ),
-                    helperText: 'Select the user assigned to this job',
-                    helperStyle: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: ColorManager.kPrimary, width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
                   ),
-                  items: _controller.users
-                      .map((user) => DropdownMenuItem<int>(
-                            value: user['id'] as int,
-                            child: Text(
-                              user['name'] as String,
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (int? value) {
-                    _controller.selectedUserId.value = value ?? 0;
-                  },
                 ),
                 const SizedBox(height: 20),
 
@@ -726,6 +718,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                       controller: searchController,
                       decoration: const InputDecoration(
                         hintText: 'Search customer...',
+                        hintStyle: TextStyle(color: Colors.grey),
                         prefixIcon: Icon(Icons.search),
                       ),
                       onChanged: applyFilter,
@@ -751,6 +744,84 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                                     _customerNameController.text = customerName;
                                     _customerDisplayController.text =
                                         customerName;
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openUserSearchDialog() async {
+    final List<Map<String, dynamic>> allUsers =
+        List<Map<String, dynamic>>.from(_controller.users);
+    String query = '';
+    final TextEditingController searchController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        List<Map<String, dynamic>> filtered =
+            List<Map<String, dynamic>>.from(allUsers);
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            void applyFilter(String q) {
+              setStateDialog(() {
+                query = q;
+                filtered = allUsers
+                    .where((u) => (u['name']?.toString().toLowerCase() ?? '')
+                        .contains(query.toLowerCase()))
+                    .toList();
+              });
+            }
+
+            return AlertDialog(
+              title: const Text('Select User'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        hintText: 'Search user...',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: applyFilter,
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: filtered.isEmpty
+                          ? const Center(child: Text('No results'))
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) {
+                                final user = filtered[index];
+                                final userName = user['name']?.toString() ?? '';
+                                return ListTile(
+                                  title: Text(userName),
+                                  onTap: () {
+                                    final int id = user['id'] as int;
+                                    _controller.selectedUserId.value = id;
+                                    _assignedUserDisplayController.text =
+                                        userName;
                                     Navigator.of(context).pop();
                                   },
                                 );
