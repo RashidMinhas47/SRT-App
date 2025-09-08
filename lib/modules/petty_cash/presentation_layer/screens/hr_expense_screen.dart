@@ -681,19 +681,34 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
       final success = await _controller.submitExpense(expense);
       if (success) {
-        Get.snackbar(
-          'Success',
-          'Expense submitted successfully!',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
-        Get.back();
+        // Clear all form fields
+        _clearAllFields();
+
+        // Navigate back to main screen
+        Get.offAllNamed('/main');
       }
     }
+  }
+
+  void _clearAllFields() {
+    setState(() {
+      // Clear text controllers
+      _descriptionController.clear();
+      _referenceController.clear();
+      _amountController.clear();
+      _totalAmountCompanyController.clear();
+      _employeeDisplayController.clear();
+
+      // Reset selected values
+      _selectedAccountId = null;
+      _selectedCompanyId = null;
+      _selectedTaxId = null;
+      _selectedDate = DateTime.now();
+      _hasValidationError = false;
+
+      // Reset controller values
+      _controller.selectedEmployeeId.value = 0;
+    });
   }
 
   @override

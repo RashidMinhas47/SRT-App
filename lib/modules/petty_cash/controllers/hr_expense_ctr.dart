@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bayanat/core/remote/api_helper/api_models.dart';
 import 'package:bayanat/core/utils/constance_manager.dart';
+import 'package:bayanat/modules/main/presentation_layer/screens/main_screen.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:bayanat/modules/petty_cash/models/tax_type.dart';
 import 'package:flutter/material.dart';
@@ -155,6 +156,7 @@ class HrExpenseController extends GetxController {
             backgroundColor: Colors.green,
             textColor: Colors.white,
           );
+          Get.offAll(() => JobCardScreen());
           return true;
         } else if (result['error'] != null) {
           // Handle Odoo error message
