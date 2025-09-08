@@ -1,3 +1,4 @@
+import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   int? _selectedCompanyId;
   int? _selectedTaxId;
   DateTime _selectedDate = DateTime.now();
+  bool _hasValidationError = false;
 
   final _controller = Get.put(HrExpenseController());
 
@@ -129,7 +131,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.blue[700],
+        backgroundColor: ColorManager.primary,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
@@ -174,16 +176,17 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
+                    color: ColorManager.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.blue[200]!, width: 1),
+                    border: Border.all(
+                        color: ColorManager.primary.withOpacity(0.3), width: 1),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue[600],
+                          color: ColorManager.primary.withOpacity(0.8),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -242,10 +245,18 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                helperText:
-                                    'Tap to search and select an employee',
-                                helperStyle: const TextStyle(
-                                  color: Colors.grey,
+                                helperText: _hasValidationError &&
+                                        _controller.selectedEmployeeId.value ==
+                                            0
+                                    ? 'Please select an employee'
+                                    : 'Tap to search and select an employee',
+                                helperStyle: TextStyle(
+                                  color: _hasValidationError &&
+                                          _controller
+                                                  .selectedEmployeeId.value ==
+                                              0
+                                      ? Colors.red
+                                      : Colors.grey,
                                   fontSize: 12,
                                 ),
                                 border: OutlineInputBorder(
@@ -266,7 +277,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                                   borderSide: BorderSide(
                                       color: state.hasError
                                           ? Colors.red
-                                          : Colors.blue,
+                                          : ColorManager.primary,
                                       width: 2),
                                 ),
                                 errorBorder: OutlineInputBorder(
@@ -288,7 +299,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                                 suffixIcon: Obx(() => Icon(
                                       _controller.selectedEmployeeId.value == 0
                                           ? Icons.search
-                                          : Icons.person,
+                                          : Icons.keyboard_arrow_down,
                                       color: state.hasError
                                           ? Colors.red
                                           : Colors.grey,
@@ -379,7 +390,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                         return Theme(
                           data: Theme.of(context).copyWith(
                             colorScheme: ColorScheme.light(
-                              primary: Colors.blue[700]!,
+                              primary: ColorManager.primary,
                               onPrimary: Colors.white,
                               onSurface: Colors.black87,
                             ),
@@ -455,6 +466,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
                 // Tax Type Selection (optional)
                 Obx(() => DropdownButtonFormField<int>(
+                      icon: Icon(Icons.keyboard_arrow_down),
                       value: _selectedTaxId,
                       decoration: _getDropdownDecoration(
                         'Tax Type',
@@ -560,8 +572,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(
                       colors: [
-                        Colors.blue[600]!,
-                        Colors.blue[700]!,
+                        ColorManager.primary.withOpacity(0.8),
+                        ColorManager.primary.withOpacity(0.6),
                       ],
                     ),
                   ),
@@ -611,34 +623,34 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 const SizedBox(height: 16),
 
                 // Error Display
-                Obx(() {
-                  if (_controller.error.value.isNotEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red[200]!, width: 1),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.red[600]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _controller.error.value,
-                              style: TextStyle(
-                                color: Colors.red[700],
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
+                // Obx(() {
+                //   if (_controller.error.value.isNotEmpty) {
+                //     return Container(
+                //       padding: const EdgeInsets.all(16),
+                //       decoration: BoxDecoration(
+                //         color: Colors.red[50],
+                //         borderRadius: BorderRadius.circular(12),
+                //         border: Border.all(color: Colors.red[200]!, width: 1),
+                //       ),
+                //       child: Row(
+                //         children: [
+                //           Icon(Icons.error_outline, color: Colors.red[600]),
+                //           const SizedBox(width: 12),
+                //           Expanded(
+                //             child: Text(
+                //               _controller.error.value,
+                //               style: TextStyle(
+                //                 color: Colors.red[700],
+                //                 fontSize: 14,
+                //               ),
+                //             ),
+                //           ),
+                //         ],
+                //       ),
+                //     );
+                //   }
+                //   return const SizedBox.shrink();
+                // }),
               ],
             ),
           ),
@@ -648,6 +660,10 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   }
 
   Future<void> _submit() async {
+    setState(() {
+      _hasValidationError = true;
+    });
+
     if (_formKey.currentState?.validate() ?? false) {
       final expense = HrExpenseModel(
         name: _descriptionController.text,
@@ -746,6 +762,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                                     _controller.selectedEmployeeId.value = id;
                                     _employeeDisplayController.text =
                                         employeeName;
+                                    setState(() {
+                                      _hasValidationError = false;
+                                    });
                                     Navigator.of(context).pop();
                                   },
                                 );
