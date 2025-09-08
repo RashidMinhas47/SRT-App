@@ -16,6 +16,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   final _referenceController = TextEditingController();
   final _amountController = TextEditingController();
   final _totalAmountCompanyController = TextEditingController();
+  final _employeeDisplayController = TextEditingController();
 
   int? _selectedCategoryId;
   int? _selectedAccountId;
@@ -267,43 +268,78 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Employee Selection
-                Obx(() => DropdownButtonFormField<int>(
-                      value: _controller.selectedEmployeeId.value == 0
-                          ? null
-                          : _controller.selectedEmployeeId.value,
-                      decoration: _getDropdownDecoration(
-                        'Employee *',
-                        helperText: 'Select the employee for this expense',
-                      ).copyWith(
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.person, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.keyboard_arrow_down,
-                                color: Colors.grey),
-                          ],
-                        ),
-                      ),
-                      items: _controller.employees
-                          .map((emp) => DropdownMenuItem<int>(
-                                value: emp.id,
-                                child: Text(
-                                  emp.name,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 16,
-                                  ),
+                // Employee Selection (searchable)
+                FormField<int>(
+                  validator: (v) => _controller.selectedEmployeeId.value == 0
+                      ? 'Please select an employee'
+                      : null,
+                  builder: (state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: _openEmployeeSearchDialog,
+                          child: AbsorbPointer(
+                            absorbing: true,
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                labelText: 'Employee *',
+                                labelStyle: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
                                 ),
-                              ))
-                          .toList(),
-                      onChanged: (int? value) {
-                        _controller.selectedEmployeeId.value = value ?? 0;
-                      },
-                      validator: (v) =>
-                          v == null ? 'Please select an employee' : null,
-                    )),
+                                helperText:
+                                    'Tap to search and select an employee',
+                                helperStyle: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 1),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 1),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Colors.blue, width: 2),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                                suffixIcon: Obx(() => Icon(
+                                      _controller.selectedEmployeeId.value == 0
+                                          ? Icons.search
+                                          : Icons.person,
+                                      color: Colors.grey,
+                                    )),
+                              ),
+                              controller: _employeeDisplayController,
+                              readOnly: true,
+                            ),
+                          ),
+                        ),
+                        if (state.hasError)
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(top: 8.0, left: 12.0),
+                            child: Text(
+                              state.errorText ?? '',
+                              style: TextStyle(
+                                  color: Colors.red[700], fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
                 const SizedBox(height: 20),
 
                 // Description Field (optional)
@@ -701,6 +737,85 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     _referenceController.dispose();
     _amountController.dispose();
     _totalAmountCompanyController.dispose();
+    _employeeDisplayController.dispose();
     super.dispose();
+  }
+
+  void _openEmployeeSearchDialog() async {
+    final List<dynamic> allEmployees =
+        List<dynamic>.from(_controller.employees);
+    String query = '';
+    final TextEditingController searchController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        List<dynamic> filtered = List<dynamic>.from(allEmployees);
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            void applyFilter(String q) {
+              setStateDialog(() {
+                query = q;
+                filtered = allEmployees
+                    .where((emp) => (emp.name?.toString().toLowerCase() ?? '')
+                        .contains(query.toLowerCase()))
+                    .toList();
+              });
+            }
+
+            return AlertDialog(
+              title: const Text('Select Employee'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        hintText: 'Search employee...',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: applyFilter,
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: filtered.isEmpty
+                          ? const Center(child: Text('No results'))
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) {
+                                final employee = filtered[index];
+                                final employeeName =
+                                    employee.name?.toString() ?? '';
+                                return ListTile(
+                                  title: Text(employeeName),
+                                  onTap: () {
+                                    final int id = employee.id;
+                                    _controller.selectedEmployeeId.value = id;
+                                    _employeeDisplayController.text =
+                                        employeeName;
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }
