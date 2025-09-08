@@ -1,7 +1,5 @@
 import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
-import 'package:bayanat/modules/petty_cash/models/employee_model.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
-import 'package:bayanat/modules/petty_cash/models/tax_type.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -23,7 +21,6 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   int? _selectedAccountId;
   int? _selectedCompanyId;
   int? _selectedTaxId;
-  double? _totalAmountCompany;
   DateTime _selectedDate = DateTime.now();
 
   final _controller = Get.put(HrExpenseController());
@@ -113,6 +110,14 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Set default category to Petty Cash if present
+    if (_selectedCategoryId == null && _controller.categories.isNotEmpty) {
+      final petty = _controller.categories.firstWhereOrNull(
+          (c) => (c['name'] as String?)?.toLowerCase() == 'petty cash bill');
+      if (petty != null) {
+        _selectedCategoryId = petty['id'] as int;
+      }
+    }
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -301,25 +306,16 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     )),
                 const SizedBox(height: 20),
 
-                // Description Field
+                // Description Field (optional)
                 TextFormField(
                   controller: _descriptionController,
                   decoration: _getInputDecoration(
-                    'Description *',
-                    helperText: 'Enter a detailed description of the expense',
+                    'Description',
+                    helperText: 'Enter a description (optional)',
                     suffixIcon:
                         const Icon(Icons.description, color: Colors.grey),
                   ),
                   maxLines: 3,
-                  validator: (v) {
-                    if (v?.isEmpty ?? true) {
-                      return 'Description is required';
-                    }
-                    if (v!.length < 10) {
-                      return 'Description must be at least 10 characters';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 20),
 
@@ -334,22 +330,14 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Category Selection
+                // Category Selection (fixed to Petty Cash)
                 DropdownButtonFormField<int>(
                   value: _selectedCategoryId,
                   decoration: _getDropdownDecoration(
                     'Category *',
-                    helperText: 'Select the expense category',
+                    helperText: 'Fixed to Petty Cash',
                   ).copyWith(
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.category, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.keyboard_arrow_down,
-                            color: Colors.grey),
-                      ],
-                    ),
+                    suffixIcon: null,
                   ),
                   items: _controller.categories
                       .map((cat) => DropdownMenuItem(
@@ -363,7 +351,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                             ),
                           ))
                       .toList(),
-                  onChanged: (v) => setState(() => _selectedCategoryId = v),
+                  onChanged: null,
                   validator: (v) =>
                       v == null ? 'Please select a category' : null,
                 ),
@@ -455,12 +443,12 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Tax Type Selection
+                // Tax Type Selection (optional)
                 Obx(() => DropdownButtonFormField<int>(
                       value: _selectedTaxId,
                       decoration: _getDropdownDecoration(
-                        'Tax Type *',
-                        helperText: 'Select the applicable tax type',
+                        'Tax Type',
+                        helperText: 'Select the applicable tax type (optional)',
                       ).copyWith(
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -474,9 +462,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                       ),
                       items: _controller.filteredTaxes
                           .map((tax) => DropdownMenuItem<int>(
-                                value: (tax as TaxType).id,
+                                value: tax.id,
                                 child: Text(
-                                  (tax as TaxType).name,
+                                  tax.name,
                                   style: const TextStyle(
                                     color: Colors.black87,
                                     fontSize: 16,
@@ -489,8 +477,6 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                           _selectedTaxId = value;
                         });
                       },
-                      validator: (v) =>
-                          v == null ? 'Please select a tax type' : null,
                     )),
                 const SizedBox(height: 20),
 
@@ -532,56 +518,34 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Total Amount Company
+                      // Total Amount Company (optional)
                       TextFormField(
                         controller: _totalAmountCompanyController,
                         decoration: _getInputDecoration(
-                          'Total Amount (Company) *',
-                          helperText: 'Enter the total amount including taxes',
+                          'Total Amount (Company)',
+                          helperText:
+                              'Enter the total amount including taxes (optional)',
                           suffixIcon: const Icon(Icons.account_balance,
                               color: Colors.grey),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
-                        validator: (v) {
-                          if (v?.isEmpty ?? true) {
-                            return 'Total amount is required';
-                          }
-                          final amount = double.tryParse(v!);
-                          if (amount == null || amount <= 0) {
-                            return 'Please enter a valid amount';
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          setState(() {
-                            _totalAmountCompany = double.tryParse(value);
-                          });
-                        },
+                        onChanged: (value) {},
                       ),
                       const SizedBox(height: 16),
 
-                      // Base Amount Field
+                      // Base Amount Field (optional)
                       TextFormField(
                         controller: _amountController,
                         decoration: _getInputDecoration(
-                          'Base Amount *',
-                          helperText: 'Enter the base amount before taxes',
+                          'Base Amount',
+                          helperText:
+                              'Enter the base amount before taxes (optional)',
                           suffixIcon:
                               const Icon(Icons.money, color: Colors.grey),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
-                        validator: (v) {
-                          if (v?.isEmpty ?? true) {
-                            return 'Base amount is required';
-                          }
-                          final amount = double.tryParse(v!);
-                          if (amount == null || amount <= 0) {
-                            return 'Please enter a valid amount';
-                          }
-                          return null;
-                        },
                       ),
                     ],
                   ),

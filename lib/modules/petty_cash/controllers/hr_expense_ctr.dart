@@ -78,6 +78,17 @@ class HrExpenseController extends GetxController {
         );
         return false;
       }
+      if (expense.productId == null) {
+        error.value = 'Please select a category';
+        Fluttertoast.showToast(
+          msg: 'Please select a category',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return false;
+      }
 
       final expenseData = {
         'name': expense.name,
@@ -95,14 +106,13 @@ class HrExpenseController extends GetxController {
 
       print('📦 Expense data to submit: ${jsonEncode(expenseData)}');
 
-      if (expenseData['name'] == null ||
-          expenseData['product_id'] == null ||
-          // expenseData['unit_amount'] == null ||
-          expenseData['date'] == null) {
+      // Validate mandatory fields: only product (category) and employee
+      if (expenseData['product_id'] == null ||
+          expenseData['employee_id'] == null) {
         print('❌ Mandatory fields missing');
-        error.value = 'Please fill all required fields';
+        error.value = 'Please select required fields';
         Fluttertoast.showToast(
-          msg: 'Please fill all required fields',
+          msg: 'Please select required fields',
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.TOP,
           backgroundColor: Colors.red,
@@ -624,8 +634,10 @@ class HrExpenseController extends GetxController {
         print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null && result['result'].isNotEmpty) {
-          paymentModeField.value = result['result'][0];
-          print('✅ Payment Mode field info: ${paymentModeField.value}');
+          final Map<String, dynamic> fieldInfo =
+              Map<String, dynamic>.from(result['result'][0] as Map);
+          paymentModeField.value = fieldInfo;
+          print('✅ Payment Mode field info: $fieldInfo');
         } else {
           throw Exception('Payment Mode field info not found in response');
         }

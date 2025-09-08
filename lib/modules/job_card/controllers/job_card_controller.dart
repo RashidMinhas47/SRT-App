@@ -52,7 +52,6 @@ class JobCardController extends GetxController {
 
   Future<bool> submitJobCard(JobCardModel jobCard) async {
     try {
-      print('📝 Starting job card submission...');
       isSubmitting.value = true;
 
       if (selectedCustomerId.value == 0) {
@@ -95,14 +94,11 @@ class JobCardController extends GetxController {
         // 'state': 'draft',
       };
 
-      print('📦 Job Card data to submit: ${jsonEncode(jobCardData)}');
-
       // Validate mandatory fields (only customer and mobile)
       if (jobCardData['customer_name'] == null ||
           jobCardData['customer_name'] == 0 ||
           jobCardData['customer_mobile_number'] == null ||
           jobCardData['customer_mobile_number'].toString().isEmpty) {
-        print('❌ Mandatory fields missing');
         error.value = 'Please select customer and enter mobile number';
         Fluttertoast.showToast(
           msg: 'Please select customer and enter mobile number',
@@ -130,17 +126,9 @@ class JobCardController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-      print('🔍 Response Headers: ${response.headers}');
-      print('🔍 Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
-
         if (result['result'] != null) {
-          print(
-              '✅ Job Card submitted successfully with ID: ${result['result']}');
           Fluttertoast.showToast(
             msg: 'Job Card submitted successfully!',
             toastLength: Toast.LENGTH_LONG,
@@ -160,7 +148,6 @@ class JobCardController extends GetxController {
           final errorData = result['error']['data'];
           final errorMessage =
               errorData['message'] ?? errorData['debug'] ?? 'Unknown error';
-          print('❌ Odoo Error: $errorMessage');
           error.value = 'Server Error: $errorMessage';
           Fluttertoast.showToast(
             msg: 'Failed to submit job card: $errorMessage',
@@ -173,7 +160,6 @@ class JobCardController extends GetxController {
         }
       }
 
-      print('❌ Error Response Body: ${response.body}');
       error.value = 'Failed to submit job card: ${response.statusCode}';
       Fluttertoast.showToast(
         msg: 'Failed to submit job card: ${response.statusCode}',
@@ -184,7 +170,6 @@ class JobCardController extends GetxController {
       );
       return false;
     } catch (e) {
-      print('❌ Exception during submission: $e');
       error.value = 'Error submitting job card: $e';
       Fluttertoast.showToast(
         msg: 'Error submitting job card: $e',
@@ -201,8 +186,6 @@ class JobCardController extends GetxController {
 
   Future<void> _fetchUsers() async {
     try {
-      print('📍 Fetching users...');
-
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -224,15 +207,11 @@ class JobCardController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null) {
           users.value = List<Map<String, dynamic>>.from(result['result']);
-          print('✅ Users fetched: ${users.length}');
         } else {
           throw Exception('No users found in response');
         }
@@ -240,7 +219,6 @@ class JobCardController extends GetxController {
         throw Exception('Failed to fetch users: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching users: $e');
       error.value = 'Error fetching users: $e';
       rethrow;
     }
@@ -248,8 +226,6 @@ class JobCardController extends GetxController {
 
   Future<void> _fetchCustomers() async {
     try {
-      print('📍 Fetching customers...');
-
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -271,15 +247,11 @@ class JobCardController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null) {
           customers.value = List<Map<String, dynamic>>.from(result['result']);
-          print('✅ Customers fetched: ${customers.length}');
         } else {
           throw Exception('No customers found in response');
         }
@@ -287,7 +259,6 @@ class JobCardController extends GetxController {
         throw Exception('Failed to fetch customers: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching customers: $e');
       error.value = 'Error fetching customers: $e';
       rethrow;
     }

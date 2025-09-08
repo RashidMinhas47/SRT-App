@@ -21,7 +21,7 @@ import '../bloc/main_bloc.dart';
 import 'all_amc_card_screen.dart';
 import 'all_job_card_screen.dart';
 
-import '../../../petty_cash/presentation_layer/screens/petty_cash_form_screen.dart';
+// removed unused petty cash imports; using hr_expense_screen.dart above
 
 class JobCardScreen extends StatefulWidget {
   const JobCardScreen({super.key});
@@ -108,27 +108,25 @@ class _JobCardScreenState extends State<JobCardScreen> {
                         ),
                       ),
                       SizedBox(height: 2.h),
-                      //TODO: Next job will be done here
-                      // InkWell(
-                      //   onTap: () {
-                      //     context.push(const PettyCashFormScreen());
-                      //   },
-                      //   child: Column(
-                      //     children: [
-                      //       Icon(
-                      //         Icons.receipt_long,
-                      //         size: 30.sp,
-                      //       ),
-                      //       Text(
-                      //         'Petty Cash',
-                      //         style: TextStyle(
-                      //           fontSize: 14.sp,
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-
+                      InkWell(
+                        onTap: () {
+                          context.push(const ExpenseFormScreen());
+                        },
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.receipt_long,
+                              size: 30.sp,
+                            ),
+                            Text(
+                              'Petty Cash',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       SizedBox(height: 2.h),
                       InkWell(
                         onTap: () {
