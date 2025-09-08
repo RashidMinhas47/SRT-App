@@ -242,9 +242,6 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     if (v?.isEmpty ?? true) {
                       return 'Mobile number is required';
                     }
-                    if (!_controller.isValidMobileNumber(v!)) {
-                      return 'Please enter a valid mobile number';
-                    }
                     return null;
                   },
                 ),

@@ -68,7 +68,7 @@ class JobCardController extends GetxController {
       }
 
       final String mobile = jobCard.customerMobileNumber?.trim() ?? '';
-      if (mobile.isEmpty || !isValidMobileNumber(mobile)) {
+      if (mobile.isEmpty) {
         error.value = 'Please enter a valid mobile number';
         Fluttertoast.showToast(
           msg: 'Please enter a valid mobile number',
