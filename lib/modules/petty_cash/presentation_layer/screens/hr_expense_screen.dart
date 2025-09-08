@@ -123,7 +123,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
-          'New Expense',
+          'Petty Cash Bill',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -199,7 +199,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Expense Details',
+                              'Petty Cash Details',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -221,52 +221,6 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Progress Indicator
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!, width: 1),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.check_circle,
-                              color: Colors.blue[600], size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Form Progress',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blue[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: _getFormProgress(),
-                        backgroundColor: Colors.blue[100],
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${(_getFormProgress() * 100).round()}% Complete',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
 
                 // Employee Selection (searchable)
                 FormField<int>(
@@ -302,23 +256,43 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                      color: Colors.grey, width: 1),
+                                  borderSide: BorderSide(
+                                      color: state.hasError
+                                          ? Colors.red
+                                          : Colors.grey,
+                                      width: 1),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                      color: state.hasError
+                                          ? Colors.red
+                                          : Colors.blue,
+                                      width: 2),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                   borderSide: const BorderSide(
-                                      color: Colors.blue, width: 2),
+                                      color: Colors.red, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Colors.red, width: 2),
                                 ),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: state.hasError
+                                    ? Colors.red[50]
+                                    : Colors.grey[50],
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 16),
                                 suffixIcon: Obx(() => Icon(
                                       _controller.selectedEmployeeId.value == 0
                                           ? Icons.search
                                           : Icons.person,
-                                      color: Colors.grey,
+                                      color: state.hasError
+                                          ? Colors.red
+                                          : Colors.grey,
                                     )),
                               ),
                               controller: _employeeDisplayController,
@@ -681,21 +655,6 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         );
       }),
     );
-  }
-
-  double _getFormProgress() {
-    int completedFields = 0;
-    int totalFields =
-        6; // Employee, Description, Category, Date, Tax Type, Amount
-
-    if (_controller.selectedEmployeeId.value != 0) completedFields++;
-    if (_descriptionController.text.isNotEmpty) completedFields++;
-    if (_selectedCategoryId != null) completedFields++;
-    if (_selectedTaxId != null) completedFields++;
-    if (_totalAmountCompanyController.text.isNotEmpty) completedFields++;
-    if (_amountController.text.isNotEmpty) completedFields++;
-
-    return completedFields / totalFields;
   }
 
   Future<void> _submit() async {
