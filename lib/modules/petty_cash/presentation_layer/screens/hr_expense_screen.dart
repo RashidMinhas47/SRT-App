@@ -105,7 +105,6 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       filled: true,
       fillColor: Colors.grey[50],
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      suffixIcon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
     );
   }
 
@@ -342,6 +341,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
                 // Category Selection (fixed to Petty Cash)
                 DropdownButtonFormField<int>(
+                  icon: Icon(Icons.category),
                   value: _selectedCategoryId,
                   decoration: _getDropdownDecoration(
                     'Category *',
@@ -459,16 +459,6 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                       decoration: _getDropdownDecoration(
                         'Tax Type',
                         helperText: 'Select the applicable tax type (optional)',
-                      ).copyWith(
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.receipt, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.keyboard_arrow_down,
-                                color: Colors.grey),
-                          ],
-                        ),
                       ),
                       items: _controller.filteredTaxes
                           .map((tax) => DropdownMenuItem<int>(
