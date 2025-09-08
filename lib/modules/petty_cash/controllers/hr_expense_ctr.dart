@@ -65,7 +65,6 @@ class HrExpenseController extends GetxController {
 
   Future<bool> submitExpense(HrExpenseModel expense) async {
     try {
-      print('📝 Starting expense submission...');
       isSubmitting.value = true;
 
       if (selectedEmployeeId.value == 0) {
@@ -105,12 +104,9 @@ class HrExpenseController extends GetxController {
         'total_amount': expense.amount,
       };
 
-      print('📦 Expense data to submit: ${jsonEncode(expenseData)}');
-
       // Validate mandatory fields: only product (category) and employee
       if (expenseData['product_id'] == null ||
           expenseData['employee_id'] == null) {
-        print('❌ Mandatory fields missing');
         error.value = 'Please select required fields';
         Fluttertoast.showToast(
           msg: 'Please select required fields',
@@ -138,17 +134,10 @@ class HrExpenseController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-      print('🔍 Response Headers: ${response.headers}');
-      print('🔍 Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null) {
-          print(
-              '✅ Expense submitted successfully with ID: ${result['result']}');
           Fluttertoast.showToast(
             msg: 'Expense submitted successfully',
             toastLength: Toast.LENGTH_SHORT,
@@ -163,7 +152,6 @@ class HrExpenseController extends GetxController {
           final errorData = result['error']['data'];
           final errorMessage =
               errorData['message'] ?? errorData['debug'] ?? 'Unknown error';
-          print('❌ Odoo Error: $errorMessage');
           error.value = 'Server Error: $errorMessage';
           Fluttertoast.showToast(
             msg: 'Failed to submit expense: $errorMessage',
@@ -176,7 +164,6 @@ class HrExpenseController extends GetxController {
         }
       }
 
-      print('❌ Error Response Body: ${response.body}');
       error.value = 'Failed to submit expense: ${response.statusCode}';
       Fluttertoast.showToast(
         msg: 'Failed to submit expense: ${response.statusCode}',
@@ -187,7 +174,6 @@ class HrExpenseController extends GetxController {
       );
       return false;
     } catch (e) {
-      print('❌ Exception during submission: $e');
       error.value = 'Error submitting expense: $e';
       Fluttertoast.showToast(
         msg: 'Error submitting expense: $e',
@@ -376,8 +362,6 @@ class HrExpenseController extends GetxController {
   // Add method for archiving expenses instead of deleting
   Future<bool> archiveExpense(int expenseId) async {
     try {
-      print('📝 Archiving expense: $expenseId');
-
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -400,15 +384,12 @@ class HrExpenseController extends GetxController {
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         if (result['result'] == true) {
-          print('✅ Expense archived successfully');
           return true;
         }
       }
 
-      print('❌ Failed to archive expense');
       return false;
     } catch (e) {
-      print('❌ Error archiving expense: $e');
       return false;
     }
   }
@@ -425,8 +406,6 @@ class HrExpenseController extends GetxController {
 
   Future<void> _fetchCategories() async {
     try {
-      print('📍 Fetching expense categories...');
-
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -448,25 +427,18 @@ class HrExpenseController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-      print('🔍 Response Headers: ${response.headers}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null) {
           categories.value = List<Map<String, dynamic>>.from(result['result']);
-          print('✅ Categories fetched: ${categories.length}');
         } else {
           throw Exception('No results found in response');
         }
       } else {
-        print('❌ Error Response Body: ${response.body}');
         throw Exception('Failed to fetch categories: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching categories: $e');
       error.value = 'Error fetching expense categories: $e';
       rethrow;
     }
@@ -557,8 +529,6 @@ class HrExpenseController extends GetxController {
   // Update fetchDropdownData to include company field fetch
   Future<void> _fetchCompanyField() async {
     try {
-      print('📍 Fetching company field...');
-
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -578,26 +548,20 @@ class HrExpenseController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null &&
             result['result']['company_id'] != null) {
           companyField.value = result['result']['company_id'].toString();
-          print('✅ Company field info: ${companyField.value}');
         } else {
           throw Exception('Company field info not found in response');
         }
       } else {
-        print('❌ Error Response Body: ${response.body}');
         throw Exception(
             'Failed to fetch company field: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching company field: $e');
       error.value = 'Error fetching company field: $e';
       rethrow;
     }
@@ -605,8 +569,6 @@ class HrExpenseController extends GetxController {
 
   Future<void> _fetchPaymentModeField() async {
     try {
-      print('📍 Fetching payment mode field...');
-
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -629,27 +591,21 @@ class HrExpenseController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null && result['result'].isNotEmpty) {
           final Map<String, dynamic> fieldInfo =
               Map<String, dynamic>.from(result['result'][0] as Map);
           paymentModeField.value = fieldInfo;
-          print('✅ Payment Mode field info: $fieldInfo');
         } else {
           throw Exception('Payment Mode field info not found in response');
         }
       } else {
-        print('❌ Error Response Body: ${response.body}');
         throw Exception(
             'Failed to fetch payment mode field: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching payment mode field: $e');
       error.value = 'Error fetching payment mode field: $e';
       rethrow;
     }
@@ -658,8 +614,6 @@ class HrExpenseController extends GetxController {
   // Add method to fetch employees
   Future<void> _fetchEmployees() async {
     try {
-      print('📍 Fetching employees...');
-
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -681,17 +635,13 @@ class HrExpenseController extends GetxController {
         }),
       );
 
-      print('🔍 Response Status Code: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('✅ Response Body: ${jsonEncode(result)}');
 
         if (result['result'] != null) {
           employees.value = (result['result'] as List)
               .map((emp) => EmployeeModel.fromJson(emp))
               .toList();
-          print('✅ Employees fetched: ${employees.length}');
         } else {
           throw Exception('No employees found in response');
         }
@@ -699,7 +649,6 @@ class HrExpenseController extends GetxController {
         throw Exception('Failed to fetch employees: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching employees: $e');
       error.value = 'Error fetching employees: $e';
       rethrow;
     }

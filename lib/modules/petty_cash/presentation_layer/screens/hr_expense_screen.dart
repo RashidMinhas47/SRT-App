@@ -28,6 +28,23 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
   final _controller = Get.put(HrExpenseController());
 
+  @override
+  void initState() {
+    super.initState();
+    // Listen for categories to be loaded and set default Petty Cash
+    _controller.categories.listen((categories) {
+      if (categories.isNotEmpty && _selectedCategoryId == null) {
+        final pettyCashCategory = categories.firstWhereOrNull((cat) =>
+            (cat['name'] as String?)?.toLowerCase() == 'petty cash bill');
+        if (pettyCashCategory != null) {
+          setState(() {
+            _selectedCategoryId = pettyCashCategory['id'] as int;
+          });
+        }
+      }
+    });
+  }
+
   // Custom input decoration for consistency
   InputDecoration _getInputDecoration(String label,
       {String? helperText, Widget? suffixIcon}) {
@@ -112,14 +129,6 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Set default category to Petty Cash if present
-    if (_selectedCategoryId == null && _controller.categories.isNotEmpty) {
-      final petty = _controller.categories.firstWhereOrNull(
-          (c) => (c['name'] as String?)?.toLowerCase() == 'petty cash bill');
-      if (petty != null) {
-        _selectedCategoryId = petty['id'] as int;
-      }
-    }
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -245,17 +254,14 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                helperText: _hasValidationError &&
-                                        _controller.selectedEmployeeId.value ==
-                                            0
-                                    ? 'Please select an employee'
-                                    : 'Tap to search and select an employee',
+                                helperText:
+                                    'Tap to search and select an employee',
                                 helperStyle: TextStyle(
                                   color: _hasValidationError &&
                                           _controller
                                                   .selectedEmployeeId.value ==
                                               0
-                                      ? Colors.red
+                                      ? const Color.fromARGB(255, 250, 82, 70)
                                       : Colors.grey,
                                   fontSize: 12,
                                 ),
