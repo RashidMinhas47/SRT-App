@@ -255,11 +255,11 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Location
+                // Location (optional)
                 TextFormField(
                   controller: _locationController,
                   decoration: InputDecoration(
-                    labelText: 'Location *',
+                    labelText: 'Location',
                     labelStyle: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
@@ -292,16 +292,10 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     suffixIcon:
                         const Icon(Icons.location_on, color: Colors.grey),
                   ),
-                  validator: (v) {
-                    if (v?.isEmpty ?? true) {
-                      return 'Location is required';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 20),
 
-                // Assigned User Selection
+                // Assigned User Selection (optional)
                 Obx(() => DropdownButtonFormField<int>(
                       icon: const Icon(Icons.keyboard_arrow_down,
                           color: Colors.grey),
@@ -309,7 +303,7 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                           ? null
                           : _controller.selectedUserId.value,
                       decoration: InputDecoration(
-                        labelText: 'Assigned User *',
+                        labelText: 'Assigned User',
                         labelStyle: const TextStyle(
                           color: Colors.black87,
                           fontSize: 16,
@@ -355,8 +349,6 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                       onChanged: (int? value) {
                         _controller.selectedUserId.value = value ?? 0;
                       },
-                      validator: (v) =>
-                          v == null ? 'Please select an assigned user' : null,
                     )),
                 const SizedBox(height: 20),
 
@@ -478,11 +470,11 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Work Description
+                // Work Description (optional)
                 TextFormField(
                   controller: _workDescriptionController,
                   decoration: InputDecoration(
-                    labelText: 'Work Description *',
+                    labelText: 'Work Description',
                     labelStyle: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
@@ -516,24 +508,15 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                         const Icon(Icons.description, color: Colors.grey),
                   ),
                   maxLines: 3,
-                  validator: (v) {
-                    if (v?.isEmpty ?? true) {
-                      return 'Work description is required';
-                    }
-                    if (v!.length < 1) {
-                      return 'Description must be at least 1 character';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 20),
 
-                // Highlight Selection
+                // Highlight Selection (optional)
                 DropdownButtonFormField<String>(
                   icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey),
                   value: _selectedHighlight,
                   decoration: InputDecoration(
-                    labelText: 'Highlight *',
+                    labelText: 'Highlight',
                     labelStyle: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
@@ -582,8 +565,6 @@ class _JobCardFormScreenState extends State<JobCardFormScreen> {
                     });
                     _controller.selectedHighlight.value = value ?? '';
                   },
-                  validator: (v) =>
-                      v == null ? 'Please select highlight option' : null,
                 ),
                 const SizedBox(height: 32),
 

@@ -55,18 +55,6 @@ class JobCardController extends GetxController {
       print('📝 Starting job card submission...');
       isSubmitting.value = true;
 
-      if (selectedUserId.value == 0) {
-        error.value = 'Please select an assigned user';
-        Fluttertoast.showToast(
-          msg: 'Please select an assigned user',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
-        return false;
-      }
-
       if (selectedCustomerId.value == 0) {
         error.value = 'Please select a customer';
         Fluttertoast.showToast(
@@ -79,11 +67,25 @@ class JobCardController extends GetxController {
         return false;
       }
 
+      final String mobile = jobCard.customerMobileNumber?.trim() ?? '';
+      if (mobile.isEmpty || !isValidMobileNumber(mobile)) {
+        error.value = 'Please enter a valid mobile number';
+        Fluttertoast.showToast(
+          msg: 'Please enter a valid mobile number',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return false;
+      }
+
       final jobCardData = {
         'customer_name': selectedCustomerId.value,
-        'customer_mobile_number': jobCard.customerMobileNumber,
+        'customer_mobile_number': mobile,
         'location': jobCard.location,
-        'assigned_user_id': selectedUserId.value,
+        'assigned_user_id':
+            selectedUserId.value == 0 ? null : selectedUserId.value,
         'customer_building_number': jobCard.customerBuildingName,
         'customer_house_flat_number': jobCard.customerHouseFlatNumber,
         'complaint_number': jobCard.complaintNumber,
@@ -95,19 +97,15 @@ class JobCardController extends GetxController {
 
       print('📦 Job Card data to submit: ${jsonEncode(jobCardData)}');
 
-      // Validate mandatory fields
+      // Validate mandatory fields (only customer and mobile)
       if (jobCardData['customer_name'] == null ||
           jobCardData['customer_name'] == 0 ||
           jobCardData['customer_mobile_number'] == null ||
-          jobCardData['customer_mobile_number'].toString().isEmpty ||
-          jobCardData['location'] == null ||
-          jobCardData['location'].toString().isEmpty ||
-          jobCardData['work_description'] == null ||
-          jobCardData['work_description'].toString().isEmpty) {
+          jobCardData['customer_mobile_number'].toString().isEmpty) {
         print('❌ Mandatory fields missing');
-        error.value = 'Please fill all required fields';
+        error.value = 'Please select customer and enter mobile number';
         Fluttertoast.showToast(
-          msg: 'Please fill all required fields',
+          msg: 'Please select customer and enter mobile number',
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.TOP,
           backgroundColor: Colors.red,
