@@ -15,11 +15,21 @@ class PendingBillsScreen extends StatefulWidget {
 
 class _PendingBillsScreenState extends State<PendingBillsScreen> {
   final HrExpenseController _controller = Get.find<HrExpenseController>();
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _controller.fetchExpenses();
+    _loadExpenses();
+  }
+
+  Future<void> _loadExpenses() async {
+    setState(() => _isLoading = true);
+    try {
+      await _controller.fetchExpenses();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -37,54 +47,58 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
         backgroundColor: ColorManager.primary,
         elevation: 0.5,
         foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () => _controller.fetchExpenses(),
+            onPressed: _loadExpenses,
             tooltip: 'Refresh',
           ),
         ],
       ),
-      body: Obx(() {
-        final List<HrExpenseModel> items = _controller.expenses;
-        if (items.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.receipt_long,
-                  size: 48.sp,
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 2.h),
-                const Text('No expenses found'),
-              ],
-            ),
-          );
-        }
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Obx(() {
+              final List<HrExpenseModel> items = _controller.expenses;
+              if (items.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.receipt_long,
+                        size: 48.sp,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 2.h),
+                      const Text('No expenses found'),
+                    ],
+                  ),
+                );
+              }
 
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 2.h,
-              crossAxisSpacing: 3.w,
-              childAspectRatio: 0.92,
-            ),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final e = items[index];
-              return InkWell(
-                onTap: () => Get.to(() => ExpenseDetailScreen(expense: e)),
-                borderRadius: BorderRadius.circular(12),
-                child: _ExpenseCard(expense: e),
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 2.h,
+                    crossAxisSpacing: 3.w,
+                    childAspectRatio: 0.92,
+                  ),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final e = items[index];
+                    return InkWell(
+                      onTap: () =>
+                          Get.to(() => ExpenseDetailScreen(expense: e)),
+                      borderRadius: BorderRadius.circular(12),
+                      child: _ExpenseCard(expense: e),
+                    );
+                  },
+                ),
               );
-            },
-          ),
-        );
-      }),
+            }),
     );
   }
 }
