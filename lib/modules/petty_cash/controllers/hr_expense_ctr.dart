@@ -596,4 +596,48 @@ class HrExpenseController extends GetxController {
       rethrow;
     }
   }
+
+  // Resolve employee name by id. Uses cache first, otherwise fetches from Odoo
+  Future<String?> getEmployeeNameById(int id) async {
+    try {
+      // Try cached list
+      final cached = employees.firstWhereOrNull((e) => e.id == id);
+      if (cached != null) return cached.name?.toString();
+
+      // Fetch from Odoo
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.employee',
+            'method': 'search_read',
+            'args': [
+              [
+                ['id', '=', id]
+              ]
+            ],
+            'kwargs': {
+              'fields': ['id', 'name'],
+              'limit': 1,
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] != null && (result['result'] as List).isNotEmpty) {
+          final map = Map<String, dynamic>.from(result['result'][0] as Map);
+          return map['name'].toString();
+        }
+      }
+    } catch (_) {
+      // ignore network errors here; UI will show '-'
+    }
+    return null;
+  }
 }

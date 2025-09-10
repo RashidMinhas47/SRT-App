@@ -22,7 +22,9 @@ class HrExpenseModel extends Equatable {
   final double? amount;
   final DateTime? date;
   final String? state;
-  final String? companyId;
+  // Company many2one (id and display name)
+  final int? companyId;
+  final String? companyName;
 
   const HrExpenseModel({
     this.name,
@@ -38,6 +40,7 @@ class HrExpenseModel extends Equatable {
     this.date,
     this.state = STATE_DRAFT, // Default to draft
     this.companyId,
+    this.companyName,
   });
 
   factory HrExpenseModel.fromJson(Map<String, dynamic> json) {
@@ -59,8 +62,18 @@ class HrExpenseModel extends Equatable {
       date:
           json['date'] != null ? DateTime.parse(json['date'] as String) : null,
       state: json['state'] as String?,
-      companyId:
-          json['company_id'] != null ? json['company_id'][0] as String : null,
+      companyId: json['company_id'] != null
+          ? (json['company_id'] is List &&
+                  (json['company_id'] as List).isNotEmpty
+              ? json['company_id'][0] as int
+              : json['company_id'] as int?)
+          : null,
+      companyName: json['company_id'] != null
+          ? (json['company_id'] is List &&
+                  (json['company_id'] as List).length > 1
+              ? json['company_id'][1] as String?
+              : null)
+          : null,
     );
   }
 
@@ -103,6 +116,7 @@ class HrExpenseModel extends Equatable {
         date,
         state,
         companyId,
+        companyName,
       ];
 
   HrExpenseModel copyWith({
@@ -118,7 +132,8 @@ class HrExpenseModel extends Equatable {
     double? amount,
     DateTime? date,
     String? state,
-    String? companyId,
+    int? companyId,
+    String? companyName,
   }) {
     return HrExpenseModel(
       name: name ?? this.name,
@@ -134,6 +149,7 @@ class HrExpenseModel extends Equatable {
       date: date ?? this.date,
       state: state ?? this.state,
       companyId: companyId ?? this.companyId,
+      companyName: companyName ?? this.companyName,
     );
   }
 

@@ -741,7 +741,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         accountId: _selectedAccountId,
         amount: double.tryParse(_totalAmountCompanyController.text),
         date: _selectedDate,
-        companyId: _selectedCompanyId?.toString(),
+        // companyId: _selectedCompanyId?.toString(),
         reference: _referenceController.text.isNotEmpty
             ? _referenceController.text
             : null,

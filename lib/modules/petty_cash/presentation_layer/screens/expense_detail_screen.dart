@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
+import 'package:get/get.dart';
+import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 
-class ExpenseDetailScreen extends StatelessWidget {
+class ExpenseDetailScreen extends StatefulWidget {
   final HrExpenseModel expense;
   const ExpenseDetailScreen({super.key, required this.expense});
+
+  @override
+  State<ExpenseDetailScreen> createState() => _ExpenseDetailScreenState();
+}
+
+class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
+  String? _employeeName;
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return '-';
     final d = dt.toLocal();
     String two(int n) => n < 10 ? '0$n' : '$n';
     return '${two(d.day)}/${two(d.month)}/${d.year}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final controller = Get.find<HrExpenseController>();
+    if (widget.expense.employeeId != null) {
+      controller.getEmployeeNameById(widget.expense.employeeId!).then((name) {
+        if (!mounted) return;
+        setState(() => _employeeName = name);
+      });
+    }
   }
 
   @override
@@ -32,17 +53,21 @@ class ExpenseDetailScreen extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final List<MapEntry<String, String>> fields = [
-            MapEntry('Status', (expense.state ?? 'draft').toUpperCase()),
-            MapEntry('Description', expense.name ?? '-'),
-            MapEntry('Employee', expense.employeeId?.toString() ?? '-'),
-            MapEntry('Amount', expense.amount?.toStringAsFixed(2) ?? '0.00'),
-            MapEntry('Date', _formatDate(expense.date)),
-            MapEntry('Company', expense.companyId ?? '-'),
-            MapEntry('Payment Mode', expense.paymentMode ?? '-'),
-            MapEntry('Reference', expense.reference ?? '-'),
+            MapEntry('Status', (widget.expense.state ?? 'draft').toUpperCase()),
+            MapEntry('Description', widget.expense.name ?? '-'),
             MapEntry(
-                'Category (product_id)', expense.productId?.toString() ?? '-'),
-            MapEntry('Taxes', expense.taxIds?.join(', ') ?? '-'),
+                'Employee',
+                _employeeName ??
+                    (widget.expense.employeeId?.toString() ?? '-')),
+            MapEntry(
+                'Amount', widget.expense.amount?.toStringAsFixed(2) ?? '0.00'),
+            MapEntry('Date', _formatDate(widget.expense.date)),
+            MapEntry('Company', widget.expense.companyName ?? '-'),
+            MapEntry('Payment Mode', widget.expense.paymentMode ?? '-'),
+            MapEntry('Reference', widget.expense.reference ?? '-'),
+            MapEntry('Category (product_id)',
+                widget.expense.productId?.toString() ?? '-'),
+            MapEntry('Taxes', widget.expense.taxIds?.join(', ') ?? '-'),
           ];
 
           final List<Widget> rows = [];
