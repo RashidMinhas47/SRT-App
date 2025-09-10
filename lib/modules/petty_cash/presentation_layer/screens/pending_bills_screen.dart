@@ -103,9 +103,29 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
   }
 }
 
-class _ExpenseCard extends StatelessWidget {
+class _ExpenseCard extends StatefulWidget {
   final HrExpenseModel expense;
   const _ExpenseCard({required this.expense});
+
+  @override
+  State<_ExpenseCard> createState() => _ExpenseCardState();
+}
+
+class _ExpenseCardState extends State<_ExpenseCard> {
+  String? _employeeName;
+
+  @override
+  void initState() {
+    super.initState();
+    final ctr = Get.find<HrExpenseController>();
+    final empId = widget.expense.employeeId;
+    if (empId != null) {
+      ctr.getEmployeeNameById(empId).then((name) {
+        if (!mounted) return;
+        setState(() => _employeeName = name);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +155,7 @@ class _ExpenseCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    (expense.state ?? 'draft').toUpperCase(),
+                    (widget.expense.state ?? 'draft').toUpperCase(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -146,7 +166,7 @@ class _ExpenseCard extends StatelessWidget {
                 )),
                 const Spacer(),
                 Flexible(
-                  child: Text('#${expense.id ?? ''}',
+                  child: Text('#${widget.expense.id ?? ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.grey)),
@@ -155,7 +175,7 @@ class _ExpenseCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              expense.name ?? 'No description',
+              widget.expense.name ?? 'No description',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -167,8 +187,8 @@ class _ExpenseCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    expense.employeeId != null
-                        ? 'Emp: ${expense.employeeId}'
+                    widget.expense.employeeId != null
+                        ? 'Emp: ${_employeeName ?? widget.expense.employeeId}'
                         : 'No employee',
                     style: const TextStyle(color: Colors.grey),
                     overflow: TextOverflow.ellipsis,
@@ -183,7 +203,7 @@ class _ExpenseCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    _formatDate(expense.date),
+                    _formatDate(widget.expense.date),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.grey),
@@ -193,8 +213,8 @@ class _ExpenseCard extends StatelessWidget {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    expense.amount != null
-                        ? expense.amount!.toStringAsFixed(2)
+                    widget.expense.amount != null
+                        ? widget.expense.amount!.toStringAsFixed(2)
                         : '0.00',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
