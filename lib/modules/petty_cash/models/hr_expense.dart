@@ -68,7 +68,12 @@ class HrExpenseModel extends Equatable {
     return {
       'name': name,
       'product_id': productId,
-      'tax_ids': taxIds != null ? [taxIds] : [], // Odoo format for many2many
+      // Odoo many2many command: (6, 0, [ids])
+      'tax_ids': (taxIds != null && taxIds!.isNotEmpty)
+          ? [
+              [6, 0, taxIds]
+            ]
+          : [],
       'employee_id': employeeId,
       'emp_id': empId,
       'payment_mode': paymentMode?.toLowerCase() == 'company'

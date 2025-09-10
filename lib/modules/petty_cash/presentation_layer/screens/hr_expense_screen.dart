@@ -22,7 +22,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   int? _selectedCategoryId;
   int? _selectedAccountId;
   int? _selectedCompanyId;
-  int? _selectedTaxId;
+  // Removed single tax id; using multi-select list instead
+  final List<int> _selectedTaxIds = <int>[];
   DateTime _selectedDate = DateTime.now();
   bool _hasValidationError = false;
 
@@ -496,32 +497,42 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     )),
                 const SizedBox(height: 20),
 
-                // Tax Type Selection (optional)
-                Obx(() => DropdownButtonFormField<int>(
-                      icon: Icon(Icons.keyboard_arrow_down),
-                      value: _selectedTaxId,
-                      decoration: _getDropdownDecoration(
-                        'Tax Type',
-                        helperText: 'Select the applicable tax type (optional)',
-                      ),
-                      items: _controller.filteredTaxes
-                          .map((tax) => DropdownMenuItem<int>(
-                                value: tax.id,
-                                child: Text(
-                                  tax.name,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 16,
-                                  ),
+                // Taxes Selection (multi-select, optional)
+                Obx(() {
+                  final selectedNames = _controller.filteredTaxes
+                      .where((t) => _selectedTaxIds.contains(t.id))
+                      .map((t) => t.name)
+                      .toList();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: _openTaxesDialog,
+                        child: InputDecorator(
+                          decoration: _getDropdownDecoration(
+                            'Taxes',
+                            helperText: 'Select one or more taxes (optional)',
+                          ),
+                          child: selectedNames.isEmpty
+                              ? const Text(
+                                  'No tax selected',
+                                  style: TextStyle(color: Colors.grey),
+                                )
+                              : Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: selectedNames
+                                      .map((name) => Chip(
+                                            label: Text(name),
+                                            deleteIconColor: Colors.grey,
+                                          ))
+                                      .toList(),
                                 ),
-                              ))
-                          .toList(),
-                      onChanged: (int? value) {
-                        setState(() {
-                          _selectedTaxId = value;
-                        });
-                      },
-                    )),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 20),
 
                 // Amount Fields Section
@@ -702,6 +713,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         productId: _selectedCategoryId,
         employeeId: _controller.selectedEmployeeId.value,
         paymentMode: _controller.selectedPaymentMode.value,
+        taxIds: _selectedTaxIds,
         accountId: _selectedAccountId,
         amount: double.tryParse(_totalAmountCompanyController.text),
         date: _selectedDate,
@@ -725,6 +737,65 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     }
   }
 
+  void _openTaxesDialog() async {
+    final List<int> tempSelected = List<int>.from(_selectedTaxIds);
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Taxes'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Obx(() {
+              final taxes = _controller.filteredTaxes;
+              if (taxes.isEmpty) {
+                return const Text('No taxes available');
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: taxes.length,
+                itemBuilder: (context, index) {
+                  final tax = taxes[index];
+                  final checked = tempSelected.contains(tax.id);
+                  return CheckboxListTile(
+                    value: checked,
+                    title: Text(tax.name),
+                    onChanged: (bool? val) {
+                      setState(() {
+                        if (val == true) {
+                          tempSelected.add(tax.id);
+                        } else {
+                          tempSelected.remove(tax.id);
+                        }
+                      });
+                    },
+                  );
+                },
+              );
+            }),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedTaxIds
+                    ..clear()
+                    ..addAll(tempSelected.toSet());
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Apply'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _clearAllFields() {
     setState(() {
       // Clear text controllers
@@ -737,7 +808,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       // Reset selected values
       _selectedAccountId = null;
       _selectedCompanyId = null;
-      _selectedTaxId = null;
+      _selectedTaxIds.clear();
       _selectedDate = DateTime.now();
       _hasValidationError = false;
 

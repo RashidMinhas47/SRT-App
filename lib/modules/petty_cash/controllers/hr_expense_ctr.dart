@@ -112,6 +112,10 @@ class HrExpenseController extends GetxController {
             : selectedPaymentMode.value == 'employee'
                 ? 'own_account'
                 : 'company_account',
+        if (expense.taxIds != null && expense.taxIds!.isNotEmpty)
+          'tax_ids': [
+            [6, 0, expense.taxIds]
+          ],
         if (expense.accountId != null) 'account_id': expense.accountId,
         'reference': expense.reference,
         'total_amount_company': expense.amount, // <-- Add this line
