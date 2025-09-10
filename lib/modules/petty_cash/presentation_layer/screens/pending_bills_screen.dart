@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
+import 'package:bayanat/modules/petty_cash/presentation_layer/screens/expense_detail_screen.dart';
 
 class PendingBillsScreen extends StatefulWidget {
   const PendingBillsScreen({super.key});
@@ -66,7 +67,11 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
             itemCount: items.length,
             itemBuilder: (context, index) {
               final e = items[index];
-              return _ExpenseCard(expense: e);
+              return InkWell(
+                onTap: () => Get.to(() => ExpenseDetailScreen(expense: e)),
+                borderRadius: BorderRadius.circular(12),
+                child: _ExpenseCard(expense: e),
+              );
             },
           ),
         );
@@ -81,6 +86,13 @@ class _ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String _formatDateTime(DateTime? dt) {
+      if (dt == null) return '-';
+      final d = dt.toLocal();
+      String two(int n) => n < 10 ? '0$n' : '$n';
+      return '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
+    }
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -91,7 +103,8 @@ class _ExpenseCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
+                Flexible(
+                    child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -100,15 +113,21 @@ class _ExpenseCard extends StatelessWidget {
                   ),
                   child: Text(
                     (expense.state ?? 'draft').toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: ColorManager.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
+                )),
                 const Spacer(),
-                Text('#${expense.id ?? ''}',
-                    style: const TextStyle(color: Colors.grey)),
+                Flexible(
+                  child: Text('#${expense.id ?? ''}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.grey)),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -139,18 +158,25 @@ class _ExpenseCard extends StatelessWidget {
               children: [
                 const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
                 const SizedBox(width: 6),
-                Text(
-                  expense.date != null
-                      ? expense.date!.toLocal().toString().split('T').first
-                      : '-',
-                  style: const TextStyle(color: Colors.grey),
+                Expanded(
+                  child: Text(
+                    _formatDateTime(expense.date),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 ),
                 const Spacer(),
-                Text(
-                  expense.amount != null
-                      ? '${expense.amount!.toStringAsFixed(2)}'
-                      : '0.00',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    expense.amount != null
+                        ? expense.amount!.toStringAsFixed(2)
+                        : '0.00',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ],
             ),
