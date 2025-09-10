@@ -597,12 +597,24 @@ class HrExpenseController extends GetxController {
     }
   }
 
+  // Map payment mode to display text
+  String getPaymentModeDisplayText(String? paymentMode) {
+    switch (paymentMode) {
+      case 'own_account':
+        return 'Employee (to reimburse)';
+      case 'company_account':
+        return 'Company';
+      default:
+        return paymentMode ?? '-';
+    }
+  }
+
   // Resolve employee name by id. Uses cache first, otherwise fetches from Odoo
   Future<String?> getEmployeeNameById(int id) async {
     try {
       // Try cached list
       final cached = employees.firstWhereOrNull((e) => e.id == id);
-      if (cached != null) return cached.name?.toString();
+      if (cached != null) return cached.name.toString();
 
       // Fetch from Odoo
       final response = await http.post(

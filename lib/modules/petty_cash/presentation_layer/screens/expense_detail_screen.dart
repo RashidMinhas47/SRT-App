@@ -14,6 +14,7 @@ class ExpenseDetailScreen extends StatefulWidget {
 
 class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   String? _employeeName;
+  final HrExpenseController _controller = Get.find<HrExpenseController>();
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return '-';
@@ -25,9 +26,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   @override
   void initState() {
     super.initState();
-    final controller = Get.find<HrExpenseController>();
     if (widget.expense.employeeId != null) {
-      controller.getEmployeeNameById(widget.expense.employeeId!).then((name) {
+      _controller.getEmployeeNameById(widget.expense.employeeId!).then((name) {
         if (!mounted) return;
         setState(() => _employeeName = name);
       });
@@ -63,7 +63,10 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                 'Amount', widget.expense.amount?.toStringAsFixed(2) ?? '0.00'),
             MapEntry('Date', _formatDate(widget.expense.date)),
             MapEntry('Company', widget.expense.companyName ?? '-'),
-            MapEntry('Payment Mode', widget.expense.paymentMode ?? '-'),
+            MapEntry(
+                'Paid By',
+                _controller
+                    .getPaymentModeDisplayText(widget.expense.paymentMode)),
             MapEntry('Reference', widget.expense.reference ?? '-'),
             MapEntry('Category (product_id)',
                 widget.expense.productId?.toString() ?? '-'),

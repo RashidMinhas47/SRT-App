@@ -54,7 +54,7 @@ class HrExpenseModel extends Equatable {
       employeeId:
           json['employee_id'] != null ? json['employee_id'][0] as int : null,
       empId: json['emp_id'] != null ? json['emp_id'][0] as int : null,
-      paymentMode: json['payment_mode'] as String?,
+      paymentMode: json['own_account'] as String?,
       reference: json['reference'] as String?,
       accountId:
           json['account_id'] != null ? json['account_id'][0] as int : null,
