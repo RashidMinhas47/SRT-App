@@ -19,7 +19,10 @@ class HrExpenseController extends GetxController {
   final RxList<Map<String, dynamic>> categories = <Map<String, dynamic>>[].obs;
 
   // Update to store just company field data
-  final RxString companyField = ''.obs;
+  final RxMap companyField = {}.obs;
+
+  // Add employee field data
+  final RxMap employeeField = {}.obs;
 
   // Add employees list
   final RxList<EmployeeModel> employees = <EmployeeModel>[].obs;
@@ -34,6 +37,7 @@ class HrExpenseController extends GetxController {
   final RxMap<String, dynamic> paymentModeField = <String, dynamic>{}.obs;
 
   final RxInt selectedEmployeeId = RxInt(0);
+  final RxString selectedPaymentMode = ''.obs;
   final RxList<TaxModel> taxes = <TaxModel>[].obs;
   final Rx<TextEditingController> totalAmountCompanyController =
       TextEditingController().obs;
@@ -44,6 +48,11 @@ class HrExpenseController extends GetxController {
     fetchDropdownData();
   }
 
+  // Method to refresh all dropdown data
+  Future<void> refreshDropdownData() async {
+    await fetchDropdownData();
+  }
+
   Future<void> fetchDropdownData() async {
     try {
       isLoading.value = true;
@@ -52,6 +61,7 @@ class HrExpenseController extends GetxController {
         _fetchTaxes(),
         _fetchAccounts(),
         _fetchCompanyField(),
+        _fetchEmployeeField(),
         _fetchPaymentModeField(),
         _fetchEmployees(), // Add employees fetch
         _fetchTaxes(),
@@ -97,7 +107,11 @@ class HrExpenseController extends GetxController {
         'quantity': 1.0,
         'date': expense.date?.toIso8601String().split('T')[0],
         'employee_id': selectedEmployeeId.value,
-        'payment_mode': 'company_account',
+        'payment_mode': selectedPaymentMode.value == 'company'
+            ? 'company_account'
+            : selectedPaymentMode.value == 'employee'
+                ? 'own_account'
+                : 'company_account',
         if (expense.accountId != null) 'account_id': expense.accountId,
         'reference': expense.reference,
         'total_amount_company': expense.amount, // <-- Add this line
@@ -145,7 +159,7 @@ class HrExpenseController extends GetxController {
             backgroundColor: Colors.green,
             textColor: Colors.white,
           );
-          Get.offAll(() => JobCardScreen());
+          Get.offAll(() => const JobCardScreen());
           return true;
         } else if (result['error'] != null) {
           // Handle Odoo error message
@@ -187,177 +201,6 @@ class HrExpenseController extends GetxController {
       isSubmitting.value = false;
     }
   }
-
-  // Future<bool> submitExpenseWithCustomData(
-  //     Map<String, dynamic> expenseData) async {
-  //   try {
-  //     print('📝 Starting expense submission with custom data...');
-  //     isSubmitting.value = true;
-
-  //     if (selectedEmployeeId.value == 0) {
-  //       error.value = 'Please select an employee';
-  //       Get.snackbar(
-  //         'Error',
-  //         'Please select an employee',
-  //         snackPosition: SnackPosition.TOP,
-  //         backgroundColor: Colors.red,
-  //         colorText: Colors.white,
-  //       );
-  //       return false;
-  //     }
-
-  //     // Add employee_id and payment_mode to the data
-  //     expenseData['employee_id'] = selectedEmployeeId.value;
-  //     expenseData['payment_mode'] = 'company_account'; // Fixed value
-
-  //     print('📦 Custom Expense data to submit: ${jsonEncode(expenseData)}');
-
-  //     // Validate mandatory fields
-  //     if (expenseData['name'] == null ||
-  //         expenseData['product_id'] == null ||
-  //         // expenseData['unit_amount'] == null ||
-  //         expenseData['date'] == null) {
-  //       print('❌ Mandatory fields missing');
-  //       error.value = 'Please fill all required fields';
-  //       Get.snackbar(
-  //         'Error',
-  //         'Please fill all required fields',
-  //         snackPosition: SnackPosition.TOP,
-  //         backgroundColor: Colors.red,
-  //         colorText: Colors.white,
-  //       );
-  //       return false;
-  //     }
-
-  //     final response = await http.post(
-  //       Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Cookie': ConstanceManager.sessionId.toString(),
-  //       },
-  //       body: jsonEncode({
-  //         'params': {
-  //           'model': 'hr.expense',
-  //           'method': 'create',
-  //           'args': [expenseData],
-  //           'kwargs': {},
-  //         }
-  //       }),
-  //     );
-
-  //     print('🔍 Response Status Code: ${response.statusCode}');
-  //     print('🔍 Response Headers: ${response.headers}');
-  //     print('🔍 Response Body: ${response.body}');
-
-  //     if (response.statusCode == 200) {
-  //       final result = jsonDecode(response.body);
-  //       print('✅ Response Body: ${jsonEncode(result)}');
-
-  //       if (result['result'] != null) {
-  //         print(
-  //             '✅ Expense submitted successfully with ID: ${result['result']}');
-  //         Get.snackbar(
-  //           'Success',
-  //           'Expense submitted successfully',
-  //           snackPosition: SnackPosition.TOP,
-  //           backgroundColor: Colors.green,
-  //           colorText: Colors.white,
-  //         );
-  //         return true;
-  //       } else if (result['error'] != null) {
-  //         // Handle Odoo error message
-  //         final errorData = result['error']['data'];
-  //         final errorMessage =
-  //             errorData['message'] ?? errorData['debug'] ?? 'Unknown error';
-  //         print('❌ Odoo Error: $errorMessage');
-  //         error.value = 'Server Error: $errorMessage';
-  //         Get.snackbar(
-  //           'Error',
-  //           'Failed to submit expense: $errorMessage',
-  //           snackPosition: SnackPosition.TOP,
-  //           backgroundColor: Colors.red,
-  //           colorText: Colors.white,
-  //         );
-  //         return false;
-  //       }
-  //     }
-
-  //     print('❌ Error Response Body: ${response.body}');
-  //     error.value = 'Failed to submit expense: ${response.statusCode}';
-  //     Get.snackbar(
-  //       'Error',
-  //       'Failed to submit expense: ${response.statusCode}',
-  //       snackPosition: SnackPosition.TOP,
-  //       backgroundColor: Colors.red,
-  //       colorText: Colors.white,
-  //     );
-  //     return false;
-  //   } catch (e) {
-  //     print('❌ Exception during submission: $e');
-  //     error.value = 'Error submitting expense: $e';
-  //     Get.snackbar(
-  //       'Error',
-  //       'Error submitting expense: $e',
-  //       snackPosition: SnackPosition.TOP,
-  //       backgroundColor: Colors.red,
-  //       colorText: Colors.white,
-  //     );
-  //     return false;
-  //   } finally {
-  //     isSubmitting.value = false;
-  //   }
-  // }
-
-  // Update _getCurrentEmployeeId to be more robust
-  // Future<int?> _getCurrentEmployeeId() async {
-  //   try {
-  //     print('🔍 Fetching employee ID for user: ${ConstanceManager.userId}');
-
-  //     final response = await http.post(
-  //       Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Cookie': ConstanceManager.sessionId.toString(),
-  //       },
-  //       body: jsonEncode({
-  //         'params': {
-  //           'model': 'hr.employee',
-  //           'method': 'search_read',
-  //           'args': [],
-  //           'kwargs': {
-  //             'fields': ['id', 'name'],
-  //             'domain': [
-  //               ['user_id', '=', ConstanceManager.userId],
-  //             ],
-  //             'limit': 1,
-  //           }
-  //         }
-  //       }),
-  //     );
-
-  //     print('🔍 Response Status Code: ${response.statusCode}');
-
-  //     if (response.statusCode == 200) {
-  //       final result = jsonDecode(response.body);
-  //       print('✅ Response Body: ${jsonEncode(result)}');
-
-  //       if (result['result'] != null && result['result'].isNotEmpty) {
-  //         final employeeId = result['result'][0]['id'] as int;
-  //         print('✅ Found employee ID: $employeeId');
-  //         return employeeId;
-  //       } else {
-  //         print('⚠️ No employee record found');
-  //         return null;
-  //       }
-  //     }
-
-  //     print('❌ Failed to fetch employee ID');
-  //     return null;
-  //   } catch (e) {
-  //     print('❌ Error fetching employee ID: $e');
-  //     return null;
-  //   }
-  // }
 
   // Add method for archiving expenses instead of deleting
   Future<bool> archiveExpense(int expenseId) async {
@@ -542,7 +385,7 @@ class HrExpenseController extends GetxController {
             'args': [],
             'kwargs': {
               'attributes': ['string', 'required', 'type', 'selection'],
-              'fieldnames': ['company_id']
+              'fieldnames': ['company_id', "_id"]
             }
           }
         }),
@@ -553,7 +396,11 @@ class HrExpenseController extends GetxController {
 
         if (result['result'] != null &&
             result['result']['company_id'] != null) {
-          companyField.value = result['result']['company_id'].toString();
+          companyField.value = {
+            'id': result['result']['company_id']['id']?.toString(),
+            'name': result['result']['company_id']['string']?.toString() ??
+                'Company',
+          };
         } else {
           throw Exception('Company field info not found in response');
         }
@@ -607,6 +454,50 @@ class HrExpenseController extends GetxController {
       }
     } catch (e) {
       error.value = 'Error fetching payment mode field: $e';
+      rethrow;
+    }
+  }
+
+  // Add method to fetch employee field info
+  Future<void> _fetchEmployeeField() async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.expense',
+            'method': 'fields_get',
+            'args': [],
+            'kwargs': {
+              'attributes': ['string', 'required', 'type', 'selection'],
+              'fieldnames': ['emp_id', "_id"]
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+
+        if (result['result'] != null && result['result']['emp_id'] != null) {
+          employeeField.value = {
+            'id': result['result']['emp_id']['id']?.toString(),
+            'name':
+                result['result']['emp_id']['string']?.toString() ?? 'Employee',
+          };
+        } else {
+          throw Exception('Employee field info not found in response');
+        }
+      } else {
+        throw Exception(
+            'Failed to fetch employee field: ${response.statusCode}');
+      }
+    } catch (e) {
+      error.value = 'Error fetching employee field: $e';
       rethrow;
     }
   }

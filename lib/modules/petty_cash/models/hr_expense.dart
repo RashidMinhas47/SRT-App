@@ -12,6 +12,7 @@ class HrExpenseModel extends Equatable {
   final int? productId; // Category (many2one)
   final List<int>? taxIds; // Included tax (many2many)
   final int? employeeId; // Employee (many2one)
+  final int? empId; // Employee ID for payment (many2one)
   final String? paymentMode; // 'company' or 'employee'
   final String? reference; // Bill Reference (char)
   final int? accountId; // Account (many2one)
@@ -28,6 +29,7 @@ class HrExpenseModel extends Equatable {
     this.productId,
     this.taxIds,
     this.employeeId,
+    this.empId,
     this.paymentMode = 'company_account',
     this.reference,
     this.accountId,
@@ -48,6 +50,7 @@ class HrExpenseModel extends Equatable {
           (json['tax_ids'] as List<dynamic>?)?.map((e) => e as int).toList(),
       employeeId:
           json['employee_id'] != null ? json['employee_id'][0] as int : null,
+      empId: json['emp_id'] != null ? json['emp_id'][0] as int : null,
       paymentMode: json['payment_mode'] as String?,
       reference: json['reference'] as String?,
       accountId:
@@ -67,6 +70,7 @@ class HrExpenseModel extends Equatable {
       'product_id': productId,
       'tax_ids': taxIds != null ? [taxIds] : [], // Odoo format for many2many
       'employee_id': employeeId,
+      'emp_id': empId,
       'payment_mode': paymentMode?.toLowerCase() == 'company'
           ? 'company_account'
           : 'employee',
@@ -86,6 +90,7 @@ class HrExpenseModel extends Equatable {
         productId,
         taxIds,
         employeeId,
+        empId,
         paymentMode,
         reference,
         accountId,
@@ -100,6 +105,7 @@ class HrExpenseModel extends Equatable {
     int? productId,
     List<int>? taxIds,
     int? employeeId,
+    int? empId,
     String? paymentMode,
     String? reference,
     int? accountId,
@@ -114,6 +120,7 @@ class HrExpenseModel extends Equatable {
       productId: productId ?? this.productId,
       taxIds: taxIds ?? this.taxIds,
       employeeId: employeeId ?? this.employeeId,
+      empId: empId ?? this.empId,
       paymentMode: paymentMode ?? this.paymentMode,
       reference: reference ?? this.reference,
       accountId: accountId ?? this.accountId,

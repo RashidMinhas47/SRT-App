@@ -31,6 +31,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   @override
   void initState() {
     super.initState();
+    // Refresh dropdown data each time the screen is opened
+    _controller.refreshDropdownData();
+
     // Listen for categories to be loaded and set default Petty Cash
     _controller.categories.listen((categories) {
       if (categories.isNotEmpty && _selectedCategoryId == null) {
@@ -453,21 +456,44 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Company ID Field
-                TextFormField(
-                  controller: TextEditingController(
-                      text: _selectedCompanyId?.toString() ?? ''),
-                  decoration: _getInputDecoration(
-                    'Company ID',
-                    helperText: _controller.companyField.value.isNotEmpty
-                        ? _controller.companyField.value
-                        : 'Enter the company identifier',
-                    suffixIcon: const Icon(Icons.business, color: Colors.grey),
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) =>
-                      setState(() => _selectedCompanyId = int.tryParse(value)),
-                ),
+                // Paid by Selection
+                Obx(() => DropdownButtonFormField<String>(
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      value: _controller.selectedPaymentMode.value.isNotEmpty
+                          ? _controller.selectedPaymentMode.value
+                          : null,
+                      decoration: _getDropdownDecoration(
+                        'Paid by',
+                        helperText:
+                            'Select who will pay for this expense (optional)',
+                      ),
+                      items: const [
+                        DropdownMenuItem<String>(
+                          value: 'company',
+                          child: Text(
+                            'Company',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'employee',
+                          child: Text(
+                            'Employee',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (String? value) {
+                        _controller.selectedPaymentMode.value =
+                            value?.toLowerCase() ?? '';
+                      },
+                    )),
                 const SizedBox(height: 20),
 
                 // Tax Type Selection (optional)
@@ -675,13 +701,16 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         name: _descriptionController.text,
         productId: _selectedCategoryId,
         employeeId: _controller.selectedEmployeeId.value,
-        paymentMode: 'company_account',
+        paymentMode: _controller.selectedPaymentMode.value,
         accountId: _selectedAccountId,
         amount: double.tryParse(_totalAmountCompanyController.text),
         date: _selectedDate,
         companyId: _selectedCompanyId?.toString(),
         reference: _referenceController.text.isNotEmpty
             ? _referenceController.text
+            : null,
+        empId: _controller.selectedPaymentMode.value == 'employee'
+            ? _controller.selectedEmployeeId.value
             : null,
       );
 
@@ -714,6 +743,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
       // Reset controller values
       _controller.selectedEmployeeId.value = 0;
+      _controller.selectedPaymentMode.value = '';
     });
   }
 

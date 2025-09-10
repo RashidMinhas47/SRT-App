@@ -17,7 +17,6 @@ import 'modules/authentication/presentation_layer/screens/splash_screen.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_card_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/amc_pdf.dart';
 import 'modules/main/presentation_layer/screens/pdfs/fault_pdf.dart';
-// import 'package:device_preview/device_preview.dart';
 import '../../modules/petty_cash/controllers/employe_controller.dart';
 
 class AppBindings extends Bindings {
