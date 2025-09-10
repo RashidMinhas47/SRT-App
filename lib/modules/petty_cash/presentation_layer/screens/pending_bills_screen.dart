@@ -145,6 +145,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
                     child: Container(
@@ -164,7 +165,6 @@ class _ExpenseCardState extends State<_ExpenseCard> {
                     ),
                   ),
                 )),
-                const Spacer(),
                 Flexible(
                   child: Text('#${widget.expense.id ?? ''}',
                       maxLines: 1,

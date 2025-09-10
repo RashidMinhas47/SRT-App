@@ -98,7 +98,8 @@ class HrExpenseController extends GetxController {
                 'total_amount',
                 'state',
                 'payment_mode',
-                'product_id'
+                'product_id',
+                'tax_ids'
               ],
               // Domain empty: show all as richiesto
             }
@@ -609,6 +610,65 @@ class HrExpenseController extends GetxController {
       default:
         return paymentMode ?? '-';
     }
+  }
+
+  // Fetch tax names by IDs from Odoo
+  Future<String> getTaxNamesByIds(List<int> taxIds) async {
+    if (taxIds.isEmpty) return '-';
+
+    try {
+      // Try cached taxes first
+      final List<String> cachedNames = [];
+      for (final id in taxIds) {
+        final cachedTax = taxes.firstWhereOrNull((tax) => tax.id == id);
+        if (cachedTax != null) {
+          cachedNames.add(cachedTax.name);
+        }
+      }
+
+      // If all taxes found in cache, return them
+      if (cachedNames.length == taxIds.length) {
+        return cachedNames.join(', ');
+      }
+
+      // Fetch missing taxes from Odoo
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'account.tax',
+            'method': 'search_read',
+            'args': [
+              [
+                ['id', 'in', taxIds]
+              ]
+            ],
+            'kwargs': {
+              'fields': ['id', 'name'],
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] != null && (result['result'] as List).isNotEmpty) {
+          final List<String> taxNames = [];
+          for (final taxData in result['result'] as List) {
+            final map = Map<String, dynamic>.from(taxData as Map);
+            taxNames.add(map['name'] as String);
+          }
+          return taxNames.join(', ');
+        }
+      }
+    } catch (_) {
+      // ignore network errors here; UI will show '-'
+    }
+    return '-';
   }
 
   // Fetch category name by ID from Odoo

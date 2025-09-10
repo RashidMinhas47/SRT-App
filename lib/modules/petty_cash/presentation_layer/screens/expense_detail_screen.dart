@@ -15,6 +15,7 @@ class ExpenseDetailScreen extends StatefulWidget {
 class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   String? _employeeName;
   String? _categoryName;
+  String _taxNames = '-';
   final HrExpenseController _controller = Get.find<HrExpenseController>();
 
   String _formatDate(DateTime? dt) {
@@ -48,14 +49,30 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
         setState(() => _categoryName = catName);
       }
     }
+
+    // Fetch tax names
+    if (widget.expense.taxIds != null && widget.expense.taxIds!.isNotEmpty) {
+      final taxNames =
+          await _controller.getTaxNamesByIds(widget.expense.taxIds!);
+      if (mounted) {
+        setState(() => _taxNames = taxNames);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     print(
-        ">>>>>>>>>>>>>>>>>>>>>>>>>${widget.expense.productId}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        ">>>>>>>>>>>>>>>>>>>>>>>>>${widget.expense.taxIds}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+              size: 28,
+            )),
         title: const Text(
           'Petty Cash Bill Details',
           style: TextStyle(
@@ -84,10 +101,10 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                 'Paid By',
                 _controller
                     .getPaymentModeDisplayText(widget.expense.paymentMode)),
-            MapEntry('Reference', widget.expense.reference ?? '-'),
+            // MapEntry('Reference', widget.expense.reference ?? '-'),
             MapEntry('Category',
                 _categoryName ?? widget.expense.productId?.toString() ?? '-'),
-            MapEntry('Taxes', widget.expense.taxIds?.join(', ') ?? '-'),
+            MapEntry('Taxes', _taxNames),
           ];
 
           final List<Widget> rows = [];
