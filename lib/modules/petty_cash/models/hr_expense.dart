@@ -10,6 +10,7 @@ class HrExpenseModel extends Equatable {
 
   final String? name; // description (char)
   final int? productId; // Category (many2one)
+  final String? productName; // Category name
   final List<int>? taxIds; // Included tax (many2many)
   final int? employeeId; // Employee (many2one)
   final int? empId; // Employee ID for payment (many2one)
@@ -29,6 +30,7 @@ class HrExpenseModel extends Equatable {
   const HrExpenseModel({
     this.name,
     this.productId,
+    this.productName,
     this.taxIds,
     this.employeeId,
     this.empId,
@@ -49,12 +51,16 @@ class HrExpenseModel extends Equatable {
       name: json['name'] as String?,
       productId:
           json['product_id'] != null ? json['product_id'][0] as int : null,
+      productName:
+          json['product_id'] != null && (json['product_id'] as List).length > 1
+              ? json['product_id'][1] as String?
+              : null,
       taxIds:
           (json['tax_ids'] as List<dynamic>?)?.map((e) => e as int).toList(),
       employeeId:
           json['employee_id'] != null ? json['employee_id'][0] as int : null,
       empId: json['emp_id'] != null ? json['emp_id'][0] as int : null,
-      paymentMode: json['own_account'] as String?,
+      paymentMode: json['payment_mode'] as String?,
       reference: json['reference'] as String?,
       accountId:
           json['account_id'] != null ? json['account_id'][0] as int : null,
@@ -106,6 +112,7 @@ class HrExpenseModel extends Equatable {
         id,
         name,
         productId,
+        productName,
         taxIds,
         employeeId,
         empId,
@@ -122,6 +129,7 @@ class HrExpenseModel extends Equatable {
   HrExpenseModel copyWith({
     String? name,
     int? productId,
+    String? productName,
     List<int>? taxIds,
     int? employeeId,
     int? empId,
@@ -138,6 +146,7 @@ class HrExpenseModel extends Equatable {
     return HrExpenseModel(
       name: name ?? this.name,
       productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
       taxIds: taxIds ?? this.taxIds,
       employeeId: employeeId ?? this.employeeId,
       empId: empId ?? this.empId,

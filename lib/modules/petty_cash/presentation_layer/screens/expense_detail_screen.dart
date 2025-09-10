@@ -14,6 +14,7 @@ class ExpenseDetailScreen extends StatefulWidget {
 
 class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   String? _employeeName;
+  String? _categoryName;
   final HrExpenseController _controller = Get.find<HrExpenseController>();
 
   String _formatDate(DateTime? dt) {
@@ -26,16 +27,33 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchNames();
+  }
+
+  Future<void> _fetchNames() async {
+    // Fetch employee name
     if (widget.expense.employeeId != null) {
-      _controller.getEmployeeNameById(widget.expense.employeeId!).then((name) {
-        if (!mounted) return;
-        setState(() => _employeeName = name);
-      });
+      final empName =
+          await _controller.getEmployeeNameById(widget.expense.employeeId!);
+      if (mounted) {
+        setState(() => _employeeName = empName);
+      }
+    }
+
+    // Fetch category name
+    if (widget.expense.productId != null) {
+      final catName =
+          await _controller.getCategoryNameById(widget.expense.productId!);
+      if (mounted) {
+        setState(() => _categoryName = catName);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print(
+        ">>>>>>>>>>>>>>>>>>>>>>>>>${widget.expense.productId}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -62,14 +80,13 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             MapEntry(
                 'Amount', widget.expense.amount?.toStringAsFixed(2) ?? '0.00'),
             MapEntry('Date', _formatDate(widget.expense.date)),
-            MapEntry('Company', widget.expense.companyName ?? '-'),
             MapEntry(
                 'Paid By',
                 _controller
                     .getPaymentModeDisplayText(widget.expense.paymentMode)),
             MapEntry('Reference', widget.expense.reference ?? '-'),
-            MapEntry('Category (product_id)',
-                widget.expense.productId?.toString() ?? '-'),
+            MapEntry('Category',
+                _categoryName ?? widget.expense.productId?.toString() ?? '-'),
             MapEntry('Taxes', widget.expense.taxIds?.join(', ') ?? '-'),
           ];
 

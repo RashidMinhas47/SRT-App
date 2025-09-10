@@ -96,7 +96,9 @@ class HrExpenseController extends GetxController {
                 'date',
                 'employee_id',
                 'total_amount',
-                'state'
+                'state',
+                'payment_mode',
+                'product_id'
               ],
               // Domain empty: show all as richiesto
             }
@@ -607,6 +609,53 @@ class HrExpenseController extends GetxController {
       default:
         return paymentMode ?? '-';
     }
+  }
+
+  // Fetch category name by ID from Odoo
+  Future<String?> getCategoryNameById(int id) async {
+    try {
+      // Try cached categories first
+      final cachedCategory =
+          categories.firstWhereOrNull((cat) => cat['id'] == id);
+      if (cachedCategory != null) {
+        return cachedCategory['name'] as String?;
+      }
+
+      // Fetch from Odoo if not in cache
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'product.product',
+            'method': 'search_read',
+            'args': [
+              [
+                ['id', '=', id]
+              ]
+            ],
+            'kwargs': {
+              'fields': ['id', 'name'],
+              'limit': 1,
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] != null && (result['result'] as List).isNotEmpty) {
+          final map = Map<String, dynamic>.from(result['result'][0] as Map);
+          return map['name'] as String?;
+        }
+      }
+    } catch (_) {
+      // ignore network errors here; UI will show '-'
+    }
+    return null;
   }
 
   // Resolve employee name by id. Uses cache first, otherwise fetches from Odoo
