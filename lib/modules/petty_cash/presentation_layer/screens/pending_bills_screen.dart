@@ -86,11 +86,11 @@ class _ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String _formatDateTime(DateTime? dt) {
+    String _formatDate(DateTime? dt) {
       if (dt == null) return '-';
       final d = dt.toLocal();
       String two(int n) => n < 10 ? '0$n' : '$n';
-      return '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
+      return '${two(d.day)}/${two(d.month)}/${d.year}';
     }
 
     return Card(
@@ -160,7 +160,7 @@ class _ExpenseCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    _formatDateTime(expense.date),
+                    _formatDate(expense.date),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.grey),
