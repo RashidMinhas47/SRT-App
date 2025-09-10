@@ -17,9 +17,17 @@ class ExpenseDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expense Details'),
+        title: const Text(
+          'Petty Cash Bill Details',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
         backgroundColor: ColorManager.primary,
         foregroundColor: Colors.white,
+        elevation: 0.5,
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {

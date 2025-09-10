@@ -26,13 +26,22 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pending Petty Cash Bills'),
+        title: const Text(
+          'Pending Petty Cash Bills',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
         backgroundColor: ColorManager.primary,
+        elevation: 0.5,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () => _controller.fetchExpenses(),
+            tooltip: 'Refresh',
           ),
         ],
       ),
@@ -56,13 +65,13 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
         }
 
         return Padding(
-          padding: EdgeInsets.all(4.w),
+          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
           child: GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 3.w,
+              mainAxisSpacing: 2.h,
               crossAxisSpacing: 3.w,
-              childAspectRatio: 0.95,
+              childAspectRatio: 0.92,
             ),
             itemCount: items.length,
             itemBuilder: (context, index) {

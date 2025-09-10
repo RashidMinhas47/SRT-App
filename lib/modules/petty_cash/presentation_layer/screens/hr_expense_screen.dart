@@ -142,30 +142,33 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
           ),
         ),
         backgroundColor: ColorManager.primary,
-        elevation: 0,
+        elevation: 0.5,
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: ElevatedButton.icon(
+            child: OutlinedButton.icon(
               onPressed: () {
                 Get.to(() => const PendingBillsScreen());
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: ColorManager.primary,
-                elevation: 0,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white54),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const Icon(Icons.pending_actions),
-              label: const Text('Pending Bills'),
+              icon: const Icon(Icons.pending_actions, color: Colors.white),
+              label: const Text(
+                'Pending Bills',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           )
         ],
