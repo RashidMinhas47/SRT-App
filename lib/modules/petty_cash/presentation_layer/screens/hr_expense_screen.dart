@@ -3,6 +3,7 @@ import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:bayanat/modules/petty_cash/presentation_layer/screens/pending_bills_screen.dart';
 
 class ExpenseFormScreen extends StatefulWidget {
   const ExpenseFormScreen({Key? key}) : super(key: key);
@@ -148,6 +149,26 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Get.to(() => const PendingBillsScreen());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: ColorManager.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.pending_actions),
+              label: const Text('Pending Bills'),
+            ),
+          )
+        ],
       ),
       body: Obx(() {
         if (_controller.isLoading.value) {

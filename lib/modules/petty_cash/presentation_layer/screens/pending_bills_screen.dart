@@ -1,555 +1,162 @@
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:sizer/sizer.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:sizer/sizer.dart';
+import 'package:bayanat/core/utils/color_manager.dart';
+import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
+import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 
-// import 'pdf_viewer_screen.dart';
+class PendingBillsScreen extends StatefulWidget {
+  const PendingBillsScreen({super.key});
 
-// import '../../../../core/services/dep_injection.dart';
-// import '../../../../core/utils/color_manager.dart';
-// import '../../../../core/utils/constance_manager.dart';
-// import '../../data_layer/models/petty_cash_model.dart';
-// import '../../domain_layer/entities/petty_cash.dart';
-// import '../bloc/pending_bills_bloc.dart';
+  @override
+  State<PendingBillsScreen> createState() => _PendingBillsScreenState();
+}
 
-// class PendingBillsScreen extends StatefulWidget {
-//   const PendingBillsScreen({super.key});
+class _PendingBillsScreenState extends State<PendingBillsScreen> {
+  final HrExpenseController _controller = Get.find<HrExpenseController>();
 
-//   @override
-//   State<PendingBillsScreen> createState() => _PendingBillsScreenState();
-// }
+  @override
+  void initState() {
+    super.initState();
+    _controller.fetchExpenses();
+  }
 
-// class _PendingBillsScreenState extends State<PendingBillsScreen> {
-//   @override
-//   void initState() {
-//     super.initState();
-//     sl<PendingBillsBloc>().add(LoadPendingBillsEvent());
-//   }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pending Petty Cash Bills'),
+        backgroundColor: ColorManager.primary,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _controller.fetchExpenses(),
+          ),
+        ],
+      ),
+      body: Obx(() {
+        final List<HrExpenseModel> items = _controller.expenses;
+        if (items.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.receipt_long,
+                  size: 48.sp,
+                  color: Colors.grey,
+                ),
+                SizedBox(height: 2.h),
+                const Text('No expenses found'),
+              ],
+            ),
+          );
+        }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocProvider.value(
-//       value: sl<PendingBillsBloc>(),
-//       child: Scaffold(
-//         appBar: AppBar(
-//           title: const Text('Pending Bill Submissions'),
-//           backgroundColor: ColorManager.primary,
-//           foregroundColor: Colors.white,
-//           actions: [
-//             IconButton(
-//               icon: const Icon(Icons.refresh),
-//               onPressed: () {
-//                 sl<PendingBillsBloc>().add(LoadPendingBillsEvent());
-//               },
-//             ),
-//           ],
-//         ),
-//         body: BlocConsumer<PendingBillsBloc, PendingBillsState>(
-//           listener: (context, state) {
-//             if (state is PendingBillsError) {
-//               ScaffoldMessenger.of(context).showSnackBar(
-//                 SnackBar(content: Text('Error: ${state.message}')),
-//               );
-//             } else if (state is AdvancePaymentCompleted) {
-//               ScaffoldMessenger.of(context).showSnackBar(
-//                 const SnackBar(
-//                     content: Text('Advance payment completed successfully!')),
-//               );
-//               // Refresh the list
-//               sl<PendingBillsBloc>().add(LoadPendingBillsEvent());
-//             }
-//           },
-//           builder: (context, state) {
-//             if (state is PendingBillsLoading) {
-//               return const Center(
-//                 child: CircularProgressIndicator(),
-//               );
-//             } else if (state is PendingBillsLoaded) {
-//               if (state.bills.isEmpty) {
-//                 return Center(
-//                   child: Column(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     children: [
-//                       Icon(
-//                         Icons.check_circle_outline,
-//                         size: 64.sp,
-//                         color: ColorManager.grey2,
-//                       ),
-//                       SizedBox(height: 2.h),
-//                       Text(
-//                         'No Pending Bills',
-//                         style: TextStyle(
-//                           fontSize: 18.sp,
-//                           fontWeight: FontWeight.bold,
-//                           color: ColorManager.grey2,
-//                         ),
-//                       ),
-//                       SizedBox(height: 1.h),
-//                       Text(
-//                         'All advance payments have been completed',
-//                         style: TextStyle(
-//                           fontSize: 14.sp,
-//                           color: ColorManager.grey2,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 );
-//               }
+        return Padding(
+          padding: EdgeInsets.all(4.w),
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 3.w,
+              crossAxisSpacing: 3.w,
+              childAspectRatio: 0.95,
+            ),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final e = items[index];
+              return _ExpenseCard(expense: e);
+            },
+          ),
+        );
+      }),
+    );
+  }
+}
 
-//               return ListView.builder(
-//                 padding: EdgeInsets.all(4.w),
-//                 itemCount: state.bills.length,
-//                 itemBuilder: (context, index) {
-//                   final bill = state.bills[index];
-//                   return _buildPendingBillCard(bill);
-//                 },
-//               );
-//             } else if (state is PendingBillsError) {
-//               return Center(
-//                 child: Column(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     Icon(
-//                       Icons.error_outline,
-//                       size: 64.sp,
-//                       color: ColorManager.error,
-//                     ),
-//                     SizedBox(height: 2.h),
-//                     Text(
-//                       'Error Loading Bills',
-//                       style: TextStyle(
-//                         fontSize: 18.sp,
-//                         fontWeight: FontWeight.bold,
-//                         color: ColorManager.error,
-//                       ),
-//                     ),
-//                     SizedBox(height: 1.h),
-//                     Text(
-//                       state.message,
-//                       style: TextStyle(
-//                         fontSize: 14.sp,
-//                         color: ColorManager.grey2,
-//                       ),
-//                       textAlign: TextAlign.center,
-//                     ),
-//                     SizedBox(height: 2.h),
-//                     ElevatedButton(
-//                       onPressed: () {
-//                         sl<PendingBillsBloc>().add(LoadPendingBillsEvent());
-//                       },
-//                       child: const Text('Retry'),
-//                     ),
-//                   ],
-//                 ),
-//               );
-//             }
+class _ExpenseCard extends StatelessWidget {
+  final HrExpenseModel expense;
+  const _ExpenseCard({required this.expense});
 
-//             return const SizedBox.shrink();
-//           },
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildPendingBillCard(PettyCashModel bill) {
-//     return Card(
-//       margin: EdgeInsets.only(bottom: 2.h),
-//       elevation: 2,
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(12.sp),
-//       ),
-//       child: Padding(
-//         padding: EdgeInsets.all(4.w),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Row(
-//               children: [
-//                 Container(
-//                   padding:
-//                       EdgeInsets.symmetric(horizontal: 12.sp, vertical: 6.sp),
-//                   decoration: BoxDecoration(
-//                     color: ColorManager.primary.withOpacity(0.1),
-//                     borderRadius: BorderRadius.circular(20.sp),
-//                   ),
-//                   child: Text(
-//                     'Advance Request',
-//                     style: TextStyle(
-//                       color: ColorManager.primary,
-//                       fontSize: 12.sp,
-//                       fontWeight: FontWeight.w600,
-//                     ),
-//                   ),
-//                 ),
-//                 const Spacer(),
-//                 Text(
-//                   'ID: ${bill.id}',
-//                   style: TextStyle(
-//                     color: ColorManager.grey2,
-//                     fontSize: 12.sp,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//             SizedBox(height: 2.h),
-
-//             // Purpose
-//             if (bill.advancePurpose != null) ...[
-//               _buildInfoRow('Purpose', bill.advancePurpose!),
-//               SizedBox(height: 1.h),
-//             ],
-
-//             // Expected Amount
-//             if (bill.expectedAmount != null) ...[
-//               _buildInfoRow('Expected Amount',
-//                   'OMR ${bill.expectedAmount!.toStringAsFixed(2)}'),
-//               SizedBox(height: 1.h),
-//             ],
-
-//             // Project/Customer Name
-//             if (bill.projectCustomerName != null) ...[
-//               _buildInfoRow('Project/Customer', bill.projectCustomerName!),
-//               SizedBox(height: 1.h),
-//             ],
-
-//             // Comments
-//             _buildInfoRow('Comments', bill.comments),
-//             SizedBox(height: 1.h),
-
-//             // Date
-//             _buildInfoRow('Date', bill.date.toLocal().toString().split(' ')[0]),
-//             SizedBox(height: 2.h),
-
-//             // Action Buttons
-//             Row(
-//               children: [
-//                 Expanded(
-//                   child: ElevatedButton.icon(
-//                     onPressed: () => _showCompleteAdvanceDialog(bill),
-//                     icon: const Icon(Icons.upload_file),
-//                     label: const Text('Complete with Bill'),
-//                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: ColorManager.primary,
-//                       foregroundColor: Colors.white,
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(8.sp),
-//                       ),
-//                       padding: EdgeInsets.symmetric(vertical: 12.sp),
-//                     ),
-//                   ),
-//                 ),
-//                 SizedBox(width: 2.w),
-//                 ElevatedButton.icon(
-//                   onPressed: () => _viewPDF(bill),
-//                   icon: const Icon(Icons.picture_as_pdf),
-//                   label: const Text('View PDF'),
-//                   style: ElevatedButton.styleFrom(
-//                     backgroundColor: Colors.orange,
-//                     foregroundColor: Colors.white,
-//                     shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(8.sp),
-//                     ),
-//                     padding: EdgeInsets.symmetric(vertical: 12.sp),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildInfoRow(String label, String value) {
-//     return Row(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         SizedBox(
-//           width: 30.w,
-//           child: Text(
-//             '$label:',
-//             style: TextStyle(
-//               color: ColorManager.grey2,
-//               fontSize: 14.sp,
-//               fontWeight: FontWeight.w500,
-//             ),
-//           ),
-//         ),
-//         Expanded(
-//           child: Text(
-//             value,
-//             style: TextStyle(
-//               color: ColorManager.black,
-//               fontSize: 14.sp,
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-
-//   void _showCompleteAdvanceDialog(PettyCashModel bill) {
-//     showDialog(
-//       context: context,
-//       builder: (context) => CompleteAdvanceDialog(bill: bill),
-//     );
-//   }
-
-//   void _viewPDF(PettyCashModel bill) {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => PDFViewerScreen(
-//           requestId: bill.id ?? '',
-//           requestTitle: 'Petty Cash Request - ${bill.id}',
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// class CompleteAdvanceDialog extends StatefulWidget {
-//   final PettyCashModel bill;
-
-//   const CompleteAdvanceDialog({super.key, required this.bill});
-
-//   @override
-//   State<CompleteAdvanceDialog> createState() => _CompleteAdvanceDialogState();
-// }
-
-// class _CompleteAdvanceDialogState extends State<CompleteAdvanceDialog> {
-//   final _formKey = GlobalKey<FormState>();
-//   final _vendorController = TextEditingController();
-//   final _amountController = TextEditingController();
-//   List<File> _selectedPhotos = [];
-
-//   @override
-//   void dispose() {
-//     _vendorController.dispose();
-//     _amountController.dispose();
-//     super.dispose();
-//   }
-
-//   Future<void> _pickPhotos() async {
-//     final picker = ImagePicker();
-//     final result = await picker.pickMultiImage(imageQuality: 50);
-//     if (result.isNotEmpty && mounted) {
-//       setState(() {
-//         _selectedPhotos.addAll(result.map((e) => File(e.path)));
-//       });
-//     }
-//   }
-
-//   void _removePhoto(int index) {
-//     setState(() {
-//       _selectedPhotos.removeAt(index);
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Dialog(
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(16.sp),
-//       ),
-//       child: Container(
-//         width: 90.w,
-//         padding: EdgeInsets.all(4.w),
-//         child: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Row(
-//               children: [
-//                 Icon(
-//                   Icons.upload_file,
-//                   color: ColorManager.primary,
-//                   size: 24.sp,
-//                 ),
-//                 SizedBox(width: 2.w),
-//                 Text(
-//                   'Complete Advance Payment',
-//                   style: TextStyle(
-//                     fontSize: 18.sp,
-//                     fontWeight: FontWeight.bold,
-//                     color: ColorManager.primary,
-//                   ),
-//                 ),
-//                 const Spacer(),
-//                 IconButton(
-//                   onPressed: () => Navigator.pop(context),
-//                   icon: const Icon(Icons.close),
-//                 ),
-//               ],
-//             ),
-//             SizedBox(height: 2.h),
-//             Form(
-//               key: _formKey,
-//               child: Column(
-//                 children: [
-//                   // Vendor Name
-//                   TextFormField(
-//                     controller: _vendorController,
-//                     validator: (v) => (v == null || v.isEmpty)
-//                         ? 'Vendor name is required'
-//                         : null,
-//                     decoration: InputDecoration(
-//                       labelText: 'Vendor Name *',
-//                       border: OutlineInputBorder(
-//                         borderRadius: BorderRadius.circular(8.sp),
-//                       ),
-//                     ),
-//                   ),
-//                   SizedBox(height: 2.h),
-
-//                   // Actual Amount
-//                   TextFormField(
-//                     controller: _amountController,
-//                     keyboardType: TextInputType.number,
-//                     validator: (v) => (v == null || v.isEmpty)
-//                         ? 'Actual amount is required'
-//                         : null,
-//                     decoration: InputDecoration(
-//                       labelText: 'Actual Amount Spent *',
-//                       border: OutlineInputBorder(
-//                         borderRadius: BorderRadius.circular(8.sp),
-//                       ),
-//                     ),
-//                   ),
-//                   SizedBox(height: 2.h),
-
-//                   // Bill Photos
-//                   Text(
-//                     'Bill Photos *',
-//                     style: TextStyle(
-//                       fontSize: 16.sp,
-//                       fontWeight: FontWeight.w600,
-//                     ),
-//                   ),
-//                   SizedBox(height: 1.h),
-
-//                   Row(
-//                     children: [
-//                       ElevatedButton.icon(
-//                         onPressed: _pickPhotos,
-//                         icon: const Icon(Icons.add_a_photo),
-//                         label: const Text('Add Photos'),
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: ColorManager.primary,
-//                           foregroundColor: Colors.white,
-//                         ),
-//                       ),
-//                       SizedBox(width: 2.w),
-//                       Text(
-//                         '${_selectedPhotos.length} photos selected',
-//                         style: TextStyle(
-//                           color: ColorManager.grey2,
-//                           fontSize: 14.sp,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-
-//                   if (_selectedPhotos.isNotEmpty) ...[
-//                     SizedBox(height: 2.h),
-//                     SizedBox(
-//                       height: 20.h,
-//                       child: ListView.builder(
-//                         scrollDirection: Axis.horizontal,
-//                         itemCount: _selectedPhotos.length,
-//                         itemBuilder: (context, index) {
-//                           return Container(
-//                             margin: EdgeInsets.only(right: 2.w),
-//                             child: Stack(
-//                               children: [
-//                                 Image.file(
-//                                   _selectedPhotos[index],
-//                                   height: 20.h,
-//                                   width: 20.h,
-//                                   fit: BoxFit.cover,
-//                                 ),
-//                                 Positioned(
-//                                   top: 4,
-//                                   right: 4,
-//                                   child: GestureDetector(
-//                                     onTap: () => _removePhoto(index),
-//                                     child: Container(
-//                                       padding: EdgeInsets.all(4.sp),
-//                                       decoration: const BoxDecoration(
-//                                         color: Colors.red,
-//                                         shape: BoxShape.circle,
-//                                       ),
-//                                       child: Icon(
-//                                         Icons.close,
-//                                         color: Colors.white,
-//                                         size: 16.sp,
-//                                       ),
-//                                     ),
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                           );
-//                         },
-//                       ),
-//                     ),
-//                   ],
-//                 ],
-//               ),
-//             ),
-//             SizedBox(height: 3.h),
-//             Row(
-//               children: [
-//                 Expanded(
-//                   child: OutlinedButton(
-//                     onPressed: () => Navigator.pop(context),
-//                     child: const Text('Cancel'),
-//                   ),
-//                 ),
-//                 SizedBox(width: 2.w),
-//                 Expanded(
-//                   child: ElevatedButton(
-//                     onPressed: () {
-//                       if (_formKey.currentState!.validate()) {
-//                         if (_selectedPhotos.isEmpty) {
-//                           ScaffoldMessenger.of(context).showSnackBar(
-//                             const SnackBar(
-//                               content:
-//                                   Text('Please add at least one bill photo'),
-//                             ),
-//                           );
-//                           return;
-//                         }
-
-//                         final actualAmount =
-//                             double.tryParse(_amountController.text) ?? 0;
-
-//                         sl<PendingBillsBloc>().add(
-//                           CompleteAdvancePaymentEvent(
-//                             advanceId: widget.bill.id!,
-//                             vendorName: _vendorController.text,
-//                             actualAmount: actualAmount,
-//                             billPhotos: _selectedPhotos,
-//                           ),
-//                         );
-
-//                         Navigator.pop(context);
-//                       }
-//                     },
-//                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: ColorManager.primary,
-//                       foregroundColor: Colors.white,
-//                     ),
-//                     child: const Text('Complete'),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: ColorManager.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    (expense.state ?? 'draft').toUpperCase(),
+                    style: TextStyle(
+                      color: ColorManager.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text('#${expense.id ?? ''}',
+                    style: const TextStyle(color: Colors.grey)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              expense.name ?? 'No description',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const Spacer(),
+            Row(
+              children: [
+                const Icon(Icons.person, size: 18, color: Colors.grey),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    expense.employeeId != null
+                        ? 'Emp: ${expense.employeeId}'
+                        : 'No employee',
+                    style: const TextStyle(color: Colors.grey),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  expense.date != null
+                      ? expense.date!.toLocal().toString().split('T').first
+                      : '-',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                const Spacer(),
+                Text(
+                  expense.amount != null
+                      ? '${expense.amount!.toStringAsFixed(2)}'
+                      : '0.00',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

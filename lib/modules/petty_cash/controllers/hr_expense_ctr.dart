@@ -26,6 +26,8 @@ class HrExpenseController extends GetxController {
 
   // Add employees list
   final RxList<EmployeeModel> employees = <EmployeeModel>[].obs;
+  // Expenses list for pending bills screen
+  final RxList<HrExpenseModel> expenses = <HrExpenseModel>[].obs;
 
   final RxString error = ''.obs;
   // Add filtered taxes list
@@ -70,6 +72,52 @@ class HrExpenseController extends GetxController {
       error.value = e.toString();
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Fetch hr.expense list (for now: all expenses)
+  Future<void> fetchExpenses() async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.expense',
+            'method': 'search_read',
+            'args': [],
+            'kwargs': {
+              'fields': [
+                'id',
+                'name',
+                'date',
+                'employee_id',
+                'total_amount',
+                'state'
+              ],
+              // Domain empty: show all as richiesto
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] != null) {
+          final List list = result['result'] as List;
+          expenses.value = list
+              .map((e) => HrExpenseModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      } else {
+        throw Exception('Failed to fetch expenses: ${response.statusCode}');
+      }
+    } catch (e) {
+      error.value = 'Error fetching expenses: $e';
+      rethrow;
     }
   }
 
