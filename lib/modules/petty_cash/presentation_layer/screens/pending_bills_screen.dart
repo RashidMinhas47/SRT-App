@@ -37,7 +37,7 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Pending Petty Cash Bills',
+          'My Petty Cash Bills',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,

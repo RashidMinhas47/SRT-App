@@ -75,9 +75,38 @@ class HrExpenseController extends GetxController {
     }
   }
 
-  // Fetch hr.expense list (for now: all expenses)
+  // Fetch hr.expense list filtered by current user ID and category = "Petty Cash Bill"
   Future<void> fetchExpenses() async {
     try {
+      // Get current user ID
+      final currentUserId = ConstanceManager.userId;
+      if (currentUserId == null) {
+        print("No current user ID found");
+        expenses.value = [];
+        return;
+      }
+
+      // First, get the category ID for "Petty Cash Bill"
+      int? pettyCashCategoryId;
+      final pettyCashCategory = categories.firstWhereOrNull(
+          (cat) => cat['name']?.toString().toLowerCase() == 'petty cash bill');
+      if (pettyCashCategory != null) {
+        pettyCashCategoryId = pettyCashCategory['id'] as int?;
+      }
+
+      // Build domain filters
+      List<List<dynamic>> domain = [
+        ['employee_id', '=', currentUserId], // Filter by current user ID
+      ];
+
+      // Add category filter if found
+      if (pettyCashCategoryId != null) {
+        domain.add(['product_id', '=', pettyCashCategoryId]);
+      }
+
+      print(
+          "Filtering expenses by: Employee ID = $currentUserId, Category ID = $pettyCashCategoryId (Petty Cash Bill)");
+
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
         headers: {
@@ -88,7 +117,7 @@ class HrExpenseController extends GetxController {
           'params': {
             'model': 'hr.expense',
             'method': 'search_read',
-            'args': [],
+            'args': [domain], // Apply domain filters
             'kwargs': {
               'fields': [
                 'id',
@@ -101,7 +130,6 @@ class HrExpenseController extends GetxController {
                 'product_id',
                 'tax_ids'
               ],
-              // Domain empty: show all as richiesto
             }
           }
         }),
