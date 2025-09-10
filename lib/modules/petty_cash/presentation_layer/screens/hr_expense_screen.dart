@@ -742,55 +742,62 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Select Taxes'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Obx(() {
-              final taxes = _controller.filteredTaxes;
-              if (taxes.isEmpty) {
-                return const Text('No taxes available');
-              }
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: taxes.length,
-                itemBuilder: (context, index) {
-                  final tax = taxes[index];
-                  final checked = tempSelected.contains(tax.id);
-                  return CheckboxListTile(
-                    value: checked,
-                    title: Text(tax.name),
-                    onChanged: (bool? val) {
-                      setState(() {
-                        if (val == true) {
-                          tempSelected.add(tax.id);
-                        } else {
-                          tempSelected.remove(tax.id);
-                        }
-                      });
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Select Taxes'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Obx(() {
+                  final taxes = _controller.filteredTaxes;
+                  if (taxes.isEmpty) {
+                    return const Text('No taxes available');
+                  }
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: taxes.length,
+                    itemBuilder: (context, index) {
+                      final tax = taxes[index];
+                      final checked = tempSelected.contains(tax.id);
+                      return CheckboxListTile(
+                        controlAffinity: ListTileControlAffinity.leading,
+                        value: checked,
+                        title: Text(tax.name),
+                        onChanged: (bool? val) {
+                          setStateDialog(() {
+                            if (val == true) {
+                              if (!tempSelected.contains(tax.id)) {
+                                tempSelected.add(tax.id);
+                              }
+                            } else {
+                              tempSelected.remove(tax.id);
+                            }
+                          });
+                        },
+                      );
                     },
                   );
-                },
-              );
-            }),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _selectedTaxIds
-                    ..clear()
-                    ..addAll(tempSelected.toSet());
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Apply'),
-            ),
-          ],
+                }),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedTaxIds
+                        ..clear()
+                        ..addAll(tempSelected.toSet());
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Apply'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
