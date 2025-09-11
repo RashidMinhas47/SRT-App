@@ -8,7 +8,6 @@ import 'package:bayanat/modules/job_card/controllers/job_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:get/route_manager.dart';
 import 'package:sizer/sizer.dart';
 import 'core/services/dep_injection.dart';
 import 'core/utils/theme_manager.dart';
@@ -61,13 +60,6 @@ Future<void> main() async {
   Get.put(ExpenseController());
 
   runApp(const MyApp());
-
-  // runApp(
-  //   DevicePreview(
-  //     enabled: !kReleaseMode, // Enable in debug only
-  //     builder: (context) => const MyApp(),
-  //   ),
-  // );
 }
 
 class MyApp extends StatelessWidget {
