@@ -75,17 +75,9 @@ class HrExpenseController extends GetxController {
     }
   }
 
-  // Fetch hr.expense list filtered by current user ID and category = "Petty Cash Bill"
+  // Fetch hr.expense list (temporarily show all) filtered by category = "Petty Cash Bill"
   Future<void> fetchExpenses() async {
     try {
-      // Get current user ID
-      final currentUserId = ConstanceManager.userId;
-      if (currentUserId == null) {
-        print("No current user ID found");
-        expenses.value = [];
-        return;
-      }
-
       // First, get the category ID for "Petty Cash Bill"
       int? pettyCashCategoryId;
       final pettyCashCategory = categories.firstWhereOrNull(
@@ -95,9 +87,7 @@ class HrExpenseController extends GetxController {
       }
 
       // Build domain filters
-      List<List<dynamic>> domain = [
-        ['employee_id', '=', currentUserId], // Filter by current user ID
-      ];
+      List<List<dynamic>> domain = [];
 
       // Add category filter if found
       if (pettyCashCategoryId != null) {
@@ -105,7 +95,7 @@ class HrExpenseController extends GetxController {
       }
 
       print(
-          "Filtering expenses by: Employee ID = $currentUserId, Category ID = $pettyCashCategoryId (Petty Cash Bill)");
+          "Filtering expenses by: Category ID = $pettyCashCategoryId (Petty Cash Bill)");
 
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
@@ -199,6 +189,7 @@ class HrExpenseController extends GetxController {
         'reference': expense.reference,
         'total_amount_company': expense.amount, // <-- Add this line
         'total_amount': expense.amount,
+        if (expense.billImage != null) 'x_bill_image': expense.billImage,
       };
 
       // Validate mandatory fields: only product (category) and employee

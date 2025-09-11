@@ -17,6 +17,8 @@ class HrExpenseModel extends Equatable {
   final String? paymentMode; // 'company' or 'employee'
   final String? reference; // Bill Reference (char)
   final int? accountId; // Account (many2one)
+  // Bill image (binary field x_bill_image on hr.expense), base64 string
+  final String? billImage;
 
   // Additional useful fields
   final int? id;
@@ -43,6 +45,7 @@ class HrExpenseModel extends Equatable {
     this.state = STATE_DRAFT, // Default to draft
     this.companyId,
     this.companyName,
+    this.billImage,
   });
 
   factory HrExpenseModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +83,8 @@ class HrExpenseModel extends Equatable {
               ? json['company_id'][1] as String?
               : null)
           : null,
+      // custom binary image field
+      billImage: json['x_bill_image'] as String?,
     );
   }
 
@@ -104,6 +109,7 @@ class HrExpenseModel extends Equatable {
       'total_amount': amount,
       'company_id': companyId,
       'state': state,
+      if (billImage != null) 'x_bill_image': billImage,
     };
   }
 
@@ -124,6 +130,7 @@ class HrExpenseModel extends Equatable {
         state,
         companyId,
         companyName,
+        billImage,
       ];
 
   HrExpenseModel copyWith({
@@ -142,6 +149,7 @@ class HrExpenseModel extends Equatable {
     String? state,
     int? companyId,
     String? companyName,
+    String? billImage,
   }) {
     return HrExpenseModel(
       name: name ?? this.name,
@@ -159,6 +167,7 @@ class HrExpenseModel extends Equatable {
       state: state ?? this.state,
       companyId: companyId ?? this.companyId,
       companyName: companyName ?? this.companyName,
+      billImage: billImage ?? this.billImage,
     );
   }
 
