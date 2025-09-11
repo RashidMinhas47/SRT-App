@@ -63,8 +63,6 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        ">>>>>>>>>>>>>>>>>>>>>>>>>${widget.expense.billImage}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -139,56 +137,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
           }
           flushBuffer();
 
-          // Bill image (if available)
-          if (widget.expense.billImage != null &&
-              widget.expense.billImage!.trim().isNotEmpty) {
-            rows.add(
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8, top: 4),
-                child: Text(
-                  'Bill Photo',
-                  style: TextStyle(
-                    color: Colors.grey[800],
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            );
-
-            final String raw = widget.expense.billImage!.trim();
-            final String data = raw.contains(',') ? raw.split(',').last : raw;
-
-            rows.add(
-              Card(
-                elevation: 1,
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Dialog(
-                        insetPadding: const EdgeInsets.all(16),
-                        child: InteractiveViewer(
-                          child: Image.memory(
-                            base64Decode(data),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: AspectRatio(
-                    aspectRatio: 4 / 3,
-                    child: Image.memory(
-                      base64Decode(data),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
+          // Bill image section (improved UX)
+          rows.addAll(_buildBillPhotoSection(context));
 
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -211,5 +161,140 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildBillPhotoSection(BuildContext context) {
+    final List<Widget> section = [];
+    section.add(
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8, top: 4),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: ColorManager.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.receipt_long,
+                  size: 18, color: ColorManager.primary),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Bill Photo',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final String? base64Raw = widget.expense.billImage?.trim();
+    if (base64Raw == null || base64Raw.isEmpty) {
+      section.add(
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: const [
+              Icon(Icons.image_not_supported, color: Colors.grey),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'No bill photo attached',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return section;
+    }
+
+    final String data =
+        base64Raw.contains(',') ? base64Raw.split(',').last : base64Raw;
+
+    section.add(
+      Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                insetPadding: const EdgeInsets.all(12),
+                backgroundColor: Colors.black,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: InteractiveViewer(
+                        child: Image.memory(
+                          base64Decode(data),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          },
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.memory(
+                  base64Decode(data),
+                  fit: BoxFit.cover,
+                ),
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.zoom_in, color: Colors.white, size: 16),
+                        SizedBox(width: 6),
+                        Text('Tap to view',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return section;
   }
 }
