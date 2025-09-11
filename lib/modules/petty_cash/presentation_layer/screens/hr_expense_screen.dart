@@ -2,6 +2,8 @@ import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
 import 'package:bayanat/modules/petty_cash/presentation_layer/screens/pending_bills_screen.dart';
 
@@ -27,6 +29,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   final List<int> _selectedTaxIds = <int>[];
   DateTime _selectedDate = DateTime.now();
   bool _hasValidationError = false;
+  String? _billImageBase64;
+  XFile? _billPhotoFile;
 
   final _controller = Get.put(HrExpenseController());
 
@@ -357,6 +361,82 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                       ],
                     );
                   },
+                ),
+                const SizedBox(height: 20),
+
+                // Bill Photo (optional)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bill Photo',
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _pickBillPhoto,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ColorManager.primary,
+                          ),
+                          icon: const Icon(Icons.photo_camera,
+                              color: Colors.white),
+                          label: const Text(
+                            'Add Photo',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        if (_billPhotoFile != null)
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    border:
+                                        Border.all(color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: _billImageBase64 == null
+                                      ? const SizedBox.shrink()
+                                      : Image.memory(
+                                          base64Decode(_billImageBase64!),
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _billPhotoFile!.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Remove',
+                                  onPressed: () {
+                                    setState(() {
+                                      _billImageBase64 = null;
+                                      _billPhotoFile = null;
+                                    });
+                                  },
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.redAccent),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
 
@@ -748,6 +828,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         empId: _controller.selectedPaymentMode.value == 'employee'
             ? _controller.selectedEmployeeId.value
             : null,
+        billImage: _billImageBase64,
       );
 
       final success = await _controller.submitExpense(expense);
@@ -842,11 +923,32 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       _selectedTaxIds.clear();
       _selectedDate = DateTime.now();
       _hasValidationError = false;
+      _billImageBase64 = null;
+      _billPhotoFile = null;
 
       // Reset controller values
       _controller.selectedEmployeeId.value = 0;
       _controller.selectedPaymentMode.value = '';
     });
+  }
+
+  Future<void> _pickBillPhoto() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? file = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 75,
+        maxWidth: 1600,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      setState(() {
+        _billImageBase64 = base64Encode(bytes);
+        _billPhotoFile = file;
+      });
+    } catch (_) {
+      // ignore
+    }
   }
 
   @override
