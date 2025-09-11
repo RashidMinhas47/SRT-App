@@ -3,6 +3,7 @@ import 'package:bayanat/core/utils/color_manager.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:get/get.dart';
 import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
+import 'dart:convert';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final HrExpenseModel expense;
@@ -63,7 +64,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     print(
-        ">>>>>>>>>>>>>>>>>>>>>>>>>${widget.expense.taxIds}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        ">>>>>>>>>>>>>>>>>>>>>>>>>${widget.expense.billImage}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -137,6 +138,57 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             }
           }
           flushBuffer();
+
+          // Bill image (if available)
+          if (widget.expense.billImage != null &&
+              widget.expense.billImage!.trim().isNotEmpty) {
+            rows.add(
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8, top: 4),
+                child: Text(
+                  'Bill Photo',
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            );
+
+            final String raw = widget.expense.billImage!.trim();
+            final String data = raw.contains(',') ? raw.split(',').last : raw;
+
+            rows.add(
+              Card(
+                elevation: 1,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(16),
+                        child: InteractiveViewer(
+                          child: Image.memory(
+                            base64Decode(data),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: AspectRatio(
+                    aspectRatio: 4 / 3,
+                    child: Image.memory(
+                      base64Decode(data),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
 
           return ListView(
             padding: const EdgeInsets.all(16),

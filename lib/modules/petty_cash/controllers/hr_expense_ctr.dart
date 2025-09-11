@@ -118,8 +118,10 @@ class HrExpenseController extends GetxController {
                 'state',
                 'payment_mode',
                 'product_id',
-                'tax_ids'
+                'tax_ids',
+                'x_bill_image'
               ],
+              'context': {'bin_size': false}
             }
           }
         }),

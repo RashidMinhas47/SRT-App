@@ -415,7 +415,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
 
         while (true) {
           batchCount++;
-          print("📦 Fetching batch $batchCount with offset: $offset");
+          // print("📦 Fetching batch $batchCount with offset: $offset");
 
           final result = await GetJobCardsUseCase(
             sl(),
@@ -424,12 +424,19 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           if (result.isLeft()) {
             print(
                 '❌ Error in batch $batchCount: ${result.fold((l) => l.toString(), (r) => 'Unknown error')}');
-            emit(const GetJobCardErrorState());
+            // If we already have some data, deliver it instead of failing the whole flow
+            if (jobCards.isNotEmpty) {
+              print(
+                  '⚠️ Encountered error after partial fetch; delivering ${jobCards.length} cards');
+              emit(GetJobCardSuccessfullyState(jobCards));
+            } else {
+              emit(const GetJobCardErrorState());
+            }
             break;
           } else {
             final newJobCards = result.getOrElse(() => []);
-            print(
-                '✅ Batch $batchCount: ${newJobCards.length} job cards received');
+            // print(
+            //     '✅ Batch $batchCount: ${newJobCards.length} job cards received');
 
             if (newJobCards.isEmpty) {
               print('🏁 No more job cards, finishing fetch');
@@ -439,14 +446,14 @@ class MainBloc extends Bloc<MainEvent, MainState> {
             }
 
             // Debug: Print details of each job card in this batch
-            for (int i = 0; i < newJobCards.length; i++) {
-              final jobCard = newJobCards[i];
-              print(
-                  '📋 Job Card ${i + 1} in batch $batchCount: ID=${jobCard.id}, Number=${jobCard.jobCardNumber}, Customer=${jobCard.customerName}');
-            }
+            // for (int i = 0; i < newJobCards.length; i++) {
+            //   final jobCard = newJobCards[i];
+            //   print(
+            //       '📋 Job Card ${i + 1} in batch $batchCount: ID=${jobCard.id}, Number=${jobCard.jobCardNumber}, Customer=${jobCard.customerName}');
+            // }
 
             jobCards.addAll(newJobCards);
-            print('📈 Total job cards so far: ${jobCards.length}');
+            // print('📈 Total job cards so far: ${jobCards.length}');
             emit(JobCardsBatchLoadingState(List.from(jobCards)));
             offset += batchSize;
           }

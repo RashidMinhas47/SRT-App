@@ -83,8 +83,10 @@ class HrExpenseModel extends Equatable {
               ? json['company_id'][1] as String?
               : null)
           : null,
-      // custom binary image field
-      billImage: json['x_bill_image'] as String?,
+      // custom binary image field (Odoo may return false for empty binary)
+      billImage: (json['x_bill_image'] is bool)
+          ? null
+          : json['x_bill_image'] as String?,
     );
   }
 
