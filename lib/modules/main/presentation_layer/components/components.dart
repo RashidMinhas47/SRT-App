@@ -1081,6 +1081,48 @@ bool isBroadcastAction(JobCard jobCard) {
 //           jobCard.userName.isEmpty);
 // }
 
+Widget _getStatusIcon(JobCard jobCard) {
+  if (jobCard.startWork && !jobCard.revisit) {
+    return Icon(
+      Icons.check_circle_rounded,
+      size: 16.sp,
+      color: Colors.green,
+    );
+  } else if (jobCard.revisit) {
+    return Icon(
+      Icons.refresh_rounded,
+      size: 16.sp,
+      color: ColorManager.secondary,
+    );
+  } else if (jobCard.action == "broadcast" &&
+      jobCard.reportType == "FAULT REPORT") {
+    return Icon(
+      Icons.error_rounded,
+      size: 16.sp,
+      color: Colors.red,
+    );
+  } else if (jobCard.action == "broadcast" &&
+      jobCard.reportType == "COMPLETION REPORT") {
+    return Icon(
+      Icons.task_alt_rounded,
+      size: 16.sp,
+      color: Colors.teal,
+    );
+  } else if (jobCard.userName == ConstanceManager.name) {
+    return Icon(
+      Icons.person_rounded,
+      size: 16.sp,
+      color: Colors.orange,
+    );
+  } else {
+    return Icon(
+      Icons.circle_rounded,
+      size: 16.sp,
+      color: ColorManager.grey2,
+    );
+  }
+}
+
 Widget jobCardWidget({
   required JobCard jobCard,
   required MainBloc bloc,
@@ -1138,44 +1180,143 @@ Widget jobCardWidget({
                   },
                   child: AlertDialog(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25.sp),
+                      borderRadius: BorderRadius.circular(20.sp),
                     ),
-                    title: pdfReady
+                    backgroundColor: ColorManager.white,
+                    title: Text(
+                      "Job Card Options",
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w600,
+                        color: ColorManager.primary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    content: pdfReady
                         ? Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  //TODO Defined OpenFilePlus
-
-                                  OpenFileSafePlus.open(dialogPdf!);
-                                },
-                                child: Text(
-                                  "Open PDF",
-                                  style:
-                                      TextStyle(color: ColorManager.secondary),
+                              // Open PDF Button
+                              Container(
+                                width: double.infinity,
+                                margin: EdgeInsets.only(bottom: 12.sp),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      ColorManager.secondary,
+                                      ColorManager.primary,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12.sp),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: ColorManager.secondary
+                                          .withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    OpenFileSafePlus.open(dialogPdf!);
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 12.sp),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.picture_as_pdf_rounded,
+                                        color: ColorManager.white,
+                                        size: 18.sp,
+                                      ),
+                                      SizedBox(width: 2.w),
+                                      Text(
+                                        "Open PDF",
+                                        style: TextStyle(
+                                          color: ColorManager.white,
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  bloc.add(
-                                    NavigationToFaultScreenEvent(
-                                      jobCard: jobCard,
-                                      context: context,
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  "Report",
-                                  style:
-                                      TextStyle(color: ColorManager.secondary),
+
+                              // Report Button
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: ColorManager.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12.sp),
+                                  border: Border.all(
+                                    color:
+                                        ColorManager.primary.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    bloc.add(
+                                      NavigationToFaultScreenEvent(
+                                        jobCard: jobCard,
+                                        context: context,
+                                      ),
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 12.sp),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.assignment_rounded,
+                                        color: ColorManager.primary,
+                                        size: 18.sp,
+                                      ),
+                                      SizedBox(width: 2.w),
+                                      Text(
+                                        "Create Report",
+                                        style: TextStyle(
+                                          color: ColorManager.primary,
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           )
-                        : const Center(child: CircularProgressIndicator()),
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(height: 2.h),
+                              CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorManager.primary),
+                                strokeWidth: 3,
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                "Loading PDF...",
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: ColorManager.grey2,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 );
               },
@@ -1196,7 +1337,7 @@ Widget jobCardWidget({
         bloc.add(
           NavigationToFaultScreenEvent(jobCard: jobCard, context: context),
         );
-      } 
+      }
       // Default case: For ALL other job cards (including new ones), navigate to fault screen
       else {
         bloc.beforePhotosFile.clear();
@@ -1210,117 +1351,212 @@ Widget jobCardWidget({
         );
       }
     },
-    child: SizedBox(
-      width: 40.w,
+    child: Container(
+      width: 42.w,
+      height: 20.h,
       child: Stack(
-        alignment: Alignment.topRight,
         children: [
+          // Main Card
           Card(
-            elevation: 8.sp,
-            shape: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.sp),
-              borderSide: BorderSide.none,
+            elevation: 12,
+            shadowColor: ColorManager.primary.withOpacity(0.3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.sp),
             ),
             child: Container(
               width: double.infinity,
+              height: double.infinity,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.sp),
-                color: ColorManager.primary,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    ColorManager.primary,
+                    ColorManager.primary.withOpacity(0.8),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16.sp),
+                border: Border.all(
+                  color: ColorManager.primary.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
-              child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(12.sp),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 1.h),
+                    // Job Card Number Section
                     Container(
-                      padding: EdgeInsetsDirectional.symmetric(
-                        horizontal: 5.w,
-                        vertical: 2.h,
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.sp,
+                        vertical: 8.sp,
                       ),
                       decoration: BoxDecoration(
-                        border: Border.all(),
-                        borderRadius: BorderRadius.circular(10.sp),
                         color: ColorManager.white,
+                        borderRadius: BorderRadius.circular(12.sp),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        jobCard.jobCardNumber,
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: ColorManager.black,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 1.h),
-                    Padding(
-                      padding: EdgeInsetsDirectional.symmetric(horizontal: 8.w),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            jobCard.customerName[1],
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                              color: ColorManager.white,
-                            ),
+                          Icon(
+                            Icons.work_rounded,
+                            size: 16.sp,
+                            color: ColorManager.primary,
                           ),
-                          if (jobCard.flatNumber != "") SizedBox(height: 1.h),
-                          Text(
-                            jobCard.flatNumber,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 9.sp,
-                              fontWeight: FontWeight.w600,
-                              color: ColorManager.white,
-                            ),
-                          ),
-                          if (jobCard.flatNumber != "") SizedBox(height: 1.h),
-                          Text(
-                            jobCard.location,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 9.sp,
-                              fontWeight: FontWeight.w600,
-                              color: ColorManager.white,
+                          SizedBox(width: 1.w),
+                          Flexible(
+                            child: Text(
+                              jobCard.jobCardNumber,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                                color: ColorManager.primary,
+                              ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 1.h),
+
+                    SizedBox(height: 1.5.h),
+
+                    // Customer Information Section
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Customer Name
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.person_rounded,
+                                size: 14.sp,
+                                color: ColorManager.white.withOpacity(0.9),
+                              ),
+                              SizedBox(width: 1.w),
+                              Expanded(
+                                child: Text(
+                                  jobCard.customerName[1],
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: ColorManager.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 0.8.h),
+
+                          // Flat Number
+                          if (jobCard.flatNumber.isNotEmpty) ...[
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.home_rounded,
+                                  size: 12.sp,
+                                  color: ColorManager.white.withOpacity(0.8),
+                                ),
+                                SizedBox(width: 1.w),
+                                Expanded(
+                                  child: Text(
+                                    jobCard.flatNumber,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color:
+                                          ColorManager.white.withOpacity(0.9),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 0.8.h),
+                          ],
+
+                          // Location
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_rounded,
+                                size: 12.sp,
+                                color: ColorManager.white.withOpacity(0.8),
+                              ),
+                              SizedBox(width: 1.w),
+                              Expanded(
+                                child: Text(
+                                  jobCard.location,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: ColorManager.white.withOpacity(0.9),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsetsDirectional.only(top: 5.sp, end: 5.sp),
-            child: Card(
-              elevation: 8.sp,
-              shape: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.sp),
-                borderSide: BorderSide.none,
+
+          // Status Indicator
+          Positioned(
+            top: 8.sp,
+            right: 8.sp,
+            child: Container(
+              padding: EdgeInsets.all(6.sp),
+              decoration: BoxDecoration(
+                color: ColorManager.white,
+                borderRadius: BorderRadius.circular(12.sp),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: CircleAvatar(
-                radius: 8.sp,
-                backgroundColor: jobCard.startWork && !jobCard.revisit
-                    ? Colors.green
-                    : jobCard.revisit
-                        ? ColorManager.secondary
-                        : jobCard.action == "broadcast" &&
-                                jobCard.reportType == "FAULT REPORT"
-                            ? Colors.red
-                            : jobCard.action == "broadcast" &&
-                                    jobCard.reportType == "COMPLETION REPORT"
-                                ? Colors.tealAccent
-                                : jobCard.userName == ConstanceManager.name
-                                    ? Colors.yellow
-                                    : ColorManager.white,
+              child: _getStatusIcon(jobCard),
+            ),
+          ),
+
+          // Action Indicator
+          Positioned(
+            bottom: 8.sp,
+            right: 8.sp,
+            child: Container(
+              padding: EdgeInsets.all(4.sp),
+              decoration: BoxDecoration(
+                color: ColorManager.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(8.sp),
+              ),
+              child: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 12.sp,
+                color: ColorManager.primary,
               ),
             ),
           ),
