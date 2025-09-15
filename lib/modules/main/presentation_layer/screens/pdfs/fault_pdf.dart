@@ -51,6 +51,10 @@ class FaultPdf {
       pdf.addPage(await _createPage2(
         faultFormModels: faultFormModels,
       ));
+      // Add signature page when there are many services to ensure signature is always visible
+      pdf.addPage(await _createSignaturePage(
+        faultFormModels: faultFormModels,
+      ));
     }
     for (var faultFormModel in faultFormModels) {
       if ((faultFormModel.beforePhotos != null &&
@@ -598,8 +602,6 @@ class FaultPdf {
   static Future<Page> _createPage2({
     required List<FaultFormModel> faultFormModels,
   }) async {
-    final Uint8List signture =
-        stringToByteList(faultFormModels.last.signaturePhoto);
     double height = PdfPageFormat.a4.height;
     double width = PdfPageFormat.a4.width;
     return pw.Page(
@@ -685,15 +687,119 @@ class FaultPdf {
                   Text("Comments:",
                       style: pw.TextStyle(fontSize: 8 / 1000 * height)),
                   SizedBox(width: 0.04 * width),
-                  Text(faultFormModels.last.comment!,
-                      style: pw.TextStyle(fontSize: 8 / 1000 * height))
+                  pw.Expanded(
+                      child: Text(faultFormModels.last.comment!,
+                          style: pw.TextStyle(fontSize: 8 / 1000 * height)))
                 ]),
-                SizedBox(height: 0.01 * height),
+                Expanded(
+                  child: SizedBox(),
+                ),
+                Column(children: [
+                  Container(
+                      height: 3 / 1000 * height,
+                      color: PdfColors.black,
+                      width: double.infinity),
+                  SizedBox(height: 0.01 * height),
+                  Text(
+                      "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
+                      style: TextStyle(
+                        fontSize: 8 / 800 * height,
+                        fontWeight: FontWeight.normal,
+                      )),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text("Sult.srtoman@gmail.com +968 94115306",
+                        style: TextStyle(
+                          fontSize: 8 / 800 * height,
+                          fontWeight: FontWeight.normal,
+                        )),
+                  )
+                ])
+              ]);
+        });
+  }
+
+  static Future<Page> _createSignaturePage({
+    required List<FaultFormModel> faultFormModels,
+  }) async {
+    final Uint8List signture =
+        stringToByteList(faultFormModels.last.signaturePhoto);
+    double height = PdfPageFormat.a4.height;
+    double width = PdfPageFormat.a4.width;
+    return pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.only(
+            top: 0.05 * height,
+            left: 0.05 * height,
+            right: 0.05 * height,
+            bottom: 0.05 * height),
+        orientation: pw.PageOrientation.portrait,
+        build: (pw.Context context) {
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 0.02 * height),
+                Text(
+                    "*Comments as follows : C =Completed, I/P = In Progress, F/U = To be followed up, U/O = Under Observation, A/P = Awaiting Approval",
+                    style: pw.TextStyle(fontSize: 7 / 1000 * height)),
+                SizedBox(height: 0.02 * height),
+                Container(
+                  padding: EdgeInsets.all(2 / 1000 * height),
+                  decoration: pw.BoxDecoration(
+                      border: pw.Border.all(
+                          color: PdfColors.black, width: 0.001 * width)),
+                  child: Row(children: [
+                    Text("Total Units:",
+                        style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                    SizedBox(width: 0.02 * width),
+                    Expanded(
+                        child: Text(faultFormModels.length.toString(),
+                            style: pw.TextStyle(fontSize: 8 / 1000 * height))),
+                    Text("Attd. Units:",
+                        style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                    SizedBox(width: 0.02 * width),
+                    Expanded(child: Text("")),
+                    Text("Comp. Units:",
+                        style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                    SizedBox(width: 0.02 * width),
+                    Expanded(child: Text("")),
+                  ]),
+                ),
+                Container(
+                  padding: EdgeInsets.all(2 / 1000 * height),
+                  decoration: pw.BoxDecoration(
+                      border: pw.Border.all(
+                          color: PdfColors.black, width: 0.001 * width)),
+                  child: Row(children: [
+                    Text("Pend. Units:",
+                        style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                    SizedBox(width: 0.02 * width),
+                    Expanded(child: Text("")),
+                    Text("MWS Involved:",
+                        style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                    SizedBox(width: 0.02 * width),
+                    Expanded(child: Text("")),
+                    Text("JC No :",
+                        style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                    SizedBox(width: 0.02 * width),
+                    Expanded(child: Text("")),
+                  ]),
+                ),
+                SizedBox(height: 0.02 * height),
                 Row(children: [
-                  Text("Customer Signture:",
+                  Text("Comments:",
                       style: pw.TextStyle(fontSize: 8 / 1000 * height)),
                   SizedBox(width: 0.04 * width),
-                  if (signture.isNotEmpty)
+                  pw.Expanded(
+                      child: Text(faultFormModels.last.comment!,
+                          style: pw.TextStyle(fontSize: 8 / 1000 * height))),
+                ]),
+                SizedBox(height: 0.02 * height),
+                if (signture.isNotEmpty)
+                  Row(children: [
+                    Text("Customer Signture:",
+                        style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                    SizedBox(width: 0.04 * width),
                     Container(
                         decoration: BoxDecoration(
                           border: Border.all(),
@@ -702,9 +808,9 @@ class FaultPdf {
                             padding: EdgeInsets.all(5 / 1000 * height),
                             child: pw.Image(pw.MemoryImage(signture),
                                 fit: pw.BoxFit.fill,
-                                height: 0.08 * height,
-                                width: 0.1 * width)))
-                ]),
+                                height: 0.12 * height,
+                                width: 0.15 * width)))
+                  ]),
                 Expanded(
                   child: SizedBox(),
                 ),
@@ -742,7 +848,8 @@ class FaultPdf {
     double width = PdfPageFormat.a4.width;
     if (faultFormModel.beforePhotosMemory != null &&
         faultFormModel.beforePhotosMemory!.isNotEmpty) {
-      beforePhotos.add(stringsListToByteList(faultFormModel.beforePhotosMemory!));
+      beforePhotos
+          .add(stringsListToByteList(faultFormModel.beforePhotosMemory!));
     }
     if (faultFormModel.afterPhotosMemory != null &&
         faultFormModel.afterPhotosMemory!.isNotEmpty) {
@@ -998,8 +1105,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
         ]);
-      }
-      else if (element.serviceTypes != null &&
+      } else if (element.serviceTypes != null &&
           element.serviceTypes!.isNotEmpty) {
         tableData.add([
           Container(
