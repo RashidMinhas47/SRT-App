@@ -955,7 +955,7 @@ Widget columnText({
         text,
         textAlign: TextAlign.center,
         style:
-            TextStyle(color: textColor ?? ColorManager.white, fontSize: 9.sp),
+            TextStyle(color: textColor ?? ColorManager.white, fontSize: 10.sp),
       ),
     );
 
