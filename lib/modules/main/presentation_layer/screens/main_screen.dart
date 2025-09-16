@@ -31,6 +31,7 @@ class JobCardScreen extends StatefulWidget {
 }
 
 class _JobCardScreenState extends State<JobCardScreen> {
+  bool _isRefreshing = false;
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
@@ -86,6 +87,50 @@ class _JobCardScreenState extends State<JobCardScreen> {
     );
   }
 
+  Future<void> _handleRefresh() async {
+    print("🔄 Pull-to-refresh triggered");
+
+    if (_isRefreshing) {
+      print("⚠️ Refresh already in progress, skipping");
+      return;
+    }
+
+    print("✅ Starting refresh process");
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      MainBloc bloc = sl();
+
+      print("📡 Dispatching refresh events to bloc");
+      // Add refresh events to bloc
+      bloc.add(GetJobCardEvent(context: context));
+      bloc.add(const GetProductsEvent());
+      bloc.add(GetAmcCardsEvent(context: context));
+
+      // Wait for the network requests to have time to complete
+      print("⏱️ Waiting for network requests...");
+      await Future.delayed(const Duration(milliseconds: 2000));
+
+      // Trigger setState to refresh the UI
+      if (mounted) {
+        print("🎨 Updating UI state");
+        setState(() {
+          _isRefreshing = false;
+        });
+        print("✅ Refresh completed successfully");
+      }
+    } catch (e) {
+      print("❌ Error during refresh: $e");
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
+
   Future<bool> requestStoragePermission(BuildContext context) async {
     if (Platform.isAndroid) {
       int sdkInt = int.tryParse(RegExp(r'\d+')
@@ -117,14 +162,12 @@ class _JobCardScreenState extends State<JobCardScreen> {
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
     int currentHour = now.hour;
     return RefreshIndicator(
-      onRefresh: () async {
-        setState(() {});
-        bloc.add(GetJobCardEvent(context: context));
-        bloc.add(const GetProductsEvent());
-        bloc.add(GetAmcCardsEvent(
-          context: context,
-        ));
-      },
+      onRefresh: _handleRefresh,
+      color: ColorManager.primary,
+      backgroundColor: ColorManager.white,
+      strokeWidth: 3.0,
+      displacement: 40.0,
+      triggerMode: RefreshIndicatorTriggerMode.onEdge,
       child: Scaffold(
         key: scaffoldKey,
         drawer: BlocConsumer<MainBloc, MainState>(
@@ -266,620 +309,698 @@ class _JobCardScreenState extends State<JobCardScreen> {
             );
           },
         ),
-        body: BlocBuilder<MainBloc, MainState>(
+        body: BlocConsumer<MainBloc, MainState>(
+          listener: (context, state) {
+            // Handle refresh completion states
+            if (state is GetJobCardSuccessfullyState ||
+                state is GetJobCardErrorState ||
+                state is GetAmcCardSuccessfullyState) {
+              if (_isRefreshing && mounted) {
+                setState(() {
+                  _isRefreshing = false;
+                });
+              }
+            }
+          },
           builder: (context, state) {
             List<JobCard> jobCardsUnCompleted =
                 jobCards(jobCards: bloc.jobCards);
 
             List<Widget> amcCardsWidgets = amcCardWidgets(
                 bloc: bloc, context: context, amcCards: bloc.amcCards);
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Enhanced Header Section
-                  Stack(
-                    alignment: Alignment(0.w, 0.15.h),
+            return CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
                     children: [
+                      // Enhanced Header Section
                       Stack(
-                        alignment: Alignment.topLeft,
+                        alignment: Alignment(0.w, 0.15.h),
                         children: [
                           Stack(
-                            alignment: Alignment.topCenter,
+                            alignment: Alignment.topLeft,
                             children: [
-                              Container(
-                                height: 32.h,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      ColorManager.primary.withOpacity(0.1),
-                                      ColorManager.white,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(50.sp),
-                                    bottomRight: Radius.circular(50.sp),
-                                  ),
-                                  border: Border.all(
-                                    color:
-                                        ColorManager.primary.withOpacity(0.3),
-                                    width: 1.5.w,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          ColorManager.primary.withOpacity(0.1),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.only(top: 6.h),
-                                child: Image.asset(
-                                  "assets/images/logo.png",
-                                  height: 16.h,
-                                  width: 42.w,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Builder(builder: (context) {
-                            return Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 5.w, vertical: 7.h),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: ColorManager.white,
-                                  borderRadius: BorderRadius.circular(12.sp),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          ColorManager.primary.withOpacity(0.1),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    scaffoldKey.currentState!.openDrawer();
-                                  },
-                                  icon: Icon(
-                                    Icons.menu_rounded,
-                                    size: 24.sp,
-                                    color: ColorManager.primary,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                      // Enhanced User Card
-                      Card(
-                        elevation: 8,
-                        shadowColor: ColorManager.primary.withOpacity(0.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24.sp),
-                        ),
-                        child: Container(
-                          width: 92.w,
-                          height: 14.h,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                ColorManager.white,
-                                ColorManager.primary.withOpacity(0.05),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(24.sp),
-                            border: Border.all(
-                              color: ColorManager.primary.withOpacity(0.1),
-                              width: 1,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16.sp),
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.sp),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: ColorManager.primary
-                                            .withOpacity(0.1),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: CircleAvatar(
-                                    backgroundColor: ColorManager.white,
-                                    radius: 32.sp,
-                                    child: ConstanceManager.image != null
-                                        ? ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(32.sp),
-                                            child: Image.memory(
-                                              stringToByteList(
-                                                  ConstanceManager.image!),
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                        : Icon(
-                                            Icons.person_rounded,
-                                            size: 32.sp,
-                                            color: ColorManager.primary,
-                                          ),
-                                  ),
-                                ),
-                                SizedBox(width: 3.w),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Good ${currentHour >= 0 && currentHour < 12 ? "Morning" : "Evening"}",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 18.sp,
-                                          color: ColorManager.primary,
-                                        ),
-                                      ),
-                                      SizedBox(height: 0.5.h),
-                                      Text(
-                                        ConstanceManager.name ?? "User",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 16.sp,
-                                          color: ColorManager.black,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      if (ConstanceManager.workPhone != null &&
-                                          ConstanceManager
-                                              .workPhone!.isNotEmpty)
-                                        Text(
-                                          ConstanceManager.workPhone!,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 14.sp,
-                                            color: ColorManager.grey2,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4.h),
-
-                  // Enhanced Loading State
-                  state is GetJobCardLoadingState
-                      ? Container(
-                          margin: EdgeInsets.symmetric(horizontal: 20.sp),
-                          padding: EdgeInsets.all(24.sp),
-                          decoration: BoxDecoration(
-                            color: ColorManager.white,
-                            borderRadius: BorderRadius.circular(16.sp),
-                            boxShadow: [
-                              BoxShadow(
-                                color: ColorManager.primary.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorManager.primary),
-                                strokeWidth: 3,
-                              ),
-                              SizedBox(height: 2.h),
-                              Text(
-                                'Loading job cards...',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: ColorManager.grey2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : bloc.jobCards.isNotEmpty
-                          ? Container(
-                              margin: EdgeInsets.symmetric(horizontal: 16.sp),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Stack(
+                                alignment: Alignment.topCenter,
                                 children: [
-                                  // Section Header
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.all(8.sp),
-                                        decoration: BoxDecoration(
+                                  Container(
+                                    height: 32.h,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          ColorManager.primary.withOpacity(0.1),
+                                          ColorManager.white,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.only(
+                                        bottomLeft: Radius.circular(50.sp),
+                                        bottomRight: Radius.circular(50.sp),
+                                      ),
+                                      border: Border.all(
+                                        color: ColorManager.primary
+                                            .withOpacity(0.3),
+                                        width: 1.5.w,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
                                           color: ColorManager.primary
                                               .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(8.sp),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 5),
                                         ),
-                                        child: Icon(
-                                          Icons.work_rounded,
-                                          color: ColorManager.primary,
-                                          size: 20.sp,
-                                        ),
-                                      ),
-                                      SizedBox(width: 2.w),
-                                      Text(
-                                        "Job Cards",
-                                        style: TextStyle(
-                                          fontSize: 22.sp,
-                                          fontWeight: FontWeight.w700,
-                                          color: ColorManager.primary,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      if (jobCardsUnCompleted.length > 2)
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 12.sp,
-                                            vertical: 6.sp,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: ColorManager.secondary
-                                                .withOpacity(0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(12.sp),
-                                          ),
-                                          child: Text(
-                                            "${jobCardsUnCompleted.length}",
-                                            style: TextStyle(
-                                              fontSize: 12.sp,
-                                              fontWeight: FontWeight.w600,
-                                              color: ColorManager.secondary,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 2.h),
-
-                                  // Job Cards Grid
-                                  Wrap(
-                                    spacing: 12.sp,
-                                    runSpacing: 12.sp,
-                                    children: jobCardsUnCompleted
-                                        .take(2)
-                                        .map((jobCard) {
-                                      return jobCardWidget(
-                                        context: context,
-                                        bloc: bloc,
-                                        jobCard: jobCard,
-                                      );
-                                    }).toList(),
-                                  ),
-
-                                  // See All Button
-                                  if (jobCardsUnCompleted.length > 2)
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 2.h),
-                                      child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                ColorManager.secondary,
-                                                ColorManager.primary,
-                                              ],
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(20.sp),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: ColorManager.secondary
-                                                    .withOpacity(0.3),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: TextButton(
-                                            onPressed: () {
-                                              context.push(AllJobCardScreen(
-                                                jobCards: jobCardsUnCompleted,
-                                              ));
-                                            },
-                                            style: TextButton.styleFrom(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 20.sp,
-                                                vertical: 10.sp,
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  "See All",
-                                                  style: TextStyle(
-                                                    fontSize: 14.sp,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: ColorManager.white,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 1.w),
-                                                Icon(
-                                                  Icons
-                                                      .arrow_forward_ios_rounded,
-                                                  color: ColorManager.white,
-                                                  size: 16.sp,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                      ],
                                     ),
-
-                                  // Divider for AMC Cards
-                                  if (bloc.amcCards.isNotEmpty) ...[
-                                    SizedBox(height: 3.h),
-                                    Container(
-                                      height: 1,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.transparent,
-                                            ColorManager.primary
-                                                .withOpacity(0.3),
-                                            Colors.transparent,
-                                          ],
-                                        ),
-                                      ),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        EdgeInsetsDirectional.only(top: 6.h),
+                                    child: Image.asset(
+                                      "assets/images/logo.png",
+                                      height: 16.h,
+                                      width: 42.w,
                                     ),
-                                    SizedBox(height: 2.h),
-                                  ],
+                                  ),
                                 ],
                               ),
-                            )
-                          : const SizedBox(),
-                  // Enhanced AMC Cards Section
-                  state is GetAmcCardLoadingState
-                      ? Container(
-                          margin: EdgeInsets.symmetric(horizontal: 20.sp),
-                          padding: EdgeInsets.all(24.sp),
-                          decoration: BoxDecoration(
-                            color: ColorManager.white,
-                            borderRadius: BorderRadius.circular(16.sp),
-                            boxShadow: [
-                              BoxShadow(
-                                color: ColorManager.primary.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorManager.primary),
-                                strokeWidth: 3,
-                              ),
-                              SizedBox(height: 2.h),
-                              Text(
-                                'Loading AMC cards...',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: ColorManager.grey2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : bloc.amcCards.isNotEmpty
-                          ? Container(
-                              margin: EdgeInsets.symmetric(horizontal: 16.sp),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // AMC Section Header
-                                  Row(
+                              Builder(builder: (context) {
+                                return Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 5.w, vertical: 7.h),
+                                  child: Row(
                                     children: [
                                       Container(
-                                        padding: EdgeInsets.all(8.sp),
                                         decoration: BoxDecoration(
-                                          color: ColorManager.secondary
-                                              .withOpacity(0.1),
+                                          color: ColorManager.white,
                                           borderRadius:
-                                              BorderRadius.circular(8.sp),
+                                              BorderRadius.circular(12.sp),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: ColorManager.primary
+                                                  .withOpacity(0.1),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
-                                        child: Icon(
-                                          Icons.assignment_rounded,
-                                          color: ColorManager.secondary,
-                                          size: 20.sp,
+                                        child: IconButton(
+                                          onPressed: () {
+                                            scaffoldKey.currentState!
+                                                .openDrawer();
+                                          },
+                                          icon: Icon(
+                                            Icons.menu_rounded,
+                                            size: 24.sp,
+                                            color: ColorManager.primary,
+                                          ),
                                         ),
                                       ),
                                       SizedBox(width: 2.w),
-                                      Text(
-                                        "AMC Cards",
-                                        style: TextStyle(
-                                          fontSize: 22.sp,
-                                          fontWeight: FontWeight.w700,
-                                          color: ColorManager.secondary,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      if (amcCardsWidgets.length > 2)
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 12.sp,
-                                            vertical: 6.sp,
-                                          ),
-                                          decoration: BoxDecoration(
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                          // Enhanced User Card
+                          Card(
+                            elevation: 8,
+                            shadowColor: ColorManager.primary.withOpacity(0.2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.sp),
+                            ),
+                            child: Container(
+                              width: 92.w,
+                              height: 14.h,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    ColorManager.white,
+                                    ColorManager.primary.withOpacity(0.05),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(24.sp),
+                                border: Border.all(
+                                  color: ColorManager.primary.withOpacity(0.1),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.all(16.sp),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(20.sp),
+                                        boxShadow: [
+                                          BoxShadow(
                                             color: ColorManager.primary
                                                 .withOpacity(0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(12.sp),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
                                           ),
-                                          child: Text(
-                                            "${amcCardsWidgets.length}",
+                                        ],
+                                      ),
+                                      child: CircleAvatar(
+                                        backgroundColor: ColorManager.white,
+                                        radius: 32.sp,
+                                        child: ConstanceManager.image != null
+                                            ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        32.sp),
+                                                child: Image.memory(
+                                                  stringToByteList(
+                                                      ConstanceManager.image!),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.person_rounded,
+                                                size: 32.sp,
+                                                color: ColorManager.primary,
+                                              ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 3.w),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Good ${currentHour >= 0 && currentHour < 12 ? "Morning" : "Evening"}",
                                             style: TextStyle(
-                                              fontSize: 12.sp,
                                               fontWeight: FontWeight.w600,
+                                              fontSize: 18.sp,
                                               color: ColorManager.primary,
                                             ),
                                           ),
-                                        ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 2.h),
-
-                                  // AMC Cards Grid
-                                  Wrap(
-                                    spacing: 12.sp,
-                                    runSpacing: 12.sp,
-                                    children: amcCardsWidgets.reversed
-                                        .toList()
-                                        .take(2)
-                                        .toList(),
-                                  ),
-
-                                  // See All Button for AMC
-                                  if (amcCardsWidgets.length > 2)
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 2.h),
-                                      child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                ColorManager.primary,
-                                                ColorManager.secondary,
-                                              ],
+                                          SizedBox(height: 0.5.h),
+                                          Text(
+                                            ConstanceManager.name ?? "User",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 16.sp,
+                                              color: ColorManager.black,
                                             ),
-                                            borderRadius:
-                                                BorderRadius.circular(20.sp),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: ColorManager.primary
-                                                    .withOpacity(0.3),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          child: TextButton(
-                                            onPressed: () {
-                                              context.push(AllAmcCardScreen(
-                                                  amcCardsWidgets:
-                                                      amcCardsWidgets));
-                                            },
-                                            style: TextButton.styleFrom(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 20.sp,
-                                                vertical: 10.sp,
+                                          if (ConstanceManager.workPhone !=
+                                                  null &&
+                                              ConstanceManager
+                                                  .workPhone!.isNotEmpty)
+                                            Text(
+                                              ConstanceManager.workPhone!,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w400,
+                                                fontSize: 14.sp,
+                                                color: ColorManager.grey2,
                                               ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  "See All",
-                                                  style: TextStyle(
-                                                    fontSize: 14.sp,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: ColorManager.white,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 1.w),
-                                                Icon(
-                                                  Icons
-                                                      .arrow_forward_ios_rounded,
-                                                  color: ColorManager.white,
-                                                  size: 16.sp,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
+                                        ],
                                       ),
                                     ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4.h),
+
+                      // Enhanced Loading State
+                      state is GetJobCardLoadingState
+                          ? Container(
+                              margin: EdgeInsets.symmetric(horizontal: 20.sp),
+                              padding: EdgeInsets.all(24.sp),
+                              decoration: BoxDecoration(
+                                color: ColorManager.white,
+                                borderRadius: BorderRadius.circular(16.sp),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        ColorManager.primary.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        ColorManager.primary),
+                                    strokeWidth: 3,
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    'Loading job cards...',
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: ColorManager.grey2,
+                                    ),
+                                  ),
                                 ],
                               ),
                             )
-                          : const SizedBox(),
-                  // Enhanced Bottom Spacing
-                  SizedBox(height: 4.h),
+                          : bloc.jobCards.isNotEmpty
+                              ? Container(
+                                  margin:
+                                      EdgeInsets.symmetric(horizontal: 16.sp),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Section Header
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.all(8.sp),
+                                            decoration: BoxDecoration(
+                                              color: ColorManager.primary
+                                                  .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(8.sp),
+                                            ),
+                                            child: Icon(
+                                              Icons.work_rounded,
+                                              color: ColorManager.primary,
+                                              size: 20.sp,
+                                            ),
+                                          ),
+                                          SizedBox(width: 2.w),
+                                          Text(
+                                            "Job Cards",
+                                            style: TextStyle(
+                                              fontSize: 22.sp,
+                                              fontWeight: FontWeight.w700,
+                                              color: ColorManager.primary,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          if (jobCardsUnCompleted.length > 2)
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 12.sp,
+                                                vertical: 6.sp,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: ColorManager.secondary
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        12.sp),
+                                              ),
+                                              child: Text(
+                                                "${jobCardsUnCompleted.length}",
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: ColorManager.secondary,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 2.h),
 
-                  // Subtle Footer
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 20.sp),
-                    padding: EdgeInsets.all(16.sp),
-                    decoration: BoxDecoration(
-                      color: ColorManager.primary.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12.sp),
-                      border: Border.all(
-                        color: ColorManager.primary.withOpacity(0.1),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.info_outline_rounded,
-                          size: 16.sp,
-                          color: ColorManager.primary.withOpacity(0.7),
-                        ),
-                        SizedBox(width: 2.w),
-                        Flexible(
-                          child: Text(
-                            "Pull down to refresh your data",
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w500,
-                              color: ColorManager.primary.withOpacity(0.7),
-                            ),
-                            textAlign: TextAlign.center,
+                                      // Job Cards Grid
+                                      Wrap(
+                                        spacing: 12.sp,
+                                        runSpacing: 12.sp,
+                                        children: jobCardsUnCompleted
+                                            .take(2)
+                                            .map((jobCard) {
+                                          return jobCardWidget(
+                                            context: context,
+                                            bloc: bloc,
+                                            jobCard: jobCard,
+                                          );
+                                        }).toList(),
+                                      ),
+
+                                      // See All Button
+                                      if (jobCardsUnCompleted.length > 2)
+                                        Padding(
+                                          padding: EdgeInsets.only(top: 2.h),
+                                          child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    ColorManager.secondary,
+                                                    ColorManager.primary,
+                                                  ],
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        20.sp),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: ColorManager
+                                                        .secondary
+                                                        .withOpacity(0.3),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: TextButton(
+                                                onPressed: () {
+                                                  context.push(AllJobCardScreen(
+                                                    jobCards:
+                                                        jobCardsUnCompleted,
+                                                  ));
+                                                },
+                                                style: TextButton.styleFrom(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 20.sp,
+                                                    vertical: 10.sp,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      "See All",
+                                                      style: TextStyle(
+                                                        fontSize: 14.sp,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color:
+                                                            ColorManager.white,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 1.w),
+                                                    Icon(
+                                                      Icons
+                                                          .arrow_forward_ios_rounded,
+                                                      color: ColorManager.white,
+                                                      size: 16.sp,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+
+                                      // Divider for AMC Cards
+                                      if (bloc.amcCards.isNotEmpty) ...[
+                                        SizedBox(height: 3.h),
+                                        Container(
+                                          height: 1,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.transparent,
+                                                ColorManager.primary
+                                                    .withOpacity(0.3),
+                                                Colors.transparent,
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 2.h),
+                                      ],
+                                    ],
+                                  ),
+                                )
+                              : const SizedBox(),
+                      // Enhanced AMC Cards Section
+                      state is GetAmcCardLoadingState
+                          ? Container(
+                              margin: EdgeInsets.symmetric(horizontal: 20.sp),
+                              padding: EdgeInsets.all(24.sp),
+                              decoration: BoxDecoration(
+                                color: ColorManager.white,
+                                borderRadius: BorderRadius.circular(16.sp),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        ColorManager.primary.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        ColorManager.primary),
+                                    strokeWidth: 3,
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    'Loading AMC cards...',
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: ColorManager.grey2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : bloc.amcCards.isNotEmpty
+                              ? Container(
+                                  margin:
+                                      EdgeInsets.symmetric(horizontal: 16.sp),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // AMC Section Header
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.all(8.sp),
+                                            decoration: BoxDecoration(
+                                              color: ColorManager.secondary
+                                                  .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(8.sp),
+                                            ),
+                                            child: Icon(
+                                              Icons.assignment_rounded,
+                                              color: ColorManager.secondary,
+                                              size: 20.sp,
+                                            ),
+                                          ),
+                                          SizedBox(width: 2.w),
+                                          Text(
+                                            "AMC Cards",
+                                            style: TextStyle(
+                                              fontSize: 22.sp,
+                                              fontWeight: FontWeight.w700,
+                                              color: ColorManager.secondary,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          if (amcCardsWidgets.length > 2)
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 12.sp,
+                                                vertical: 6.sp,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: ColorManager.primary
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        12.sp),
+                                              ),
+                                              child: Text(
+                                                "${amcCardsWidgets.length}",
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: ColorManager.primary,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 2.h),
+
+                                      // AMC Cards Grid
+                                      Wrap(
+                                        spacing: 12.sp,
+                                        runSpacing: 12.sp,
+                                        children: amcCardsWidgets.reversed
+                                            .toList()
+                                            .take(2)
+                                            .toList(),
+                                      ),
+
+                                      // See All Button for AMC
+                                      if (amcCardsWidgets.length > 2)
+                                        Padding(
+                                          padding: EdgeInsets.only(top: 2.h),
+                                          child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    ColorManager.primary,
+                                                    ColorManager.secondary,
+                                                  ],
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        20.sp),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: ColorManager.primary
+                                                        .withOpacity(0.3),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: TextButton(
+                                                onPressed: () {
+                                                  context.push(AllAmcCardScreen(
+                                                      amcCardsWidgets:
+                                                          amcCardsWidgets));
+                                                },
+                                                style: TextButton.styleFrom(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 20.sp,
+                                                    vertical: 10.sp,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      "See All",
+                                                      style: TextStyle(
+                                                        fontSize: 14.sp,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color:
+                                                            ColorManager.white,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 1.w),
+                                                    Icon(
+                                                      Icons
+                                                          .arrow_forward_ios_rounded,
+                                                      color: ColorManager.white,
+                                                      size: 16.sp,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                )
+                              : const SizedBox(),
+                      // Enhanced Bottom Spacing
+                      SizedBox(height: 4.h),
+
+                      // Enhanced Footer with Refresh Status
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 20.sp),
+                        padding: EdgeInsets.all(16.sp),
+                        decoration: BoxDecoration(
+                          color: _isRefreshing
+                              ? ColorManager.primary.withOpacity(0.1)
+                              : ColorManager.primary.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12.sp),
+                          border: Border.all(
+                            color: _isRefreshing
+                                ? ColorManager.primary.withOpacity(0.3)
+                                : ColorManager.primary.withOpacity(0.1),
+                            width: 1,
                           ),
+                          boxShadow: _isRefreshing
+                              ? [
+                                  BoxShadow(
+                                    color:
+                                        ColorManager.primary.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
                         ),
-                      ],
-                    ),
-                  ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _isRefreshing
+                                ? SizedBox(
+                                    width: 16.sp,
+                                    height: 16.sp,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          ColorManager.primary),
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.refresh_rounded,
+                                    size: 16.sp,
+                                    color:
+                                        ColorManager.primary.withOpacity(0.7),
+                                  ),
+                            SizedBox(width: 2.w),
+                            Flexible(
+                              child: Text(
+                                _isRefreshing
+                                    ? "Refreshing data..."
+                                    : "Pull down to refresh your data",
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: _isRefreshing
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: _isRefreshing
+                                      ? ColorManager.primary
+                                      : ColorManager.primary.withOpacity(0.7),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        (bloc.amcCards.isNotEmpty &&
-                                jobCardsUnCompleted.isNotEmpty
-                            ? 0.05
-                            : bloc.amcCards.isEmpty &&
-                                    jobCardsUnCompleted.isEmpty
-                                ? 0.2
-                                : 0.1),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height *
+                            (bloc.amcCards.isNotEmpty &&
+                                    jobCardsUnCompleted.isNotEmpty
+                                ? 0.05
+                                : bloc.amcCards.isEmpty &&
+                                        jobCardsUnCompleted.isEmpty
+                                    ? 0.2
+                                    : 0.1),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),

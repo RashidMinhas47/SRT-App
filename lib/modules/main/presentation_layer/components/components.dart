@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/fault/fault_ac.dart';
@@ -8,7 +9,7 @@ import 'package:bayanat/core/utils/navigation_manager.dart';
 import 'package:bayanat/modules/main/presentation_layer/screens/amc_card/amc_card_1.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_file_safe_plus/open_file_safe_plus.dart';
+// import 'package:open_file_safe_plus/open_file_safe_plus.dart';
 // import 'package:open_file_plus/open_file_plus.dart';
 import 'package:sizer/sizer.dart';
 import '../../../../core/services/dep_injection.dart';
@@ -18,6 +19,7 @@ import '../../domain_layer/entities/amc_card.dart';
 import '../../domain_layer/entities/job_card.dart';
 import '../bloc/main_bloc.dart';
 import '../screens/amc/amc_1.dart';
+import '../screens/pdf_viewer_screen.dart';
 
 defaultFormField({
   String? label,
@@ -350,7 +352,11 @@ List<TableRow> getHistoryRows({
                             return BlocListener<MainBloc, MainState>(
                               listener: (context, state) {
                                 if (state is GetPDFSuccessfullyState) {
+                                  print(
+                                      "PDF Success State (AMC) - Raw PDF data: ${state.pdf}");
                                   final path = state.pdf.split('=').first;
+                                  print(
+                                      "PDF Success State (AMC) - Processed path: $path");
                                   setState(() {
                                     dialogPdf = path;
                                   });
@@ -369,10 +375,12 @@ List<TableRow> getHistoryRows({
                                 ),
                                 title: dialogPdf != null
                                     ? TextButton(
-                                        onPressed: () {
+                                        onPressed: () async {
                                           Navigator.pop(context);
                                           //TODO Defined OpenFilePlus
-                                          OpenFileSafePlus.open(dialogPdf!);
+                                          await _openPdfFile(
+                                              dialogPdf!, context,
+                                              title: "AMC Report");
                                         },
                                         child: const Text("Open"),
                                       )
@@ -1123,6 +1131,51 @@ Widget _getStatusIcon(JobCard jobCard) {
   }
 }
 
+Future<void> _openPdfFile(String pdfPath, BuildContext context,
+    {String title = "PDF Document"}) async {
+  try {
+    print("Attempting to open PDF: $pdfPath");
+
+    // Check if file exists
+    final file = File(pdfPath);
+    if (await file.exists()) {
+      print("PDF file exists at: $pdfPath");
+      print("File size: ${await file.length()} bytes");
+
+      // Navigate to PDF viewer screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PDFViewerScreen(
+            pdfPath: pdfPath,
+            title: title,
+          ),
+        ),
+      );
+
+      print("PDF viewer opened successfully");
+    } else {
+      print("PDF file does not exist at: $pdfPath");
+      Fluttertoast.showToast(
+        msg: "PDF file not found",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  } catch (e) {
+    print("Error opening PDF: $e");
+    Fluttertoast.showToast(
+      msg: "Error opening PDF: $e",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+  }
+}
+
 Widget jobCardWidget({
   required JobCard jobCard,
   required MainBloc bloc,
@@ -1163,7 +1216,9 @@ Widget jobCardWidget({
                 return BlocListener<MainBloc, MainState>(
                   listener: (context, state) {
                     if (state is GetPDFSuccessfullyState) {
+                      print("PDF Success State - Raw PDF data: ${state.pdf}");
                       final path = state.pdf.split('=').first;
+                      print("PDF Success State - Processed path: $path");
                       setState(() {
                         dialogPdf = path;
                         pdfReady = true;
@@ -1218,9 +1273,10 @@ Widget jobCardWidget({
                                   ],
                                 ),
                                 child: TextButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     Navigator.pop(context);
-                                    OpenFileSafePlus.open(dialogPdf!);
+                                    await _openPdfFile(dialogPdf!, context,
+                                        title: "Fault Report");
                                   },
                                   style: TextButton.styleFrom(
                                     padding:
@@ -1873,10 +1929,11 @@ Widget amcCardWidget({
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextButton(
-                      onPressed: () {
+                      onPressed: () async {
                         //TODO Defined OpenFilePlus
 
-                        OpenFileSafePlus.open(filePath);
+                        await _openPdfFile(filePath, context,
+                            title: "PDF Document");
 
                         context.pop();
                       },
