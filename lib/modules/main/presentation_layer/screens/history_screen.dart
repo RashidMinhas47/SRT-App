@@ -58,11 +58,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _enhancedColumnText({required String text}) {
     return Padding(
-      padding: EdgeInsets.all(12.sp),
+      padding: EdgeInsets.symmetric(vertical: 12.sp, horizontal: 8.0),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 11.sp,
+          fontSize: 12.sp,
           fontWeight: FontWeight.w700,
           color: ColorManager.white,
         ),
