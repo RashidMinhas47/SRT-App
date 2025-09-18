@@ -1039,11 +1039,23 @@ class CurveClipper extends CustomClipper<Path> {
 List<JobCard> jobCards({required List<JobCard> jobCards}) {
   List<JobCard> list = [];
 
-  // Show ALL job cards instead of filtering them
+  // Filter out completed job cards - they should only appear in history screen
   for (int i = 0; i < jobCards.length; i++) {
     JobCard jobCard = jobCards[i];
 
-    // Add ALL job cards to the list
+    // Exclude completed job cards using the same criteria as history screen:
+    // 1. Completion reports with broadcast action and not revisit
+    // 2. Any job card with COMPLETION REPORT type
+    bool isCompletionReport = jobCard.reportType == "COMPLETION REPORT";
+    bool isBroadcastCompletion = jobCard.action == "broadcast" &&
+        jobCard.reportType == "COMPLETION REPORT" &&
+        !jobCard.revisit;
+
+    // Exclude if it's any type of completion report
+    if (isCompletionReport || isBroadcastCompletion) {
+      continue; // Skip this job card
+    }
+
     list.add(jobCard);
   }
 
