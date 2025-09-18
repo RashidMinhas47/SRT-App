@@ -6,7 +6,6 @@ import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:bayanat/modules/petty_cash/presentation_layer/screens/expense_detail_screen.dart';
 import 'dart:convert';
-import 'package:bayanat/core/utils/constance_manager.dart';
 
 class PendingBillsScreen extends StatefulWidget {
   const PendingBillsScreen({super.key});
@@ -39,7 +38,7 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'My Petty Cash Bills',
+          'All Petty Cash Bills',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
@@ -61,13 +60,9 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Obx(() {
-              final List<HrExpenseModel> items = _controller.expenses;
-              final int? currentUserId = ConstanceManager.userId;
-              final List<HrExpenseModel> filtered = currentUserId == null
-                  ? <HrExpenseModel>[]
-                  : items.where((e) => e.employeeId == currentUserId).toList();
+              final List<HrExpenseModel> allExpenses = _controller.expenses;
 
-              if (filtered.isEmpty) {
+              if (allExpenses.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -78,7 +73,7 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
                         color: Colors.grey,
                       ),
                       SizedBox(height: 2.h),
-                      const Text('No expenses found'),
+                      const Text('No Petty Cash Bills found'),
                     ],
                   ),
                 );
@@ -94,9 +89,9 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
                     // Make cards taller to avoid overflow
                     childAspectRatio: 0.78,
                   ),
-                  itemCount: filtered.length,
+                  itemCount: allExpenses.length,
                   itemBuilder: (context, index) {
-                    final e = filtered[index];
+                    final e = allExpenses[index];
                     return InkWell(
                       onTap: () =>
                           Get.to(() => ExpenseDetailScreen(expense: e)),

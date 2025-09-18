@@ -75,7 +75,7 @@ class HrExpenseController extends GetxController {
     }
   }
 
-  // Fetch hr.expense list (temporarily show all) filtered by category = "Petty Cash Bill"
+  // Fetch hr.expense list showing ALL Petty Cash Category Bills (not filtered by user)
   Future<void> fetchExpenses() async {
     try {
       // First, get the category ID for "Petty Cash Bill"
@@ -86,16 +86,16 @@ class HrExpenseController extends GetxController {
         pettyCashCategoryId = pettyCashCategory['id'] as int?;
       }
 
-      // Build domain filters
+      // Build domain filters - only filter by category, show ALL users
       List<List<dynamic>> domain = [];
 
-      // Add category filter if found
+      // Add category filter if found (this is the main filter)
       if (pettyCashCategoryId != null) {
         domain.add(['product_id', '=', pettyCashCategoryId]);
       }
 
       print(
-          "Filtering expenses by: Category ID = $pettyCashCategoryId (Petty Cash Bill)");
+          "Fetching ALL expenses by: Category ID = $pettyCashCategoryId (Petty Cash Bill) - No user filtering");
 
       final response = await http.post(
         Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
@@ -107,7 +107,9 @@ class HrExpenseController extends GetxController {
           'params': {
             'model': 'hr.expense',
             'method': 'search_read',
-            'args': [domain], // Apply domain filters
+            'args': [
+              domain
+            ], // Apply domain filters (category only, no user filter)
             'kwargs': {
               'fields': [
                 'id',
