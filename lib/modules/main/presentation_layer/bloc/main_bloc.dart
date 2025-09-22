@@ -325,6 +325,29 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           },
           (r) {
             _clearDataAfterAddFaultForm();
+            // Trigger Odoo 'Fault' button on job card (set_action_broadcast)
+            () async {
+              try {
+                await http.post(
+                  Uri.parse(ApiConsts.baseUrl + ApiEndPoints.callKw),
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Connection': 'keep-alive',
+                    'Cookie': ConstanceManager.sessionId.toString(),
+                  },
+                  body: jsonEncode({
+                    "params": {
+                      "model": ApiModels.jobCard,
+                      "method": ApiMethods.setActionBroadcast,
+                      "args": [
+                        [event.jobCard.id]
+                      ],
+                      "kwargs": {},
+                    }
+                  }),
+                );
+              } catch (_) {}
+            }();
             emit(const SubmitFaultReportSuccessfullyState());
           },
         );
