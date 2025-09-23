@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 import 'package:bayanat/core/utils/color_manager.dart';
+import 'package:bayanat/core/utils/constance_manager.dart';
 import 'package:bayanat/modules/petty_cash/controllers/hr_expense_ctr.dart';
 import 'package:bayanat/modules/petty_cash/models/hr_expense.dart';
 import 'package:bayanat/modules/petty_cash/presentation_layer/screens/expense_detail_screen.dart';
@@ -60,9 +61,37 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Obx(() {
-              final List<HrExpenseModel> allExpenses = _controller.expenses;
+              // Resolve current employee id from logged-in user id
+              final int? currentUserId = ConstanceManager.userId;
+              int? currentEmployeeId;
+              if (currentUserId != null) {
+                for (final emp in _controller.employees) {
+                  if (emp.userId == currentUserId) {
+                    currentEmployeeId = emp.id;
+                    break;
+                  }
+                }
+              }
 
-              if (allExpenses.isEmpty) {
+              // Resolve Petty Cash category id (server already filters, but enforce client-side)
+              int? pettyCashCategoryId;
+              for (final cat in _controller.categories) {
+                final name = cat['name']?.toString().toLowerCase() ?? '';
+                if (name == 'petty cash bill') {
+                  pettyCashCategoryId = cat['id'] as int?;
+                  break;
+                }
+              }
+
+              final List<HrExpenseModel> allExpenses = _controller.expenses;
+              final List<HrExpenseModel> filteredExpenses = allExpenses
+                  .where((e) =>
+                      e.employeeId == currentEmployeeId &&
+                      (pettyCashCategoryId == null ||
+                          e.productId == pettyCashCategoryId))
+                  .toList();
+
+              if (filteredExpenses.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -89,9 +118,9 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
                     // Make cards taller to avoid overflow
                     childAspectRatio: 0.78,
                   ),
-                  itemCount: allExpenses.length,
+                  itemCount: filteredExpenses.length,
                   itemBuilder: (context, index) {
-                    final e = allExpenses[index];
+                    final e = filteredExpenses[index];
                     return InkWell(
                       onTap: () =>
                           Get.to(() => ExpenseDetailScreen(expense: e)),
