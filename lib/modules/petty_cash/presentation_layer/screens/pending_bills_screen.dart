@@ -73,6 +73,11 @@ class _PendingBillsScreenState extends State<PendingBillsScreen> {
                 }
               }
 
+              // If we have a user but haven't resolved the employee yet, show a loader
+              if (currentUserId != null && currentEmployeeId == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
               // Resolve Petty Cash category id (server already filters, but enforce client-side)
               int? pettyCashCategoryId;
               for (final cat in _controller.categories) {

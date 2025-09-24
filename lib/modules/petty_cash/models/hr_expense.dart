@@ -91,8 +91,10 @@ class HrExpenseModel extends Equatable {
       billImage: (json['x_bill_image'] is bool)
           ? null
           : json['x_bill_image'] as String?,
-      // custom selection field for sub category
-      subCategory: json['x_sub_category'] as String?,
+      // custom selection field for sub category (Odoo may return false when empty)
+      subCategory: (json['x_sub_category'] is bool)
+          ? null
+          : json['x_sub_category'] as String?,
     );
   }
 

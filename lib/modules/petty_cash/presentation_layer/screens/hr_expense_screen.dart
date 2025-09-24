@@ -419,27 +419,14 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     Row(
                       children: [
                         ElevatedButton.icon(
-                          onPressed: _pickBillPhoto,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ColorManager.primary,
-                          ),
-                          icon: const Icon(Icons.photo_camera,
-                              color: Colors.white),
-                          label: const Text(
-                            'Add Photo',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: _takeBillPhoto,
+                          onPressed: _choosePhotoSource,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ColorManager.primary,
                           ),
                           icon:
                               const Icon(Icons.camera_alt, color: Colors.white),
                           label: const Text(
-                            'Take Photo',
+                            'Add or Take Photo',
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
@@ -1018,6 +1005,41 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         _billImageBase64 = base64Encode(bytes);
         _billPhotoFile = file;
       });
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  Future<void> _choosePhotoSource() async {
+    try {
+      final selected = await showModalBottomSheet<String>(
+        context: context,
+        builder: (context) {
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Choose from Gallery'),
+                  onTap: () => Navigator.pop(context, 'gallery'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Take a Photo'),
+                  onTap: () => Navigator.pop(context, 'camera'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (selected == 'gallery') {
+        await _pickBillPhoto();
+      } else if (selected == 'camera') {
+        await _takeBillPhoto();
+      }
     } catch (_) {
       // ignore
     }

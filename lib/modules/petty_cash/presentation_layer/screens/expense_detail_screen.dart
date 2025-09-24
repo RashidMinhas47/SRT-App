@@ -103,6 +103,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             // MapEntry('Reference', widget.expense.reference ?? '-'),
             MapEntry('Category',
                 _categoryName ?? widget.expense.productId?.toString() ?? '-'),
+            MapEntry('Sub Category', widget.expense.subCategory ?? '-'),
             MapEntry('Taxes', _taxNames),
           ];
 

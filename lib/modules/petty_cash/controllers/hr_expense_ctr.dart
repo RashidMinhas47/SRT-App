@@ -97,37 +97,41 @@ class HrExpenseController extends GetxController {
       print(
           "Fetching ALL expenses by: Category ID = $pettyCashCategoryId (Petty Cash Bill) - No user filtering");
 
-      final response = await http.post(
-        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Cookie': ConstanceManager.sessionId.toString(),
-        },
-        body: jsonEncode({
-          'params': {
-            'model': 'hr.expense',
-            'method': 'search_read',
-            'args': [
-              domain
-            ], // Apply domain filters (category only, no user filter)
-            'kwargs': {
-              'fields': [
-                'id',
-                'name',
-                'date',
-                'employee_id',
-                'total_amount',
-                'state',
-                'payment_mode',
-                'product_id',
-                'tax_ids',
-                'x_bill_image'
-              ],
-              'context': {'bin_size': false}
-            }
-          }
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Connection': 'keep-alive',
+              'Cookie': ConstanceManager.sessionId.toString(),
+            },
+            body: jsonEncode({
+              'params': {
+                'model': 'hr.expense',
+                'method': 'search_read',
+                'args': [
+                  domain
+                ], // Apply domain filters (category only, no user filter)
+                'kwargs': {
+                  'fields': [
+                    'id',
+                    'name',
+                    'date',
+                    'employee_id',
+                    'total_amount',
+                    'state',
+                    'payment_mode',
+                    'product_id',
+                    'tax_ids',
+                    'x_bill_image',
+                    'x_sub_category'
+                  ],
+                  'context': {'bin_size': false}
+                }
+              }
+            }),
+          )
+          .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
@@ -165,6 +169,19 @@ class HrExpenseController extends GetxController {
         error.value = 'Please select a category';
         Fluttertoast.showToast(
           msg: 'Please select a category',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return false;
+      }
+
+      // Require sub category
+      if (expense.subCategory == null || expense.subCategory!.isEmpty) {
+        error.value = 'Please select a sub category';
+        Fluttertoast.showToast(
+          msg: 'Please select a sub category',
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.TOP,
           backgroundColor: Colors.red,
