@@ -20,6 +20,9 @@ class HrExpenseModel extends Equatable {
   // Bill image (binary field x_bill_image on hr.expense), base64 string
   final String? billImage;
 
+  // Sub Category (x_sub_category)
+  final String? subCategory;
+
   // Additional useful fields
   final int? id;
   final double? amount;
@@ -46,6 +49,7 @@ class HrExpenseModel extends Equatable {
     this.companyId,
     this.companyName,
     this.billImage,
+    this.subCategory,
   });
 
   factory HrExpenseModel.fromJson(Map<String, dynamic> json) {
@@ -87,6 +91,8 @@ class HrExpenseModel extends Equatable {
       billImage: (json['x_bill_image'] is bool)
           ? null
           : json['x_bill_image'] as String?,
+      // custom selection field for sub category
+      subCategory: json['x_sub_category'] as String?,
     );
   }
 
@@ -112,6 +118,7 @@ class HrExpenseModel extends Equatable {
       'company_id': companyId,
       'state': state,
       if (billImage != null) 'x_bill_image': billImage,
+      if (subCategory != null) 'x_sub_category': subCategory,
     };
   }
 
@@ -133,6 +140,7 @@ class HrExpenseModel extends Equatable {
         companyId,
         companyName,
         billImage,
+        subCategory,
       ];
 
   HrExpenseModel copyWith({
@@ -152,6 +160,7 @@ class HrExpenseModel extends Equatable {
     int? companyId,
     String? companyName,
     String? billImage,
+    String? subCategory,
   }) {
     return HrExpenseModel(
       name: name ?? this.name,
@@ -170,6 +179,7 @@ class HrExpenseModel extends Equatable {
       companyId: companyId ?? this.companyId,
       companyName: companyName ?? this.companyName,
       billImage: billImage ?? this.billImage,
+      subCategory: subCategory ?? this.subCategory,
     );
   }
 

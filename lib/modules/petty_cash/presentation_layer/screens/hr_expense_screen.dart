@@ -21,6 +21,14 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   final _amountController = TextEditingController();
   final _totalAmountCompanyController = TextEditingController();
   final _employeeDisplayController = TextEditingController();
+  final List<String> _subCategories = const [
+    'Material Purchase',
+    'Food/Meals',
+    'Transport/Fuel',
+    'Miscellaneous',
+    'Advance Request',
+  ];
+  String? _selectedSubCategory;
 
   int? _selectedCategoryId;
   int? _selectedAccountId;
@@ -364,6 +372,37 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 ),
                 const SizedBox(height: 20),
 
+                // Sub Category Selection
+                DropdownButtonFormField<String>(
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  value: _selectedSubCategory,
+                  decoration: _getDropdownDecoration(
+                    'Sub Category *',
+                    helperText: 'Select a sub category',
+                  ),
+                  items: _subCategories
+                      .map((s) => DropdownMenuItem<String>(
+                            value: s,
+                            child: Text(
+                              s,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedSubCategory = val;
+                    });
+                  },
+                  validator: (v) => v == null || v.isEmpty
+                      ? 'Please select a sub category'
+                      : null,
+                ),
+                const SizedBox(height: 20),
+
                 // Bill Photo (optional)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,6 +427,19 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                               color: Colors.white),
                           label: const Text(
                             'Add Photo',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: _takeBillPhoto,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ColorManager.primary,
+                          ),
+                          icon:
+                              const Icon(Icons.camera_alt, color: Colors.white),
+                          label: const Text(
+                            'Take Photo',
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
@@ -829,6 +881,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
             ? _controller.selectedEmployeeId.value
             : null,
         billImage: _billImageBase64,
+        subCategory: _selectedSubCategory,
       );
 
       final success = await _controller.submitExpense(expense);
@@ -937,6 +990,25 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       final ImagePicker picker = ImagePicker();
       final XFile? file = await picker.pickImage(
         source: ImageSource.gallery,
+        imageQuality: 75,
+        maxWidth: 1600,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      setState(() {
+        _billImageBase64 = base64Encode(bytes);
+        _billPhotoFile = file;
+      });
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  Future<void> _takeBillPhoto() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? file = await picker.pickImage(
+        source: ImageSource.camera,
         imageQuality: 75,
         maxWidth: 1600,
       );

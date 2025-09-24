@@ -194,6 +194,7 @@ class HrExpenseController extends GetxController {
         'total_amount_company': expense.amount, // <-- Add this line
         'total_amount': expense.amount,
         if (expense.billImage != null) 'x_bill_image': expense.billImage,
+        if (expense.subCategory != null) 'x_sub_category': expense.subCategory,
       };
 
       // Validate mandatory fields: only product (category) and employee
