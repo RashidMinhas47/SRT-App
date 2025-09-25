@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../../core/remote/api_helper/api_constance.dart';
 import '../models/tax_model.dart';
 import '../models/account_model.dart';
@@ -75,78 +76,118 @@ class HrExpenseController extends GetxController {
     }
   }
 
+  // Check network connectivity
+  Future<bool> _checkConnectivity() async {
+    try {
+      final connectivityResults = await Connectivity().checkConnectivity();
+      return connectivityResults
+          .any((result) => result != ConnectivityResult.none);
+    } catch (e) {
+      print("Connectivity check failed: $e");
+      return false;
+    }
+  }
+
   // Fetch hr.expense list showing ALL Petty Cash Category Bills (not filtered by user)
   Future<void> fetchExpenses() async {
-    try {
-      // First, get the category ID for "Petty Cash Bill"
-      int? pettyCashCategoryId;
-      final pettyCashCategory = categories.firstWhereOrNull(
-          (cat) => cat['name']?.toString().toLowerCase() == 'petty cash bill');
-      if (pettyCashCategory != null) {
-        pettyCashCategoryId = pettyCashCategory['id'] as int?;
-      }
+    // Check connectivity first
+    final hasConnection = await _checkConnectivity();
+    if (!hasConnection) {
+      error.value =
+          'No internet connection. Please check your network and try again.';
+      throw Exception('No internet connection');
+    }
 
-      // Build domain filters - only filter by category, show ALL users
-      List<List<dynamic>> domain = [];
+    const int maxRetries = 3;
+    const Duration retryDelay = Duration(seconds: 2);
 
-      // Add category filter if found (this is the main filter)
-      if (pettyCashCategoryId != null) {
-        domain.add(['product_id', '=', pettyCashCategoryId]);
-      }
-
-      print(
-          "Fetching ALL expenses by: Category ID = $pettyCashCategoryId (Petty Cash Bill) - No user filtering");
-
-      final response = await http
-          .post(
-            Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Connection': 'keep-alive',
-              'Cookie': ConstanceManager.sessionId.toString(),
-            },
-            body: jsonEncode({
-              'params': {
-                'model': 'hr.expense',
-                'method': 'search_read',
-                'args': [
-                  domain
-                ], // Apply domain filters (category only, no user filter)
-                'kwargs': {
-                  'fields': [
-                    'id',
-                    'name',
-                    'date',
-                    'employee_id',
-                    'total_amount',
-                    'state',
-                    'payment_mode',
-                    'product_id',
-                    'tax_ids',
-                    'x_bill_image',
-                    'x_sub_category'
-                  ],
-                  'context': {'bin_size': false}
-                }
-              }
-            }),
-          )
-          .timeout(const Duration(seconds: 25));
-
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        if (result['result'] != null) {
-          final List list = result['result'] as List;
-          expenses.value = list
-              .map((e) => HrExpenseModel.fromJson(e as Map<String, dynamic>))
-              .toList();
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // First, get the category ID for "Petty Cash Bill"
+        int? pettyCashCategoryId;
+        final pettyCashCategory = categories.firstWhereOrNull((cat) =>
+            cat['name']?.toString().toLowerCase() == 'petty cash bill');
+        if (pettyCashCategory != null) {
+          pettyCashCategoryId = pettyCashCategory['id'] as int?;
         }
-      } else {
-        throw Exception('Failed to fetch expenses: ${response.statusCode}');
+
+        // Build domain filters - only filter by category, show ALL users
+        List<List<dynamic>> domain = [];
+
+        // Add category filter if found (this is the main filter)
+        if (pettyCashCategoryId != null) {
+          domain.add(['product_id', '=', pettyCashCategoryId]);
+        }
+
+        print(
+            "Fetching ALL expenses by: Category ID = $pettyCashCategoryId (Petty Cash Bill) - Attempt ${attempt + 1}/$maxRetries");
+
+        final response = await http
+            .post(
+              Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Connection': 'close', // Use close instead of keep-alive
+                'Cookie': ConstanceManager.sessionId.toString(),
+                'User-Agent': 'Flutter-App/1.0',
+              },
+              body: jsonEncode({
+                'params': {
+                  'model': 'hr.expense',
+                  'method': 'search_read',
+                  'args': [
+                    domain
+                  ], // Apply domain filters (category only, no user filter)
+                  'kwargs': {
+                    'fields': [
+                      'id',
+                      'name',
+                      'date',
+                      'employee_id',
+                      'total_amount',
+                      'state',
+                      'payment_mode',
+                      'product_id',
+                      'tax_ids',
+                      'x_bill_image',
+                      'x_sub_category'
+                    ],
+                    'context': {'bin_size': false},
+                    'limit': 1000, // Add limit to prevent large responses
+                  }
+                }
+              }),
+            )
+            .timeout(const Duration(seconds: 30)); // Increased timeout
+
+        if (response.statusCode == 200) {
+          final result = jsonDecode(response.body);
+          if (result['result'] != null) {
+            final List list = result['result'] as List;
+            expenses.value = list
+                .map((e) => HrExpenseModel.fromJson(e as Map<String, dynamic>))
+                .toList();
+            print("Successfully fetched ${expenses.length} expenses");
+            return; // Success, exit retry loop
+          } else {
+            throw Exception('No result data in response');
+          }
+        } else {
+          throw Exception('Failed to fetch expenses: ${response.statusCode}');
+        }
+      } catch (e) {
+        error.value =
+            'Error fetching expenses (attempt ${attempt + 1}/$maxRetries): $e';
+        print("Attempt ${attempt + 1} failed: $e");
+
+        // If this is the last attempt, rethrow the error
+        if (attempt == maxRetries - 1) {
+          rethrow;
+        }
+
+        // Wait before retrying
+        await Future.delayed(retryDelay);
       }
-    } catch (e) {
-      error.value = 'Error fetching expenses: $e';
-      rethrow;
     }
   }
 
