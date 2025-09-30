@@ -18,6 +18,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   String? _categoryName;
   String _taxNames = '-';
   final HrExpenseController _controller = Get.find<HrExpenseController>();
+  String? _billBase64; // ensure we have the latest image
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return '-';
@@ -30,6 +31,22 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   void initState() {
     super.initState();
     _fetchNames();
+    _initPhoto();
+  }
+
+  Future<void> _initPhoto() async {
+    final String? local = widget.expense.billImage?.trim();
+    if (local != null && local.isNotEmpty) {
+      setState(() => _billBase64 = local);
+      return;
+    }
+    if (widget.expense.id != null) {
+      final fetched = await _controller.fetchExpensePhoto(widget.expense.id!);
+      if (!mounted) return;
+      if (fetched != null && fetched.isNotEmpty) {
+        setState(() => _billBase64 = fetched);
+      }
+    }
   }
 
   Future<void> _fetchNames() async {
@@ -194,7 +211,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
       ),
     );
 
-    final String? base64Raw = widget.expense.billImage?.trim();
+    final String? base64Raw = (_billBase64 ?? widget.expense.billImage)?.trim();
     if (base64Raw == null || base64Raw.isEmpty) {
       section.add(
         Container(

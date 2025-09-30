@@ -149,7 +149,7 @@ class HrExpenseController extends GetxController {
                       'payment_mode',
                       'product_id',
                       'tax_ids',
-                      'x_bill_image',
+                      'x_bill_photo',
                       'x_sub_category'
                     ],
                     'context': {'bin_size': false},
@@ -231,6 +231,23 @@ class HrExpenseController extends GetxController {
         return false;
       }
 
+      // Debug & normalize bill photo base64
+      final String? trimmedBill = expense.billImage?.trim();
+      final String? normalizedBill =
+          (trimmedBill != null && trimmedBill.contains(','))
+              ? trimmedBill.split(',').last.trim()
+              : trimmedBill;
+      if (normalizedBill == null || normalizedBill.isEmpty) {
+        print('[HrExpenseController] No bill photo selected');
+      } else {
+        final int previewLen =
+            normalizedBill.length > 24 ? 24 : normalizedBill.length;
+        print(
+            '[HrExpenseController] Bill photo base64 length: ${normalizedBill.length}');
+        print(
+            '[HrExpenseController] Bill photo base64 preview: ${normalizedBill.substring(0, previewLen)}...');
+      }
+
       final expenseData = {
         'name': expense.name,
         'product_id': expense.productId,
@@ -249,11 +266,14 @@ class HrExpenseController extends GetxController {
           ],
         if (expense.accountId != null) 'account_id': expense.accountId,
         'reference': expense.reference,
-        'total_amount_company': expense.amount, // <-- Add this line
+        'total_amount_company': expense.amount,
         'total_amount': expense.amount,
-        if (expense.billImage != null) 'x_bill_image': expense.billImage,
         if (expense.subCategory != null) 'x_sub_category': expense.subCategory,
       };
+
+      // Debug: log keys to confirm payload
+      print(
+          '[HrExpenseController] Creating hr.expense with keys: ${expenseData.keys.toList()}');
 
       // Validate mandatory fields: only product (category) and employee
       if (expenseData['product_id'] == null ||
@@ -289,6 +309,42 @@ class HrExpenseController extends GetxController {
         final result = jsonDecode(response.body);
 
         if (result['result'] != null) {
+          // Follow-up write to ensure photo is saved
+          try {
+            final int? createdId =
+                result['result'] is int ? result['result'] as int : null;
+            if (createdId != null &&
+                normalizedBill != null &&
+                normalizedBill.isNotEmpty) {
+              final writeResp = await http.post(
+                Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Cookie': ConstanceManager.sessionId.toString(),
+                },
+                body: jsonEncode({
+                  'params': {
+                    'model': 'hr.expense',
+                    'method': 'write',
+                    'args': [
+                      [createdId],
+                      {'x_bill_photo': normalizedBill}
+                    ],
+                    'kwargs': {},
+                  }
+                }),
+              );
+              print(
+                  '[HrExpenseController] Follow-up write x_bill_photo status: ${writeResp.statusCode}');
+              if (writeResp.statusCode != 200) {
+                print('[HrExpenseController] Write body: ${writeResp.body}');
+              }
+            }
+          } catch (e) {
+            print(
+                '[HrExpenseController] Follow-up write for x_bill_photo failed: $e');
+          }
+
           Fluttertoast.showToast(
             msg: 'Expense submitted successfully',
             toastLength: Toast.LENGTH_SHORT,
@@ -840,6 +896,44 @@ class HrExpenseController extends GetxController {
       }
     } catch (_) {
       // ignore network errors here; UI will show '-'
+    }
+    return null;
+  }
+
+  // Fetch base64 of x_bill_photo for an expense
+  Future<String?> fetchExpensePhoto(int expenseId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConsts.baseUrl}/web/dataset/call_kw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': ConstanceManager.sessionId.toString(),
+        },
+        body: jsonEncode({
+          'params': {
+            'model': 'hr.expense',
+            'method': 'read',
+            'args': [
+              [expenseId],
+              ['x_bill_photo']
+            ],
+            'kwargs': {
+              'context': {'bin_size': false}
+            }
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['result'] != null && (result['result'] as List).isNotEmpty) {
+          final map = Map<String, dynamic>.from(result['result'][0] as Map);
+          final dynamic val = map['x_bill_photo'];
+          if (val is String && val.isNotEmpty) return val;
+        }
+      }
+    } catch (e) {
+      print('[HrExpenseController] fetchExpensePhoto error: $e');
     }
     return null;
   }

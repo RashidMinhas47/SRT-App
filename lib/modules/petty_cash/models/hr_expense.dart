@@ -17,7 +17,7 @@ class HrExpenseModel extends Equatable {
   final String? paymentMode; // 'company' or 'employee'
   final String? reference; // Bill Reference (char)
   final int? accountId; // Account (many2one)
-  // Bill image (binary field x_bill_image on hr.expense), base64 string
+  // Bill image (binary field x_bill_photo on hr.expense), base64 string
   final String? billImage;
 
   // Sub Category (x_sub_category)
@@ -88,9 +88,9 @@ class HrExpenseModel extends Equatable {
               : null)
           : null,
       // custom binary image field (Odoo may return false for empty binary)
-      billImage: (json['x_bill_image'] is bool)
+      billImage: (json['x_bill_photo'] is bool)
           ? null
-          : json['x_bill_image'] as String?,
+          : json['x_bill_photo'] as String?,
       // custom selection field for sub category (Odoo may return false when empty)
       subCategory: (json['x_sub_category'] is bool)
           ? null
@@ -119,7 +119,7 @@ class HrExpenseModel extends Equatable {
       'total_amount': amount,
       'company_id': companyId,
       'state': state,
-      if (billImage != null) 'x_bill_image': billImage,
+      if (billImage != null) 'x_bill_photo': billImage,
       if (subCategory != null) 'x_sub_category': subCategory,
     };
   }
