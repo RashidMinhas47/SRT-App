@@ -41,18 +41,14 @@ class FaultPdf {
       i++;
       if (element.serviceTypes != null) {
         _heightOfPdf += element.serviceTypes!.length;
-        if (_heightOfPdf >= 17) {
+        if (_heightOfPdf >= 10) {
           _serviceTypeIndex = i - 1;
           break;
         }
       }
     }
-    if (_heightOfPdf >= 17) {
+    if (_heightOfPdf >= 10) {
       pdf.addPage(await _createPage2(
-        faultFormModels: faultFormModels,
-      ));
-      // Add signature page when there are many services to ensure signature is always visible
-      pdf.addPage(await _createSignaturePage(
         faultFormModels: faultFormModels,
       ));
     }
@@ -66,6 +62,10 @@ class FaultPdf {
         ));
       }
     }
+    // Always add signature page at the end to ensure signature is always visible
+    pdf.addPage(await _createSignaturePage(
+      faultFormModels: faultFormModels,
+    ));
     Uint8List bytes = await pdf.save();
     await file.writeAsBytes(bytes);
     // OpenFile.open(file.path);
@@ -483,7 +483,9 @@ class FaultPdf {
                   ),
                   tableWidth: TableWidth.max,
                 ),
-                _heightOfPdf < 17
+                // Only show signature on first page if there's enough space (less than 10 entries)
+                // Otherwise, signature will be shown on the dedicated signature page
+                _heightOfPdf < 10
                     ? Column(children: [
                         SizedBox(height: 0.01 * height),
                         Text(
@@ -616,7 +618,7 @@ class FaultPdf {
           return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _heightOfPdf >= 17
+                _heightOfPdf >= 10
                     ? pw.TableHelper.fromTextArray(
                         data: tableData(
                             list: faultFormModels,
@@ -1037,7 +1039,7 @@ List<List<dynamic>> tableData(
   for (var element in list) {
     if ((i >= FaultPdf._serviceTypeIndex && !flag) ||
         (i < FaultPdf._serviceTypeIndex && flag) ||
-        (FaultPdf._heightOfPdf < 17 && flag)) {
+        (FaultPdf._heightOfPdf < 10 && flag)) {
       if (element.serviceTypes != null && element.serviceTypes!.length == 1) {
         tableData.add([
           Container(

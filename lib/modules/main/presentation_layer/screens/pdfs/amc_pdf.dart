@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:bayanat/modules/main/data_layer/models/amc_model.dart';
-import 'package:bayanat/modules/main/presentation_layer/screens/pdfs/amc_card_pdf.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 // import 'package:open_file_plus/open_file_plus.dart';
@@ -9,7 +9,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../../../data_layer/models/spare_c_model.dart';
-import 'package:pdf/widgets.dart';
 
 class AmcPdf {
   static late Font arFont;
@@ -32,6 +31,10 @@ class AmcPdf {
     pdf.addPage(await _createPage2(
       amcFormModel: amcFormModel,
     ));
+    // Always add signature page at the end to ensure signature is always visible
+    pdf.addPage(await _createSignaturePage(
+      amcFormModel: amcFormModel,
+    ));
     Uint8List bytes = await pdf.save();
     await file.writeAsBytes(bytes);
     // OpenFile.open(file.path);
@@ -47,7 +50,11 @@ class AmcPdf {
     double width = PdfPageFormat.a4.width;
     return pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.only(top: 0.05 * height,left: 0.05 * height,right: 0.05 * height,bottom: 0.05 * height),
+        margin: pw.EdgeInsets.only(
+            top: 0.05 * height,
+            left: 0.05 * height,
+            right: 0.05 * height,
+            bottom: 0.05 * height),
         orientation: pw.PageOrientation.portrait,
         build: (pw.Context context) {
           return Column(
@@ -65,8 +72,7 @@ class AmcPdf {
                     Column(children: [
                       Align(
                         alignment: Alignment.center,
-                        child: Text(
-                            "AMC REPORT",
+                        child: Text("AMC REPORT",
                             style: pw.TextStyle(
                                 fontSize: 8 / 550 * height,
                                 fontWeight: FontWeight.bold)),
@@ -89,111 +95,112 @@ class AmcPdf {
                       SizedBox(height: 0.01 * height),
                     ]),
                   ]),
-                  Container(height: 3 / 1000 * height , color: PdfColors.black,width: double.infinity),
+                  Container(
+                      height: 3 / 1000 * height,
+                      color: PdfColors.black,
+                      width: double.infinity),
                   SizedBox(height: 0.01 * height),
-
                   Text("AC Complaint Log – In Details",
                       style: TextStyle(
-                        fontSize: 7/800*height,
-                        fontWeight: FontWeight.bold,
-                          font: arFont
-                      )),
+                          fontSize: 7 / 800 * height,
+                          fontWeight: FontWeight.bold,
+                          font: arFont)),
                   Column(children: [
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                     Container(
-                      height: 0.0005*height,
+                      height: 0.0005 * height,
                       width: double.infinity,
                       color: PdfColors.blue600,
                     ),
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                   ]),
                   Row(children: [
                     Expanded(
-                        child:
-                            Text("Date: ", style: TextStyle(fontSize: 6/800*height))),
+                        child: Text("Date: ",
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                     Expanded(
                         child: Text(DateFormat.yMd().format(dateTime),
-                            style: TextStyle(fontSize: 6/800*height))),
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                     Expanded(
-                        child:
-                            Text("time: ", style: TextStyle(fontSize: 6/800*height))),
+                        child: Text("time: ",
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                     Expanded(
                         child: Text(DateFormat.Hm().format(dateTime),
-                            style: TextStyle(fontSize: 6/800*height))),
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                   ]),
                   Column(children: [
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                     Container(
-                      height: 0.0005*height,
+                      height: 0.0005 * height,
                       width: double.infinity,
                       color: PdfColors.blue600,
                     ),
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                   ]),
                   Row(children: [
                     Expanded(
                         child: Text("Property / Site:",
-                            style: TextStyle(fontSize: 6/800*height))),
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                     Expanded(
                         child: Text(amcFormModel.propertySite,
-                            style: TextStyle(fontSize: 6/800*height))),
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                   ]),
                   Column(children: [
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                     Container(
-                      height: 0.0005*height,
+                      height: 0.0005 * height,
                       width: double.infinity,
                       color: PdfColors.blue600,
                     ),
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                   ]),
                   Row(children: [
                     Expanded(
                         child: Text("Flat Number:",
-                            style: TextStyle(fontSize: 6/800*height))),
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                     Expanded(
-                        child:
-                            Text(flatNumber, style: TextStyle(fontSize: 6/800*height))),
+                        child: Text(flatNumber,
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                   ]),
                   Column(children: [
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                     Container(
-                      height: 0.0005*height,
+                      height: 0.0005 * height,
                       width: double.infinity,
                       color: PdfColors.blue600,
                     ),
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                   ]),
                   Row(children: [
                     Expanded(
                         child: Text("Date/Time Completed:",
-                            style: TextStyle(fontSize: 6/800*height))),
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                     Expanded(
                         child: Text(
                             DateFormat('yyyy-MM-dd HH:mm')
                                 .format(DateTime.now())
                                 .toString(),
-                            style: TextStyle(fontSize: 6/800*height))),
+                            style: TextStyle(fontSize: 6 / 800 * height))),
                   ]),
                   Column(children: [
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                     Container(
-                      height: 0.0005*height,
+                      height: 0.0005 * height,
                       width: double.infinity,
                       color: PdfColors.blue600,
                     ),
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                   ]),
                   Align(
                     alignment: Alignment.center,
                     child: Text(
                         "AIR CONDITION MAINTENANCE CHECKLIST (BREAKDOWN CALLS)",
                         style: TextStyle(
-                          fontSize: 5/800*height,
+                          fontSize: 5 / 800 * height,
                           fontWeight: FontWeight.bold,
                         )),
                   ),
-                  SizedBox(height: 0.002*height),
+                  SizedBox(height: 0.002 * height),
                 ]),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -203,25 +210,28 @@ class AmcPdf {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text("Type of AC: ",
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
-                            Text("Brand:", style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
-                            Text("Tonnage:", style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
+                            Text("Brand:",
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
+                            Text("Tonnage:",
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text("Model Number:",
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text("AC Serial Number",
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text("Compressor Number:",
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text("Work Status:",
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
-                            Text("Location:", style: TextStyle(fontSize: 6/800*height)),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
+                            Text("Location:",
+                                style: TextStyle(fontSize: 6 / 800 * height)),
                             // SizedBox(height: 1.h),
                             // pw.Table.fromTextArray(
                             //     data: checkListHeader,
@@ -233,7 +243,7 @@ class AmcPdf {
                             //     cellStyle: TextStyle(fontSize: 6/800*height),
                             //     tableWidth: TableWidth.min,
                             //     cellHeight: 0.1.h),
-                            SizedBox(height: 0.01*height),
+                            SizedBox(height: 0.01 * height),
                           ],
                         ),
                       ),
@@ -242,35 +252,35 @@ class AmcPdf {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(amcFormModel.acType,
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text(amcFormModel.brand,
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text(amcFormModel.tonnage.toString(),
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text(amcFormModel.modelNumber,
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text(amcFormModel.acSerialNumber,
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text(
                                 amcFormModel.compressorNumber == ""
                                     ? "-"
                                     : amcFormModel.compressorNumber,
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text(
                                 amcFormModel.workStatus == null ||
                                         amcFormModel.workStatus == ""
                                     ? "-"
                                     : amcFormModel.workStatus!,
-                                style: TextStyle(fontSize: 6/800*height)),
-                            SizedBox(height: 0.002*height),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
+                            SizedBox(height: 0.002 * height),
                             Text(amcFormModel.location,
-                                style: TextStyle(fontSize: 6/800*height)),
+                                style: TextStyle(fontSize: 6 / 800 * height)),
                             // SizedBox(height: 1.h),
                             // pw.Table.fromTextArray(
                             //     data: tableData(
@@ -284,7 +294,7 @@ class AmcPdf {
                             //     tableWidth: TableWidth.min,
                             //     cellHeight: 1.958.h,
                             // ),
-                            SizedBox(height: 0.01*height),
+                            SizedBox(height: 0.01 * height),
                           ],
                         ),
                       )
@@ -292,44 +302,48 @@ class AmcPdf {
                 pw.TableHelper.fromTextArray(
                     data: tableData(list: amcFormModel.list),
                     border: pw.TableBorder.all(),
-                    cellPadding: EdgeInsets.all(3/650*height),
+                    cellPadding: EdgeInsets.all(3 / 650 * height),
                     headerStyle: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold, fontSize: 7/650*height),
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 7 / 650 * height),
                     headerCount: 1,
-                    cellStyle: TextStyle(fontSize: 6/650*height,font: arFont),
+                    cellStyle:
+                        TextStyle(fontSize: 6 / 650 * height, font: arFont),
                     tableWidth: TableWidth.min,
-                    cellHeight: 0.1/10*height),
-                SizedBox(height: 0.01*height),
+                    cellHeight: 0.1 / 10 * height),
+                SizedBox(height: 0.01 * height),
                 Row(children: [
-                  Text("Comments:", style: TextStyle(fontSize: 7/800*height)),
-                  SizedBox(width: 0.004*width),
+                  Text("Comments:",
+                      style: TextStyle(fontSize: 7 / 800 * height)),
+                  SizedBox(width: 0.004 * width),
                   Text(
                       amcFormModel.comments == "" ? "-" : amcFormModel.comments,
-                      style: TextStyle(fontSize: 7/800*height)),
+                      style: TextStyle(fontSize: 7 / 800 * height)),
                 ]),
-                Expanded(child: SizedBox(),),
-                Column(
-                    children: [
-                      Container(height: 3 / 1000 * height , color: PdfColors.black,width: double.infinity),
-                      SizedBox(height: 0.01 * height),
-                      Text(
-                          "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
-                          style: TextStyle(
-                            fontSize: 8 / 800 * height,
-                            fontWeight: FontWeight.normal,
-                          )),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                            "Sult.srtoman@gmail.com +968 94115306",
-                            style: TextStyle(
-                              fontSize: 8 / 800 * height,
-                              fontWeight: FontWeight.normal,
-                            )
-                        ),
-                      )
-                    ]
-                )
+                Expanded(
+                  child: SizedBox(),
+                ),
+                Column(children: [
+                  Container(
+                      height: 3 / 1000 * height,
+                      color: PdfColors.black,
+                      width: double.infinity),
+                  SizedBox(height: 0.01 * height),
+                  Text(
+                      "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
+                      style: TextStyle(
+                        fontSize: 8 / 800 * height,
+                        fontWeight: FontWeight.normal,
+                      )),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text("Sult.srtoman@gmail.com +968 94115306",
+                        style: TextStyle(
+                          fontSize: 8 / 800 * height,
+                          fontWeight: FontWeight.normal,
+                        )),
+                  )
+                ])
               ]);
         });
   }
@@ -342,83 +356,190 @@ class AmcPdf {
     double width = PdfPageFormat.a4.width;
     return pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.only(top: 0.05 * height,left: 0.05 * height,right: 0.05 * height,bottom: 0.05 * height),
+        margin: pw.EdgeInsets.only(
+            top: 0.05 * height,
+            left: 0.05 * height,
+            right: 0.05 * height,
+            bottom: 0.05 * height),
         orientation: pw.PageOrientation.portrait,
         build: (pw.Context context) {
           return Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 0.01*height),
+                SizedBox(height: 0.01 * height),
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   pw.TableHelper.fromTextArray(
-                    data: tableData2(
-                        list: amcFormModel.sparesC ?? []),
-                    border: pw.TableBorder.all(),
-                    cellStyle: TextStyle(fontSize: 5/800*height),
-                    headerStyle: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold, fontSize: 6/800*height),
-                    headerCount: 1,
-                    tableWidth: TableWidth.min,
-                    cellHeight: 0.1/100*height
-                  ),
-                  SizedBox(width: 0.05*width),
+                      data: tableData2(list: amcFormModel.sparesC ?? []),
+                      border: pw.TableBorder.all(),
+                      cellStyle: TextStyle(fontSize: 5 / 800 * height),
+                      headerStyle: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 6 / 800 * height),
+                      headerCount: 1,
+                      tableWidth: TableWidth.min,
+                      cellHeight: 0.1 / 100 * height),
+                  SizedBox(width: 0.05 * width),
                   pw.TableHelper.fromTextArray(
                     data: tableData3(
-                      width: width,height: height,
+                        width: width,
+                        height: height,
                         attending: amcFormModel.attendingTechnician,
                         signture: tenantSignture),
-                    cellStyle: TextStyle(fontSize: 6/800*height),
+                    cellStyle: TextStyle(fontSize: 6 / 800 * height),
                     border: pw.TableBorder.all(),
                     headerStyle: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold,
-                      fontSize: 7/800*height,
+                      fontSize: 7 / 800 * height,
                     ),
                     headerCount: 1,
                     tableWidth: TableWidth.min,
-                    cellHeight: 0.5/100*height,
+                    cellHeight: 0.5 / 100 * height,
                   ),
-                  SizedBox(width: 0.05*width),
+                  SizedBox(width: 0.05 * width),
                   Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text("User Signture:",
-                            style: pw.TextStyle(fontSize: 8/800*height)),
-                        SizedBox(height: 0.01*height),
+                            style: pw.TextStyle(fontSize: 8 / 800 * height)),
+                        SizedBox(height: 0.01 * height),
                         Container(
                             decoration: BoxDecoration(
                               border: Border.all(),
                             ),
                             child: Padding(
-                                padding: EdgeInsets.all(5/800*height),
+                                padding: EdgeInsets.all(5 / 800 * height),
                                 child: pw.Image(pw.MemoryImage(signture),
                                     fit: pw.BoxFit.fill,
-                                    height: 0.1*height,
-                                    width: 0.1*width)))
+                                    height: 0.1 * height,
+                                    width: 0.1 * width)))
                       ])
                 ]),
-                Expanded(child: SizedBox(),),
-                Column(
+                Expanded(
+                  child: SizedBox(),
+                ),
+                Column(children: [
+                  Container(
+                      height: 3 / 1000 * height,
+                      color: PdfColors.black,
+                      width: double.infinity),
+                  SizedBox(height: 0.01 * height),
+                  Text(
+                      "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
+                      style: TextStyle(
+                        fontSize: 8 / 800 * height,
+                        fontWeight: FontWeight.normal,
+                      )),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text("Sult.srtoman@gmail.com +968 94115306",
+                        style: TextStyle(
+                          fontSize: 8 / 800 * height,
+                          fontWeight: FontWeight.normal,
+                        )),
+                  )
+                ])
+              ]);
+        });
+  }
+
+  static Future<Page> _createSignaturePage(
+      {required AmcFormModel amcFormModel}) async {
+    final Uint8List signture = stringToByteList(amcFormModel.signature!);
+    final Uint8List tenantSignture =
+        stringToByteList(amcFormModel.tenantRepresentative);
+    double height = PdfPageFormat.a4.height;
+    double width = PdfPageFormat.a4.width;
+    return pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.only(
+            top: 0.05 * height,
+            left: 0.05 * height,
+            right: 0.05 * height,
+            bottom: 0.05 * height),
+        orientation: pw.PageOrientation.portrait,
+        build: (pw.Context context) {
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: 0.02 * height),
+                Text("SIGNATURE PAGE",
+                    style: pw.TextStyle(
+                        fontSize: 12 / 800 * height,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 0.05 * height),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Container(height: 3 / 1000 * height , color: PdfColors.black,width: double.infinity),
-                      SizedBox(height: 0.01 * height),
-                      Text(
-                          "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
-                          style: TextStyle(
-                            fontSize: 8 / 800 * height,
-                            fontWeight: FontWeight.normal,
-                          )),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                            "Sult.srtoman@gmail.com +968 94115306",
-                            style: TextStyle(
-                              fontSize: 8 / 800 * height,
-                              fontWeight: FontWeight.normal,
-                            )
-                        ),
-                      )
-                    ]
-                )
+                      Column(children: [
+                        Text("User Signature:",
+                            style: pw.TextStyle(fontSize: 8 / 800 * height)),
+                        SizedBox(height: 0.01 * height),
+                        Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(),
+                            ),
+                            child: Padding(
+                                padding: EdgeInsets.all(5 / 800 * height),
+                                child: pw.Image(pw.MemoryImage(signture),
+                                    fit: pw.BoxFit.fill,
+                                    height: 0.15 * height,
+                                    width: 0.2 * width)))
+                      ]),
+                      Column(children: [
+                        Text("Tenant Representative:",
+                            style: pw.TextStyle(fontSize: 8 / 800 * height)),
+                        SizedBox(height: 0.01 * height),
+                        Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(),
+                            ),
+                            child: Padding(
+                                padding: EdgeInsets.all(5 / 800 * height),
+                                child: pw.Image(pw.MemoryImage(tenantSignture),
+                                    fit: pw.BoxFit.fill,
+                                    height: 0.15 * height,
+                                    width: 0.2 * width)))
+                      ])
+                    ]),
+                SizedBox(height: 0.05 * height),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text("_________________",
+                          style: pw.TextStyle(fontSize: 8 / 800 * height)),
+                      Text("_________________",
+                          style: pw.TextStyle(fontSize: 8 / 800 * height))
+                    ]),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text("Date & Time",
+                          style: pw.TextStyle(fontSize: 7 / 800 * height)),
+                      Text("Date & Time",
+                          style: pw.TextStyle(fontSize: 7 / 800 * height))
+                    ]),
+                Expanded(child: SizedBox()),
+                Column(children: [
+                  Container(
+                      height: 3 / 1000 * height,
+                      color: PdfColors.black,
+                      width: double.infinity),
+                  SizedBox(height: 0.01 * height),
+                  Text(
+                      "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
+                      style: TextStyle(
+                        fontSize: 8 / 800 * height,
+                        fontWeight: FontWeight.normal,
+                      )),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text("Sult.srtoman@gmail.com +968 94115306",
+                        style: TextStyle(
+                          fontSize: 8 / 800 * height,
+                          fontWeight: FontWeight.normal,
+                        )),
+                  )
+                ])
               ]);
         });
   }
@@ -489,21 +610,27 @@ List<List<dynamic>> tableData3({
     attending,
     Center(
         child: Padding(
-            padding: pw.EdgeInsets.all(1/800*height),
+            padding: pw.EdgeInsets.all(1 / 800 * height),
             child: pw.Image(pw.MemoryImage(signture),
-                fit: pw.BoxFit.fill, height: 0.1*height, width: 0.1*width))),
+                fit: pw.BoxFit.fill,
+                height: 0.1 * height,
+                width: 0.1 * width))),
   ]);
   return tableData;
 }
 
-List<List<String>> tableData2(
-    {required List<SpareCModel> list}) {
+List<List<String>> tableData2({required List<SpareCModel> list}) {
   List<List<String>> tableData2 = [];
   if (list.isNotEmpty) {
     tableData2.add(['Spares and Consumables', 'Qty']);
     for (var element in list) {
-        tableData2.add([element.spareName, element.quantity.toString()]);
+      tableData2.add([element.spareName, element.quantity.toString()]);
     }
   }
   return tableData2;
+}
+
+Uint8List stringToByteList(String encodedImage) {
+  final decodedBytes = base64Decode(encodedImage);
+  return Uint8List.fromList(decodedBytes);
 }
