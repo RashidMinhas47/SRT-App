@@ -1019,7 +1019,7 @@ List<List<dynamic>> tableDataForRange({
     if (element.serviceTypes != null && element.serviceTypes!.length == 1) {
       tableData.add([
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.subCategory,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1027,7 +1027,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.make,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1035,7 +1035,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.model,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1043,7 +1043,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.serialNumber,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1051,7 +1051,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.location,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1059,7 +1059,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-            width: 0.25 * width,
+            width: 0.2 * width,
             child: Text(element.serviceTypes![0].serviceTypeName,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1067,7 +1067,7 @@ List<List<dynamic>> tableDataForRange({
                   fontSize: 7 / 1000 * height,
                 ))),
         Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text("${element.serviceTypes![0].quantity}",
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1075,7 +1075,7 @@ List<List<dynamic>> tableDataForRange({
                   fontSize: 7 / 1000 * height,
                 ))),
         Container(
-          width: 0.1 * width,
+          width: 0.2 * width,
           child: Text(element.description,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1087,7 +1087,7 @@ List<List<dynamic>> tableDataForRange({
         element.serviceTypes!.length > 1) {
       tableData.add([
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.subCategory,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1095,7 +1095,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.make,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1103,7 +1103,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.model,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1111,7 +1111,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.serialNumber,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1119,7 +1119,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.08 * width,
+          width: 0.06 * width,
           child: Text(element.location,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1127,7 +1127,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-            width: 0.25 * width,
+            width: 0.2 * width,
             child: Text(element.serviceTypes![0].serviceTypeName,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1135,7 +1135,7 @@ List<List<dynamic>> tableDataForRange({
                   fontSize: 7 / 1000 * height,
                 ))),
         Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text("${element.serviceTypes![0].quantity}",
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1143,7 +1143,7 @@ List<List<dynamic>> tableDataForRange({
                   fontSize: 7 / 1000 * height,
                 ))),
         Container(
-          width: 0.1 * width,
+          width: 0.2 * width,
           child: Text(element.description,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1159,7 +1159,7 @@ List<List<dynamic>> tableDataForRange({
           "",
           "",
           Container(
-              width: 0.25 * width,
+              width: 0.2 * width,
               child: Text(element.serviceTypes![index].serviceTypeName,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -1167,7 +1167,7 @@ List<List<dynamic>> tableDataForRange({
                     fontSize: 7 / 1000 * height,
                   ))),
           Container(
-              width: 0.08 * width,
+              width: 0.06 * width,
               child: Text("${element.serviceTypes![index].quantity}",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -1197,7 +1197,7 @@ List<List<dynamic>> tableData(
       if (element.serviceTypes != null && element.serviceTypes!.length == 1) {
         tableData.add([
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.subCategory,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1205,7 +1205,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.make,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1213,7 +1213,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.model,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1221,7 +1221,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.serialNumber,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1229,7 +1229,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.location,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1237,7 +1237,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-              width: 0.25 * width,
+              width: 0.2 * width,
               child: Text(element.serviceTypes![0].serviceTypeName,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -1245,7 +1245,7 @@ List<List<dynamic>> tableData(
                     fontSize: 7 / 1000 * height,
                   ))),
           Container(
-              width: 0.08 * width,
+              width: 0.06 * width,
               child: Text("${element.serviceTypes![0].quantity}",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -1253,7 +1253,7 @@ List<List<dynamic>> tableData(
                     fontSize: 7 / 1000 * height,
                   ))),
           Container(
-            width: 0.1 * width,
+            width: 0.2 * width,
             child: Text(element.description,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1265,7 +1265,7 @@ List<List<dynamic>> tableData(
           element.serviceTypes!.isNotEmpty) {
         tableData.add([
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.subCategory,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1273,7 +1273,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.make,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1281,7 +1281,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.model,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1289,7 +1289,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.serialNumber,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1297,7 +1297,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-            width: 0.08 * width,
+            width: 0.06 * width,
             child: Text(element.location,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1305,7 +1305,7 @@ List<List<dynamic>> tableData(
                 )),
           ),
           Container(
-              width: 0.25 * width,
+              width: 0.2 * width,
               child: Text(element.serviceTypes![0].serviceTypeName,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -1313,7 +1313,7 @@ List<List<dynamic>> tableData(
                     fontSize: 7 / 1000 * height,
                   ))),
           Container(
-              width: 0.08 * width,
+              width: 0.06 * width,
               child: Text("${element.serviceTypes![0].quantity}",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -1321,7 +1321,7 @@ List<List<dynamic>> tableData(
                     fontSize: 7 / 1000 * height,
                   ))),
           Container(
-            width: 0.1 * width,
+            width: 0.2 * width,
             child: Text(element.description,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1337,7 +1337,7 @@ List<List<dynamic>> tableData(
             "",
             "",
             Container(
-                width: 0.25 * width,
+                width: 0.2 * width,
                 child: Text(element.serviceTypes![index].serviceTypeName,
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -1345,7 +1345,7 @@ List<List<dynamic>> tableData(
                       fontSize: 7 / 1000 * height,
                     ))),
             Container(
-                width: 0.08 * width,
+                width: 0.06 * width,
                 child: Text("${element.serviceTypes![index].quantity}",
                     textAlign: TextAlign.center,
                     style: TextStyle(
