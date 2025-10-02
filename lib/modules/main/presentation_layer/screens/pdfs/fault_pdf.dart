@@ -40,9 +40,11 @@ class FaultPdf {
     }
     _heightOfPdf = totalHeight;
 
-    // First page can hold more entries (around 15-20) since it has more space
-    const int entriesPerFirstPage = 18;
-    const int entriesPerAdditionalPage = 15;
+    // First page can hold many more entries since it has more space after header
+    const int entriesPerFirstPage =
+        35; // Increased significantly to fill available space
+    const int entriesPerAdditionalPage =
+        20; // Additional pages can also hold more
 
     // Calculate how many entries fit on the first page
     int entriesOnFirstPage = 0;
@@ -525,13 +527,13 @@ class FaultPdf {
                             Expanded(child: SizedBox(width: 0.02 * width)),
                           ]),
                     ),
-                    SizedBox(height: 0.005 * height),
+                    SizedBox(height: 0.003 * height),
                   ],
                 ),
                 Text(
                     "M/S = Major Service, R/S = Routine Service, F/U = Follow up, C/O = Call Out, INSP = Inspection, R/C = Repeat Call",
-                    style: pw.TextStyle(fontSize: 8 / 1000 * height)),
-                SizedBox(height: 0.005 * height),
+                    style: pw.TextStyle(fontSize: 7 / 1000 * height)),
+                SizedBox(height: 0.003 * height),
                 pw.TableHelper.fromTextArray(
                   data: tableDataForRange(
                       list: faultFormModels,
@@ -549,9 +551,7 @@ class FaultPdf {
                   ),
                   tableWidth: TableWidth.max,
                 ),
-                Expanded(
-                  child: SizedBox(),
-                ),
+                SizedBox(height: 0.02 * height),
                 Column(children: [
                   Container(
                       height: 3 / 1000 * height,
