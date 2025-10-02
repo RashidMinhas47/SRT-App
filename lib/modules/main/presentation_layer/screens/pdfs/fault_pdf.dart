@@ -739,6 +739,7 @@ class FaultPdf {
         build: (pw.Context context) {
           return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: pw.MainAxisAlignment.start,
               children: [
                 SizedBox(height: 0.02 * height),
                 Text(
@@ -813,9 +814,7 @@ class FaultPdf {
                                 height: 0.12 * height,
                                 width: 0.15 * width)))
                   ]),
-                Expanded(
-                  child: SizedBox(),
-                ),
+                SizedBox(height: 0.05 * height),
                 Column(children: [
                   Container(
                       height: 3 / 1000 * height,

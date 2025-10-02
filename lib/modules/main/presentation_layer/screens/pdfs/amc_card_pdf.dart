@@ -12,8 +12,10 @@ import 'package:pdf/widgets.dart' as pw;
 class AmcCardPdf {
   static late Font arFont;
   static init() async {
-    arFont = Font.ttf((await rootBundle.load("assets/fonts/IBMPlexSansArabic-Regular.ttf")));
+    arFont = Font.ttf(
+        (await rootBundle.load("assets/fonts/IBMPlexSansArabic-Regular.ttf")));
   }
+
   static Future<String> createPdf({
     required List<AmcAcCheckList> amcAcCheckList,
     required String propertySite,
@@ -36,14 +38,19 @@ class AmcCardPdf {
     final ByteData bytes = await rootBundle.load("assets/images/logo.png");
     final Uint8List byteList = bytes.buffer.asUint8List();
     final Uint8List signture = stringToByteList(amcAcCheckList.last.signature);
-    final Uint8List tenantSignture = stringToByteList(amcAcCheckList.last.tenantRepresentative);
+    final Uint8List tenantSignture =
+        stringToByteList(amcAcCheckList.last.tenantRepresentative);
     DateTime dateTime = DateTime.parse(amcAcCheckList[0].writeDate);
     dateTime = dateTime.add(const Duration(hours: 4));
     double height = PdfPageFormat.a4.height;
     double width = PdfPageFormat.a4.width;
     return pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.only(top: 0.05 * height,left: 0.05 * height,right: 0.05 * height,bottom: 0.05 * height),
+        margin: pw.EdgeInsets.only(
+            top: 0.05 * height,
+            left: 0.05 * height,
+            right: 0.05 * height,
+            bottom: 0.05 * height),
         orientation: pw.PageOrientation.portrait,
         build: (pw.Context context) {
           return Column(
@@ -61,8 +68,7 @@ class AmcCardPdf {
                     Column(children: [
                       Align(
                         alignment: Alignment.center,
-                        child: Text(
-                            "AMC CALL-OUT",
+                        child: Text("AMC CALL-OUT",
                             style: pw.TextStyle(
                                 fontSize: 8 / 550 * height,
                                 fontWeight: FontWeight.bold)),
@@ -85,109 +91,137 @@ class AmcCardPdf {
                       SizedBox(height: 0.01 * height),
                     ]),
                   ]),
-                  Container(height: 3 / 1000 * height , color: PdfColors.black,width: double.infinity),
+                  Container(
+                      height: 3 / 1000 * height,
+                      color: PdfColors.black,
+                      width: double.infinity),
                   SizedBox(height: 0.01 * height),
                   Text("AC Complaint Log – In Details",
                       style: TextStyle(
-                        fontSize: 10/1000*height,
-                        fontWeight: FontWeight.bold,
-                        font: arFont
-                      )),
+                          fontSize: 10 / 1000 * height,
+                          fontWeight: FontWeight.bold,
+                          font: arFont)),
                   Column(children: [
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                     Container(
-                      height: 0.0005*height,
+                      height: 0.0005 * height,
                       width: double.infinity,
                       color: PdfColors.black,
                     ),
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                   ]),
                   Row(children: [
-                    Expanded(child: Text("Date: ",style: TextStyle(fontSize: 8/1000*height))),
-                    Expanded(child: Text(DateFormat.yMd().format(dateTime),style: TextStyle(fontSize: 8/1000*height))),
-                    Expanded(child: Text("time: ",style: TextStyle(fontSize: 8/1000*height))),
-                    Expanded(child: Text(DateFormat.Hm().format(dateTime),style: TextStyle(fontSize: 8/1000*height))),
-                  ]),
-                  Column(children: [
-                    SizedBox(height: 0.002*height),
-                    Container(
-                      height: 0.0005*height,
-                      width: double.infinity,
-                      color: PdfColors.black,
-                    ),
-                    SizedBox(height: 0.002*height),
-                  ]),
-                  Row(children: [
-                    Expanded(child: Text("Property / Site:",style: TextStyle(fontSize: 8/1000*height))),
-                    Expanded(child: Text(propertySite,style: TextStyle(fontSize: 8/1000*height))),
-                  ]),
-                  Column(children: [
-                    SizedBox(height: 0.002*height),
-                    Container(
-                      height: 0.0005*height,
-                      width: double.infinity,
-                      color: PdfColors.black,
-                    ),
-                    SizedBox(height: 0.002*height),
-                  ]),
-                  Row(children: [
-                    Expanded(child: Text("Flat Number:",style: TextStyle(fontSize: 8/1000*height))),
-                    Expanded(child: Text(amcAcCheckList[0].flatNumber,style: TextStyle(fontSize: 8/1000*height))),
-                  ]),
-                  Column(children: [
-                    SizedBox(height: 0.002*height),
-                    Container(
-                      height: 0.0005*height,
-                      width: double.infinity,
-                      color: PdfColors.black,
-                    ),
-                    SizedBox(height: 0.002*height),
-                  ]),
-                  Row(children: [
-                    Expanded(child: Text("Date/Time Completed:",style: TextStyle(fontSize: 8/1000*height))),
                     Expanded(
-                        child: Text(DateFormat('yyyy-MM-dd HH:mm')
-                            .format(DateTime.now())
-                            .toString(),style: TextStyle(fontSize: 8/1000*height))),
+                        child: Text("Date: ",
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                    Expanded(
+                        child: Text(DateFormat.yMd().format(dateTime),
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                    Expanded(
+                        child: Text("time: ",
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                    Expanded(
+                        child: Text(DateFormat.Hm().format(dateTime),
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
                   ]),
                   Column(children: [
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
                     Container(
-                      height: 0.0005*height,
+                      height: 0.0005 * height,
                       width: double.infinity,
                       color: PdfColors.black,
                     ),
-                    SizedBox(height: 0.002*height),
+                    SizedBox(height: 0.002 * height),
+                  ]),
+                  Row(children: [
+                    Expanded(
+                        child: Text("Property / Site:",
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                    Expanded(
+                        child: Text(propertySite,
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                  ]),
+                  Column(children: [
+                    SizedBox(height: 0.002 * height),
+                    Container(
+                      height: 0.0005 * height,
+                      width: double.infinity,
+                      color: PdfColors.black,
+                    ),
+                    SizedBox(height: 0.002 * height),
+                  ]),
+                  Row(children: [
+                    Expanded(
+                        child: Text("Flat Number:",
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                    Expanded(
+                        child: Text(amcAcCheckList[0].flatNumber,
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                  ]),
+                  Column(children: [
+                    SizedBox(height: 0.002 * height),
+                    Container(
+                      height: 0.0005 * height,
+                      width: double.infinity,
+                      color: PdfColors.black,
+                    ),
+                    SizedBox(height: 0.002 * height),
+                  ]),
+                  Row(children: [
+                    Expanded(
+                        child: Text("Date/Time Completed:",
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                    Expanded(
+                        child: Text(
+                            DateFormat('yyyy-MM-dd HH:mm')
+                                .format(DateTime.now())
+                                .toString(),
+                            style: TextStyle(fontSize: 8 / 1000 * height))),
+                  ]),
+                  Column(children: [
+                    SizedBox(height: 0.002 * height),
+                    Container(
+                      height: 0.0005 * height,
+                      width: double.infinity,
+                      color: PdfColors.black,
+                    ),
+                    SizedBox(height: 0.002 * height),
                   ]),
                   Align(
                     alignment: Alignment.center,
                     child: Text(
-                        "AIR CONDITIONING MAINTENANCE CHECKLIST (QUARTERLY ROUTINE)",style: TextStyle(fontSize: 8/1000*height)),
+                        "AIR CONDITIONING MAINTENANCE CHECKLIST (QUARTERLY ROUTINE)",
+                        style: TextStyle(fontSize: 8 / 1000 * height)),
                   ),
-                  SizedBox(height: 0.01*height),
+                  SizedBox(height: 0.01 * height),
                 ]),
                 Row(children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Type of AC: ",style: TextStyle(fontSize: 7/1000*height)),
-                      SizedBox(height: 0.004*height),
-                      Text("Model Number:",style: TextStyle(fontSize: 7/1000*height)),
-                      SizedBox(height: 0.004*height),
-                      Text("AC Serial Number:",style: TextStyle(fontSize: 7/1000*height)),
-                      SizedBox(height: 0.004*height),
-                      Text("Location:",style: TextStyle(fontSize: 7/1000*height)),
-                      SizedBox(height: 0.01*height),
+                      Text("Type of AC: ",
+                          style: TextStyle(fontSize: 7 / 1000 * height)),
+                      SizedBox(height: 0.004 * height),
+                      Text("Model Number:",
+                          style: TextStyle(fontSize: 7 / 1000 * height)),
+                      SizedBox(height: 0.004 * height),
+                      Text("AC Serial Number:",
+                          style: TextStyle(fontSize: 7 / 1000 * height)),
+                      SizedBox(height: 0.004 * height),
+                      Text("Location:",
+                          style: TextStyle(fontSize: 7 / 1000 * height)),
+                      SizedBox(height: 0.01 * height),
                       pw.TableHelper.fromTextArray(
                           data: tableData1,
                           border: pw.TableBorder.all(),
-                          cellPadding: EdgeInsets.all(3/674*height),
-                          headerStyle:
-                          pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 6/674*height),
+                          cellPadding: EdgeInsets.all(3 / 674 * height),
+                          headerStyle: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 6 / 674 * height),
                           headerCount: 1,
-                          cellStyle: TextStyle(fontSize: 5/674*height),
+                          cellStyle: TextStyle(fontSize: 5 / 674 * height),
                           tableWidth: TableWidth.max,
-                          cellHeight: 0.1/10*height),
+                          cellHeight: 0.1 / 10 * height),
                     ],
                   ),
                   Expanded(
@@ -196,91 +230,113 @@ class AmcCardPdf {
                           itemBuilder: (context, index) => Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(amcAcCheckList[index].acType,style: TextStyle(fontSize: 7/1000*height)),
-                                  SizedBox(height: 0.004*height),
-                                  Text(amcAcCheckList[index].modelNumber,style: TextStyle(fontSize: 7/1000*height)),
-                                  SizedBox(height: 0.004*height),
-                                  Text(amcAcCheckList[index].acSerialNumber,style: TextStyle(fontSize: 7/1000*height)),
-                                  SizedBox(height: 0.004*height),
-                                  Text(amcAcCheckList[index].location,style: TextStyle(fontSize: 7/1000*height)),
-                                  SizedBox(height: 0.01*height),
+                                  Text(amcAcCheckList[index].acType,
+                                      style: TextStyle(
+                                          fontSize: 7 / 1000 * height)),
+                                  SizedBox(height: 0.004 * height),
+                                  Text(amcAcCheckList[index].modelNumber,
+                                      style: TextStyle(
+                                          fontSize: 7 / 1000 * height)),
+                                  SizedBox(height: 0.004 * height),
+                                  Text(amcAcCheckList[index].acSerialNumber,
+                                      style: TextStyle(
+                                          fontSize: 7 / 1000 * height)),
+                                  SizedBox(height: 0.004 * height),
+                                  Text(amcAcCheckList[index].location,
+                                      style: TextStyle(
+                                          fontSize: 7 / 1000 * height)),
+                                  SizedBox(height: 0.01 * height),
                                   pw.TableHelper.fromTextArray(
-                                    data:tableData(list: amcAcCheckList[index].list),
+                                    data: tableData(
+                                        list: amcAcCheckList[index].list),
                                     border: pw.TableBorder.all(),
-                                    cellStyle: TextStyle(fontSize: 5/1000*height),
-                                    cellPadding: EdgeInsets.all(3/1000*height),
+                                    cellStyle:
+                                        TextStyle(fontSize: 5 / 1000 * height),
+                                    cellPadding:
+                                        EdgeInsets.all(3 / 1000 * height),
                                     headerStyle: pw.TextStyle(
-                                      fontWeight: pw.FontWeight.bold,fontSize: 6/1000*height,),
+                                      fontWeight: pw.FontWeight.bold,
+                                      fontSize: 6 / 1000 * height,
+                                    ),
                                     headerCount: 1,
                                     tableWidth: TableWidth.min,
-                                    cellHeight: 1.76/100*height,
+                                    cellHeight: 1.76 / 100 * height,
                                   ),
                                 ],
                               ),
                           separatorBuilder: (context, index) =>
-                              SizedBox(width: 0.01*width),
+                              SizedBox(width: 0.01 * width),
                           itemCount: amcAcCheckList.length)),
                 ]),
-                SizedBox(height: 0.01*height),
+                SizedBox(height: 0.01 * height),
                 pw.TableHelper.fromTextArray(
-                  data: tableData2(height: height,width: width,attending: amcAcCheckList.last.attendingTechnician, signture: tenantSignture),
-                  cellStyle: TextStyle(fontSize: 5/1000*height),
+                  data: tableData2(
+                      height: height,
+                      width: width,
+                      attending: amcAcCheckList.last.attendingTechnician,
+                      signture: tenantSignture),
+                  cellStyle: TextStyle(fontSize: 5 / 1000 * height),
                   border: pw.TableBorder.all(),
                   headerStyle: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,fontSize: 6/1000*height,),
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 6 / 1000 * height,
+                  ),
                   headerCount: 1,
                   tableWidth: TableWidth.min,
-                  cellHeight: 0.5/100*height,
+                  cellHeight: 0.5 / 100 * height,
                 ),
-                SizedBox(height: 0.01*height),
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                 children: [
-                   Row(children: [
-                     Text("Comments:",style: TextStyle(fontSize: 8/1000*height)),
-                     SizedBox(width: 0.04*width),
-                     Text(amcAcCheckList.last.comments==""?"-":amcAcCheckList.last
-                         .comments,style: TextStyle(fontSize: 8/1000*height)),
-                   ]),
-                   Row(children: [
-                     Text("User Signture:", style: pw.TextStyle(fontSize: 8/1000*height)),
-                     SizedBox(width: 0.04*width),
-                     Container(
-                         decoration: BoxDecoration(
-                           border: Border.all(),
-                         ),
-                         child: Padding(
-                             padding: EdgeInsets.all(5/1000*height),child: pw.Image(pw.MemoryImage(signture),
-                             fit: pw.BoxFit. fill, height: 0.08*height,
-                             width: 0.15*width
-                         ))
-                     )
-                   ]),
-                 ]
-               ),
-                Expanded(child: SizedBox(),),
-                Column(
+                SizedBox(height: 0.01 * height),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(height: 3 / 1000 * height , color: PdfColors.black,width: double.infinity),
-                      SizedBox(height: 0.01 * height),
-                      Text(
-                          "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
-                          style: TextStyle(
-                            fontSize: 8 / 800 * height,
-                            fontWeight: FontWeight.normal,
-                          )),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                            "Sult.srtoman@gmail.com +968 94115306",
-                            style: TextStyle(
-                              fontSize: 8 / 800 * height,
-                              fontWeight: FontWeight.normal,
-                            )
-                        ),
-                      )
-                    ]
-                )
+                      Row(children: [
+                        Text("Comments:",
+                            style: TextStyle(fontSize: 8 / 1000 * height)),
+                        SizedBox(width: 0.04 * width),
+                        Text(
+                            amcAcCheckList.last.comments == ""
+                                ? "-"
+                                : amcAcCheckList.last.comments,
+                            style: TextStyle(fontSize: 8 / 1000 * height)),
+                      ]),
+                      Row(children: [
+                        Text("User Signture:",
+                            style: pw.TextStyle(fontSize: 8 / 1000 * height)),
+                        SizedBox(width: 0.04 * width),
+                        Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(),
+                            ),
+                            child: Padding(
+                                padding: EdgeInsets.all(5 / 1000 * height),
+                                child: pw.Image(pw.MemoryImage(signture),
+                                    fit: pw.BoxFit.fill,
+                                    height: 0.08 * height,
+                                    width: 0.15 * width)))
+                      ]),
+                    ]),
+                SizedBox(height: 0.05 * height),
+                Column(children: [
+                  Container(
+                      height: 3 / 1000 * height,
+                      color: PdfColors.black,
+                      width: double.infinity),
+                  SizedBox(height: 0.01 * height),
+                  Text(
+                      "CR. No: 1226283, VATIN: OM1100040978, P.O: Box:1635, P.C. 119, Al Amera Phase 1, Muscat, Sultanate of Oman",
+                      style: TextStyle(
+                        fontSize: 8 / 800 * height,
+                        fontWeight: FontWeight.normal,
+                      )),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text("Sult.srtoman@gmail.com +968 94115306",
+                        style: TextStyle(
+                          fontSize: 8 / 800 * height,
+                          fontWeight: FontWeight.normal,
+                        )),
+                  )
+                ])
               ]);
         });
   }
@@ -349,11 +405,13 @@ List<List<dynamic>> tableData2({
 }) {
   List<List<dynamic>> tableData = [];
   tableData.add(headers);
-  tableData.add([attending,  Padding(padding: pw.EdgeInsets.all(5/1000*height),child: pw.Image(pw.MemoryImage(signture),
-  fit: pw.BoxFit. fill,
-  height: 0.08*height,
-  width: 0.1*width
-  )),]);
+  tableData.add([
+    attending,
+    Padding(
+        padding: pw.EdgeInsets.all(5 / 1000 * height),
+        child: pw.Image(pw.MemoryImage(signture),
+            fit: pw.BoxFit.fill, height: 0.08 * height, width: 0.1 * width)),
+  ]);
   return tableData;
 }
 

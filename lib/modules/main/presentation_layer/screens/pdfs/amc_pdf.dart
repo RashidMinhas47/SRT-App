@@ -460,6 +460,7 @@ class AmcPdf {
         build: (pw.Context context) {
           return Column(
               crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: pw.MainAxisAlignment.start,
               children: [
                 SizedBox(height: 0.02 * height),
                 Text("SIGNATURE PAGE",
@@ -518,7 +519,7 @@ class AmcPdf {
                       Text("Date & Time",
                           style: pw.TextStyle(fontSize: 7 / 800 * height))
                     ]),
-                Expanded(child: SizedBox()),
+                SizedBox(height: 0.05 * height),
                 Column(children: [
                   Container(
                       height: 3 / 1000 * height,
