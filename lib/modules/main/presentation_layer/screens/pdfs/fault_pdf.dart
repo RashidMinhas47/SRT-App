@@ -52,6 +52,10 @@ class FaultPdf {
         faultFormModels: faultFormModels,
       ));
     }
+    // Always add signature page after report tables
+    pdf.addPage(await _createSignaturePage(
+      faultFormModels: faultFormModels,
+    ));
     // Check if there are any photos to add
     bool hasPhotos = false;
     for (var faultFormModel in faultFormModels) {
@@ -63,21 +67,17 @@ class FaultPdf {
         break;
       }
     }
-    // Add signature page only if there are photos, right before the photos
+    // Add photo pages after signature (only if photos exist)
     if (hasPhotos) {
-      pdf.addPage(await _createSignaturePage(
-        faultFormModels: faultFormModels,
-      ));
-    }
-    // Add photo pages after signature
-    for (var faultFormModel in faultFormModels) {
-      if ((faultFormModel.beforePhotos != null &&
-              faultFormModel.beforePhotos!.isNotEmpty) ||
-          (faultFormModel.afterPhotos != null &&
-              faultFormModel.afterPhotos!.isNotEmpty)) {
-        pdf.addPage(await _createPagePhoto(
-          faultFormModel: faultFormModel,
-        ));
+      for (var faultFormModel in faultFormModels) {
+        if ((faultFormModel.beforePhotos != null &&
+                faultFormModel.beforePhotos!.isNotEmpty) ||
+            (faultFormModel.afterPhotos != null &&
+                faultFormModel.afterPhotos!.isNotEmpty)) {
+          pdf.addPage(await _createPagePhoto(
+            faultFormModel: faultFormModel,
+          ));
+        }
       }
     }
     Uint8List bytes = await pdf.save();
@@ -92,8 +92,6 @@ class FaultPdf {
   }) async {
     final ByteData bytes = await rootBundle.load("assets/images/logo.png");
     final Uint8List byteList = bytes.buffer.asUint8List();
-    final Uint8List signture =
-        stringToByteList(faultFormModels.last.signaturePhoto);
     DateTime dateTime = DateTime.parse(jobCardModel.writeDate);
     dateTime = dateTime.add(const Duration(hours: 4));
     double height = PdfPageFormat.a4.height;
@@ -568,23 +566,6 @@ class FaultPdf {
                                       fontSize: 8 / 1000 * height))),
                         ]),
                         SizedBox(height: 0.01 * height),
-                        if (signture.isNotEmpty)
-                          Row(children: [
-                            Text("Customer Signture:",
-                                style:
-                                    pw.TextStyle(fontSize: 8 / 1000 * height)),
-                            SizedBox(width: 0.04 * width),
-                            Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(),
-                                ),
-                                child: Padding(
-                                    padding: EdgeInsets.all(5 / 1000 * height),
-                                    child: pw.Image(pw.MemoryImage(signture),
-                                        fit: pw.BoxFit.fill,
-                                        height: 0.08 * height,
-                                        width: 0.1 * width)))
-                          ]),
                       ])
                     : Container(),
                 Expanded(
