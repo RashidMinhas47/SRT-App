@@ -52,6 +52,11 @@ class FaultPdf {
         faultFormModels: faultFormModels,
       ));
     }
+    // Add signature page after report tables but before photos
+    pdf.addPage(await _createSignaturePage(
+      faultFormModels: faultFormModels,
+    ));
+    // Add photo pages after signature
     for (var faultFormModel in faultFormModels) {
       if ((faultFormModel.beforePhotos != null &&
               faultFormModel.beforePhotos!.isNotEmpty) ||
@@ -62,10 +67,6 @@ class FaultPdf {
         ));
       }
     }
-    // Always add signature page at the end to ensure signature is always visible
-    pdf.addPage(await _createSignaturePage(
-      faultFormModels: faultFormModels,
-    ));
     Uint8List bytes = await pdf.save();
     await file.writeAsBytes(bytes);
     // OpenFile.open(file.path);
