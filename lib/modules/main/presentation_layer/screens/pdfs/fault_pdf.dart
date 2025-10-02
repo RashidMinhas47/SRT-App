@@ -52,10 +52,23 @@ class FaultPdf {
         faultFormModels: faultFormModels,
       ));
     }
-    // Add signature page after report tables but before photos
-    pdf.addPage(await _createSignaturePage(
-      faultFormModels: faultFormModels,
-    ));
+    // Check if there are any photos to add
+    bool hasPhotos = false;
+    for (var faultFormModel in faultFormModels) {
+      if ((faultFormModel.beforePhotos != null &&
+              faultFormModel.beforePhotos!.isNotEmpty) ||
+          (faultFormModel.afterPhotos != null &&
+              faultFormModel.afterPhotos!.isNotEmpty)) {
+        hasPhotos = true;
+        break;
+      }
+    }
+    // Add signature page only if there are photos, right before the photos
+    if (hasPhotos) {
+      pdf.addPage(await _createSignaturePage(
+        faultFormModels: faultFormModels,
+      ));
+    }
     // Add photo pages after signature
     for (var faultFormModel in faultFormModels) {
       if ((faultFormModel.beforePhotos != null &&
