@@ -34,23 +34,39 @@ class FaultPdf {
       jobCardModel: jobCardModel,
       faultFormModels: faultFormModels,
     ));
-    int i = 0;
-    _heightOfPdf = 0;
-    _serviceTypeIndex = 0;
+    // Calculate total height and determine if we need multiple pages
+    int totalHeight = 0;
     for (var element in faultFormModels) {
-      i++;
       if (element.serviceTypes != null) {
-        _heightOfPdf += element.serviceTypes!.length;
-        if (_heightOfPdf >= 10) {
-          _serviceTypeIndex = i - 1;
-          break;
-        }
+        totalHeight += element.serviceTypes!.length;
       }
     }
-    if (_heightOfPdf >= 10) {
+
+    // If we have more than 10 entries, we need to split across pages
+    if (totalHeight > 10) {
+      // Find the split point (around 10 entries)
+      int currentHeight = 0;
+      int splitIndex = 0;
+      for (int i = 0; i < faultFormModels.length; i++) {
+        if (faultFormModels[i].serviceTypes != null) {
+          currentHeight += faultFormModels[i].serviceTypes!.length;
+          if (currentHeight >= 10) {
+            splitIndex = i;
+            break;
+          }
+        }
+      }
+      _serviceTypeIndex = splitIndex;
+      _heightOfPdf = totalHeight;
+
+      // Add Page 2 with remaining entries
       pdf.addPage(await _createPage2(
         faultFormModels: faultFormModels,
       ));
+    } else {
+      // All entries fit on one page
+      _heightOfPdf = totalHeight;
+      _serviceTypeIndex = faultFormModels.length;
     }
     // Always add signature page after report tables
     pdf.addPage(await _createSignaturePage(
@@ -540,25 +556,22 @@ class FaultPdf {
           return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _heightOfPdf >= 10
-                    ? pw.TableHelper.fromTextArray(
-                        data: tableData(
-                            list: faultFormModels,
-                            flag: false,
-                            width: width,
-                            height: height),
-                        border: pw.TableBorder.all(),
-                        headerCount: 1,
-                        // cellPadding: EdgeInsets.zero,
-                        headerStyle: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 8 / 1000 * height),
-                        cellStyle: TextStyle(
-                          fontSize: 7 / 1000 * height,
-                        ),
-                        tableWidth: TableWidth.max,
-                      )
-                    : Container(),
+                pw.TableHelper.fromTextArray(
+                  data: tableData(
+                      list: faultFormModels,
+                      flag: false,
+                      width: width,
+                      height: height),
+                  border: pw.TableBorder.all(),
+                  headerCount: 1,
+                  headerStyle: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 8 / 1000 * height),
+                  cellStyle: TextStyle(
+                    fontSize: 7 / 1000 * height,
+                  ),
+                  tableWidth: TableWidth.max,
+                ),
                 SizedBox(height: 0.01 * height),
                 Text(
                     "*Comments as follows : C =Completed, I/P = In Progress, F/U = To be followed up, U/O = Under Observation, A/P = Awaiting Approval",
