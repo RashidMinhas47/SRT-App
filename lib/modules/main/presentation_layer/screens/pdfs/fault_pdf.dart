@@ -42,7 +42,7 @@ class FaultPdf {
 
     // First page can hold many more entries since it has more space after header
     const int entriesPerFirstPage =
-        35; // Increased significantly to fill available space
+        25; // Balanced to ensure additional pages are created when needed
     const int entriesPerAdditionalPage =
         20; // Additional pages can also hold more
 
@@ -94,7 +94,7 @@ class FaultPdf {
       }
 
       // Create the additional page with entries from currentIndex to endIndex
-      if (currentIndex < faultFormModels.length) {
+      if (currentIndex < faultFormModels.length && endIndex > currentIndex) {
         _serviceTypeIndex = currentIndex;
         pdf.addPage(await _createAdditionalPage(
           faultFormModels: faultFormModels,
@@ -104,6 +104,8 @@ class FaultPdf {
         ));
         currentIndex = endIndex;
         pageNumber++;
+      } else {
+        break; // Prevent infinite loop
       }
     }
     // Always add signature page after report tables
