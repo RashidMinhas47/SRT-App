@@ -30,11 +30,8 @@ class FaultPdf {
     String path = (await getApplicationDocumentsDirectory()).path;
     File file = File("$path/Fault.pdf");
     Document pdf = Document();
-    pdf.addPage(await _createPage1(
-      jobCardModel: jobCardModel,
-      faultFormModels: faultFormModels,
-    ));
-    // Calculate total height and create as many pages as needed
+
+    // Calculate total height and determine how many entries fit on first page
     int totalHeight = 0;
     for (var element in faultFormModels) {
       if (element.serviceTypes != null) {
@@ -43,20 +40,47 @@ class FaultPdf {
     }
     _heightOfPdf = totalHeight;
 
-    // Create additional pages if needed (each page can hold ~10 entries)
-    const int entriesPerPage = 10;
-    int currentIndex = 0;
+    // First page can hold more entries (around 15-20) since it has more space
+    const int entriesPerFirstPage = 18;
+    const int entriesPerAdditionalPage = 15;
+
+    // Calculate how many entries fit on the first page
+    int entriesOnFirstPage = 0;
+    int firstPageEndIndex = 0;
+
+    for (int i = 0; i < faultFormModels.length; i++) {
+      if (faultFormModels[i].serviceTypes != null) {
+        int entryCount = faultFormModels[i].serviceTypes!.length;
+        if (entriesOnFirstPage + entryCount <= entriesPerFirstPage) {
+          entriesOnFirstPage += entryCount;
+          firstPageEndIndex = i + 1;
+        } else {
+          break;
+        }
+      } else {
+        firstPageEndIndex = i + 1;
+      }
+    }
+
+    pdf.addPage(await _createPage1(
+      jobCardModel: jobCardModel,
+      faultFormModels: faultFormModels,
+      endIndex: firstPageEndIndex,
+    ));
+
+    // Create additional pages only for remaining entries
+    int currentIndex = firstPageEndIndex;
     int pageNumber = 2;
 
     while (currentIndex < faultFormModels.length) {
-      // Calculate how many entries fit on this page
+      // Calculate how many entries fit on this additional page
       int entriesOnThisPage = 0;
       int endIndex = currentIndex;
 
       for (int i = currentIndex; i < faultFormModels.length; i++) {
         if (faultFormModels[i].serviceTypes != null) {
           int entryCount = faultFormModels[i].serviceTypes!.length;
-          if (entriesOnThisPage + entryCount <= entriesPerPage) {
+          if (entriesOnThisPage + entryCount <= entriesPerAdditionalPage) {
             entriesOnThisPage += entryCount;
             endIndex = i + 1;
           } else {
@@ -67,7 +91,7 @@ class FaultPdf {
         }
       }
 
-      // Create the page with entries from currentIndex to endIndex
+      // Create the additional page with entries from currentIndex to endIndex
       if (currentIndex < faultFormModels.length) {
         _serviceTypeIndex = currentIndex;
         pdf.addPage(await _createAdditionalPage(
@@ -117,6 +141,7 @@ class FaultPdf {
   static Future<Page> _createPage1({
     required List<FaultFormModel> faultFormModels,
     required JobCard jobCardModel,
+    int? endIndex,
   }) async {
     final ByteData bytes = await rootBundle.load("assets/images/logo.png");
     final Uint8List byteList = bytes.buffer.asUint8List();
@@ -508,9 +533,10 @@ class FaultPdf {
                     style: pw.TextStyle(fontSize: 8 / 1000 * height)),
                 SizedBox(height: 0.005 * height),
                 pw.TableHelper.fromTextArray(
-                  data: tableData(
+                  data: tableDataForRange(
                       list: faultFormModels,
-                      flag: true,
+                      startIndex: 0,
+                      endIndex: endIndex ?? faultFormModels.length,
                       width: width,
                       height: height),
                   border: pw.TableBorder.all(),
