@@ -40,72 +40,92 @@ class FaultPdf {
     }
     _heightOfPdf = totalHeight;
 
-    // First page can hold many more entries since it has more space after header
-    const int entriesPerFirstPage =
-        25; // Balanced to ensure additional pages are created when needed
-    const int entriesPerAdditionalPage =
-        20; // Additional pages can also hold more
+    // Dynamic space management - try to fit everything on first page first
+    const int maxEntriesPerFirstPage =
+        40; // Maximum possible entries on first page
+    const int maxEntriesPerAdditionalPage =
+        25; // Maximum entries per additional page
 
-    // Calculate how many entries fit on the first page
-    int entriesOnFirstPage = 0;
-    int firstPageEndIndex = 0;
-
-    for (int i = 0; i < faultFormModels.length; i++) {
-      if (faultFormModels[i].serviceTypes != null) {
-        int entryCount = faultFormModels[i].serviceTypes!.length;
-        if (entriesOnFirstPage + entryCount <= entriesPerFirstPage) {
-          entriesOnFirstPage += entryCount;
-          firstPageEndIndex = i + 1;
-        } else {
-          break;
-        }
-      } else {
-        firstPageEndIndex = i + 1;
+    // Calculate total entries needed
+    int totalEntries = 0;
+    for (var element in faultFormModels) {
+      if (element.serviceTypes != null) {
+        totalEntries += element.serviceTypes!.length;
       }
     }
 
-    pdf.addPage(await _createPage1(
-      jobCardModel: jobCardModel,
-      faultFormModels: faultFormModels,
-      endIndex: firstPageEndIndex,
-    ));
+    // Try to fit everything on first page if possible
+    if (totalEntries <= maxEntriesPerFirstPage) {
+      // All entries fit on first page
+      pdf.addPage(await _createPage1(
+        jobCardModel: jobCardModel,
+        faultFormModels: faultFormModels,
+        endIndex: faultFormModels.length, // Show all entries
+      ));
+    } else {
+      // Need to split across multiple pages
+      // Calculate how many entries fit on first page
+      int entriesOnFirstPage = 0;
+      int firstPageEndIndex = 0;
 
-    // Create additional pages only for remaining entries
-    int currentIndex = firstPageEndIndex;
-    int pageNumber = 2;
-
-    while (currentIndex < faultFormModels.length) {
-      // Calculate how many entries fit on this additional page
-      int entriesOnThisPage = 0;
-      int endIndex = currentIndex;
-
-      for (int i = currentIndex; i < faultFormModels.length; i++) {
+      for (int i = 0; i < faultFormModels.length; i++) {
         if (faultFormModels[i].serviceTypes != null) {
           int entryCount = faultFormModels[i].serviceTypes!.length;
-          if (entriesOnThisPage + entryCount <= entriesPerAdditionalPage) {
-            entriesOnThisPage += entryCount;
-            endIndex = i + 1;
+          if (entriesOnFirstPage + entryCount <= maxEntriesPerFirstPage) {
+            entriesOnFirstPage += entryCount;
+            firstPageEndIndex = i + 1;
           } else {
             break;
           }
         } else {
-          endIndex = i + 1;
+          firstPageEndIndex = i + 1;
         }
       }
 
-      // Create the additional page with entries from currentIndex to endIndex
-      if (currentIndex < faultFormModels.length && endIndex > currentIndex) {
-        _serviceTypeIndex = currentIndex;
-        pdf.addPage(await _createAdditionalPage(
-          faultFormModels: faultFormModels,
-          startIndex: currentIndex,
-          endIndex: endIndex,
-          pageNumber: pageNumber,
-        ));
-        currentIndex = endIndex;
-        pageNumber++;
-      } else {
-        break; // Prevent infinite loop
+      // Create first page with calculated entries
+      pdf.addPage(await _createPage1(
+        jobCardModel: jobCardModel,
+        faultFormModels: faultFormModels,
+        endIndex: firstPageEndIndex,
+      ));
+
+      // Create additional pages for remaining entries
+      int currentIndex = firstPageEndIndex;
+      int pageNumber = 2;
+
+      while (currentIndex < faultFormModels.length) {
+        // Calculate how many entries fit on this additional page
+        int entriesOnThisPage = 0;
+        int endIndex = currentIndex;
+
+        for (int i = currentIndex; i < faultFormModels.length; i++) {
+          if (faultFormModels[i].serviceTypes != null) {
+            int entryCount = faultFormModels[i].serviceTypes!.length;
+            if (entriesOnThisPage + entryCount <= maxEntriesPerAdditionalPage) {
+              entriesOnThisPage += entryCount;
+              endIndex = i + 1;
+            } else {
+              break;
+            }
+          } else {
+            endIndex = i + 1;
+          }
+        }
+
+        // Create the additional page with entries from currentIndex to endIndex
+        if (currentIndex < faultFormModels.length && endIndex > currentIndex) {
+          _serviceTypeIndex = currentIndex;
+          pdf.addPage(await _createAdditionalPage(
+            faultFormModels: faultFormModels,
+            startIndex: currentIndex,
+            endIndex: endIndex,
+            pageNumber: pageNumber,
+          ));
+          currentIndex = endIndex;
+          pageNumber++;
+        } else {
+          break; // Prevent infinite loop
+        }
       }
     }
     // Always add signature page after report tables
