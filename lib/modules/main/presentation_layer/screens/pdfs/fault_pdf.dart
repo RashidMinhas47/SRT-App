@@ -34,39 +34,51 @@ class FaultPdf {
       jobCardModel: jobCardModel,
       faultFormModels: faultFormModels,
     ));
-    // Calculate total height and determine if we need multiple pages
+    // Calculate total height and create as many pages as needed
     int totalHeight = 0;
     for (var element in faultFormModels) {
       if (element.serviceTypes != null) {
         totalHeight += element.serviceTypes!.length;
       }
     }
+    _heightOfPdf = totalHeight;
 
-    // If we have more than 10 entries, we need to split across pages
-    if (totalHeight > 10) {
-      // Find the split point (around 10 entries)
-      int currentHeight = 0;
-      int splitIndex = 0;
-      for (int i = 0; i < faultFormModels.length; i++) {
+    // Create additional pages if needed (each page can hold ~10 entries)
+    const int entriesPerPage = 10;
+    int currentIndex = 0;
+    int pageNumber = 2;
+
+    while (currentIndex < faultFormModels.length) {
+      // Calculate how many entries fit on this page
+      int entriesOnThisPage = 0;
+      int endIndex = currentIndex;
+
+      for (int i = currentIndex; i < faultFormModels.length; i++) {
         if (faultFormModels[i].serviceTypes != null) {
-          currentHeight += faultFormModels[i].serviceTypes!.length;
-          if (currentHeight >= 10) {
-            splitIndex = i;
+          int entryCount = faultFormModels[i].serviceTypes!.length;
+          if (entriesOnThisPage + entryCount <= entriesPerPage) {
+            entriesOnThisPage += entryCount;
+            endIndex = i + 1;
+          } else {
             break;
           }
+        } else {
+          endIndex = i + 1;
         }
       }
-      _serviceTypeIndex = splitIndex;
-      _heightOfPdf = totalHeight;
 
-      // Add Page 2 with remaining entries
-      pdf.addPage(await _createPage2(
-        faultFormModels: faultFormModels,
-      ));
-    } else {
-      // All entries fit on one page
-      _heightOfPdf = totalHeight;
-      _serviceTypeIndex = faultFormModels.length;
+      // Create the page with entries from currentIndex to endIndex
+      if (currentIndex < faultFormModels.length) {
+        _serviceTypeIndex = currentIndex;
+        pdf.addPage(await _createAdditionalPage(
+          faultFormModels: faultFormModels,
+          startIndex: currentIndex,
+          endIndex: endIndex,
+          pageNumber: pageNumber,
+        ));
+        currentIndex = endIndex;
+        pageNumber++;
+      }
     }
     // Always add signature page after report tables
     pdf.addPage(await _createSignaturePage(
@@ -539,8 +551,11 @@ class FaultPdf {
         });
   }
 
-  static Future<Page> _createPage2({
+  static Future<Page> _createAdditionalPage({
     required List<FaultFormModel> faultFormModels,
+    required int startIndex,
+    required int endIndex,
+    required int pageNumber,
   }) async {
     double height = PdfPageFormat.a4.height;
     double width = PdfPageFormat.a4.width;
@@ -557,9 +572,10 @@ class FaultPdf {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 pw.TableHelper.fromTextArray(
-                  data: tableData(
+                  data: tableDataForRange(
                       list: faultFormModels,
-                      flag: false,
+                      startIndex: startIndex,
+                      endIndex: endIndex,
                       width: width,
                       height: height),
                   border: pw.TableBorder.all(),
@@ -619,18 +635,16 @@ class FaultPdf {
                     Expanded(child: Text("")),
                   ]),
                 ),
-                SizedBox(height: 0.01 * height),
+                SizedBox(height: 0.02 * height),
                 Row(children: [
                   Text("Comments:",
                       style: pw.TextStyle(fontSize: 8 / 1000 * height)),
                   SizedBox(width: 0.04 * width),
                   pw.Expanded(
                       child: Text(faultFormModels.last.comment!,
-                          style: pw.TextStyle(fontSize: 8 / 1000 * height)))
+                          style: pw.TextStyle(fontSize: 8 / 1000 * height))),
                 ]),
-                Expanded(
-                  child: SizedBox(),
-                ),
+                SizedBox(height: 0.05 * height),
                 Column(children: [
                   Container(
                       height: 3 / 1000 * height,
@@ -960,6 +974,184 @@ List<Uint8List> stringsListToByteList(List<String> encodedImages) {
     photos.add(stringToByteList(encodedImage));
   }
   return photos;
+}
+
+List<List<dynamic>> tableDataForRange({
+  required List<FaultFormModel> list,
+  required int startIndex,
+  required int endIndex,
+  required double width,
+  required double height,
+}) {
+  List<List<dynamic>> tableData = [];
+  tableData.add(headers);
+
+  for (int i = startIndex; i < endIndex && i < list.length; i++) {
+    var element = list[i];
+    if (element.serviceTypes != null && element.serviceTypes!.length == 1) {
+      tableData.add([
+        Container(
+          width: 0.08 * width,
+          child: Text(element.subCategory,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.make,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.model,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.serialNumber,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.location,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+            width: 0.25 * width,
+            child: Text(element.serviceTypes![0].serviceTypeName,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  font: FaultPdf.arFontRegular,
+                  fontSize: 7 / 1000 * height,
+                ))),
+        Container(
+            width: 0.08 * width,
+            child: Text("${element.serviceTypes![0].quantity}",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  font: FaultPdf.arFontRegular,
+                  fontSize: 7 / 1000 * height,
+                ))),
+        Container(
+          width: 0.1 * width,
+          child: Text(element.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+      ]);
+    } else if (element.serviceTypes != null &&
+        element.serviceTypes!.length > 1) {
+      tableData.add([
+        Container(
+          width: 0.08 * width,
+          child: Text(element.subCategory,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.make,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.model,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.serialNumber,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+          width: 0.08 * width,
+          child: Text(element.location,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+        Container(
+            width: 0.25 * width,
+            child: Text(element.serviceTypes![0].serviceTypeName,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  font: FaultPdf.arFontRegular,
+                  fontSize: 7 / 1000 * height,
+                ))),
+        Container(
+            width: 0.08 * width,
+            child: Text("${element.serviceTypes![0].quantity}",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  font: FaultPdf.arFontRegular,
+                  fontSize: 7 / 1000 * height,
+                ))),
+        Container(
+          width: 0.1 * width,
+          child: Text(element.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 7 / 1000 * height,
+              )),
+        ),
+      ]);
+      for (int index = 1; index < element.serviceTypes!.length; index++) {
+        tableData.add([
+          "",
+          "",
+          "",
+          "",
+          "",
+          Container(
+              width: 0.25 * width,
+              child: Text(element.serviceTypes![index].serviceTypeName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    font: FaultPdf.arFontRegular,
+                    fontSize: 7 / 1000 * height,
+                  ))),
+          Container(
+              width: 0.08 * width,
+              child: Text("${element.serviceTypes![index].quantity}",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    font: FaultPdf.arFontRegular,
+                    fontSize: 7 / 1000 * height,
+                  ))),
+          ""
+        ]);
+      }
+    }
+  }
+  return tableData;
 }
 
 List<List<dynamic>> tableData(
