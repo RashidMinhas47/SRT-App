@@ -1071,7 +1071,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.06 * width,
+          width: 0.062 * width,
           child: Text(element.location,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1139,7 +1139,7 @@ List<List<dynamic>> tableDataForRange({
               )),
         ),
         Container(
-          width: 0.06 * width,
+          width: 0.062 * width,
           child: Text(element.location,
               textAlign: TextAlign.center,
               style: TextStyle(
