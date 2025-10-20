@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:sizer/sizer.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/utils/color_manager.dart';
 
 class PDFViewerScreen extends StatefulWidget {
@@ -51,6 +52,25 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.share_rounded,
+              color: ColorManager.white,
+              size: 20.sp,
+            ),
+            onPressed: () async {
+              try {
+                final file = File(widget.pdfPath);
+                if (await file.exists()) {
+                  await Share.shareXFiles(
+                    [XFile(widget.pdfPath, mimeType: 'application/pdf')],
+                    subject: widget.title,
+                    text: widget.title,
+                  );
+                }
+              } catch (_) {}
+            },
+          ),
           if (_isReady && _totalPages > 0)
             Container(
               margin: EdgeInsets.only(right: 16.sp),
